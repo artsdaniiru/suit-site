@@ -1,5 +1,11 @@
 # suit-site
 
+Install [node.js](https://nodejs.org/).
+
+```
+npm install -g @vue/cli
+```
+
 ## Project setup
 ```
 npm install && node first-install.js

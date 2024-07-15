@@ -10,9 +10,10 @@ const phpFilePath = path.join(__dirname, 'public/backend', 'config.php');
 
 // Данные для записи в PHP файл
 const phpContent = `<?php
-define('API_BASE_URL', '${process.env.VUE_APP_API_BASE_URL}');
-define('CUSTOM_VALUE', '${process.env.VUE_APP_CUSTOM_VALUE}');
-?>`;
+define('DB_HOST', '${process.env.DB_HOST}');
+define('DB_USER', '${process.env.DB_USER}');
+define('DB_PASS', '${process.env.DB_PASS}');
+define('DB_NAME', '${process.env.DB_NAME}');`;
 
 // Запись данных в PHP файл
 fs.writeFile(phpFilePath, phpContent, (err) => {

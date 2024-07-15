@@ -19,16 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     }
 }
 
+
+
+
 $data = json_decode(file_get_contents('php://input'), true);
 
-
-$servername = "localhost"; // Your database server, usually "localhost"
-$username = "k237034"; // Your database username
-$password = "acy"; // Your database password
-$dbname = "arts_ii"; // Your database name
-
+// Включаем файл конфигурации
+require_once 'config.php';
 // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
 
 // Check connection
 if ($conn->connect_error) {
