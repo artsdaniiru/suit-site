@@ -2,6 +2,7 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
     <h1>Film Data</h1>
+    <p>Salam Alleikum</p>
     <div v-if="data.length === 0">No data available.</div>
     <table v-else>
       <thead>
