@@ -51,13 +51,13 @@ export default defineComponent({
   setup() {
 
     console.log(process.env.VUE_APP_API_BASE_URL)
+    console.log(process.env.VUE_APP_BACKEND_URL)
 
     const data = ref([]);
     const message = ref('test');
 
     async function fetchData() {
-      // var url = 'http://localhost:8181/vue-php-integration/dist/backend/api.php'
-      var url = 'https://153.126.183.193/~k237034/backend/api.php'
+      var url = process.env.VUE_APP_BACKEND_URL + '/backend/api.php'
       try {
         const response = await axios.post(url, {
           message: message.value

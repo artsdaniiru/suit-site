@@ -2,8 +2,13 @@
 
 ## Project setup
 ```
-npm install
+npm install && node first-install.js
 ```
+
+### Setup database and backend API usl
+
+.env for dev
+.env.production for production
 
 ### Compiles and hot-reloads for development
 ```
