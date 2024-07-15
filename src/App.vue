@@ -49,6 +49,9 @@ import axios from 'axios';
 export default defineComponent({
   name: 'App',
   setup() {
+
+    console.log(process.env.VUE_APP_API_BASE_URL)
+
     const data = ref([]);
     const message = ref('test');
 
