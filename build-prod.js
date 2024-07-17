@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
+const envFilePath = `.env.production`;
 // Загрузка переменных окружения из .env файла
-dotenv.config();
+dotenv.config({
+    path: envFilePath
+});
 
 // Путь к PHP файлу
 const phpFilePath = path.join(__dirname, 'dist/backend', 'config.php');
