@@ -50,7 +50,7 @@ export default defineComponent({
             try {
                 const response = await axios.get(url);
                 if (response.data.status === 'success') {
-                    users.value = response.data.message;
+                    users.value = response.data.users;
                 } else {
                     console.error('Error fetching data:', response.data.message);
                 }
@@ -81,9 +81,9 @@ export default defineComponent({
         }
 
         async function deleteUser(id) {
-            const url = process.env.VUE_APP_BACKEND_URL + '/backend/users.php';
+            const url = process.env.VUE_APP_BACKEND_URL + '/backend/users.php?action=delete';
             try {
-                const response = await axios.delete(url, { data: { id } });
+                const response = await axios.post(url, { id });
                 if (response.data.status === 'success') {
                     fetchUsers();
                 } else {
