@@ -1,7 +1,7 @@
 <template>
     <div>
         <section class="hero">
-            <h1>すべての縫い目に完璧を。</h1>
+            <h1>dfjghdkjfgjkd</h1>
             <p>理想の男性にふさわしい理想のスーツ</p>
         </section>
 
