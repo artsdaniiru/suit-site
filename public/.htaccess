@@ -13,6 +13,7 @@
   RewriteCond %{REQUEST_URI} !^/backend
   RewriteCond %{REQUEST_URI} !^/images
 
-  # Перенаправление всех остальных запросов на /~k237034/index.html
-  RewriteRule . /~k237034/index.html [L]
+  # Перенаправление всех остальных запросов на /~пользователь/index.html
+  RewriteCond %{REQUEST_URI} ^/~([^/]+)/.*$
+  RewriteRule . /~%1/index.html [L]
 </IfModule>

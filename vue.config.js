@@ -4,9 +4,7 @@ const {
 module.exports = defineConfig({
   transpileDependencies: true
 })
+
 // module.exports = {
-//   publicPath: "/suit-site/dist"
+//   publicPath: "/~k237034"
 // }
-module.exports = {
-  publicPath: "/~k237034"
-}
