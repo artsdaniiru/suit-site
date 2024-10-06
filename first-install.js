@@ -8,7 +8,11 @@ const envContent = `VUE_APP_BACKEND_URL=http://localhost:8181/public
 DB_HOST=localhost
 DB_USER=user
 DB_PASS=pass
-DB_NAME=name`;
+DB_NAME=name
+VPS_HOST=host
+VPS_USERNAME=user
+SSH_PASSWORD=pass
+REMOTE_DIR=dirname`;
 
 // Путь к PHP файлу
 const envFilePath = path.join(__dirname, '', '.env');
