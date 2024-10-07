@@ -1,7 +1,9 @@
 <template>
-  <MainHeader />
-  <router-view />
-  <MainFooter />
+  <main>
+    <MainHeader />
+    <router-view />
+    <MainFooter />
+  </main>
 </template>
 
 <script setup>
@@ -18,12 +20,21 @@ defineComponent({
 </script>
 
 <style>
+body {
+  margin: 0;
+}
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Noto Sans JP', 'Noto Sans';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
+}
+
+main {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 
