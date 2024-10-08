@@ -19,24 +19,7 @@ defineComponent({
 });
 </script>
 
-<style>
-body {
-  margin: 0;
-}
-
-#app {
-  font-family: 'Noto Sans JP', 'Noto Sans';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-}
-
-main {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
+<style></style>
 
 
 <!-- <template>

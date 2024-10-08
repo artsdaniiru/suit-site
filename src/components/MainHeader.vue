@@ -1,9 +1,9 @@
 <template>
     <header>
-        <div class="logo">
+        <router-link to="/" class="logo">
             <img src="../assets/icons/logo.svg" alt="logo">
             <span>サイトーズ</span>
-        </div>
+        </router-link>
         <nav>
             <router-link to="/"><span>カタログ</span></router-link>
             <router-link to="/delivery"><span>配送について</span></router-link>
@@ -12,22 +12,33 @@
             <button><span>ログイン</span></button>
             <div class="cart">
                 <img src="../assets/icons/cart.svg" alt="logo">
-                <span class="count">10</span>
+                <span v-if="cart_count != 0" class="count">{{ cart_count }}</span>
             </div>
         </nav>
     </header>
 </template>
 
-<script setup>
-import { defineComponent } from 'vue';
+<script>
+import { defineComponent, ref } from 'vue';
 
-defineComponent({});
+export default defineComponent({
+    name: 'MainHeader',
+    setup() {
+
+        const cart_count = ref(0);
+
+
+        return {
+            cart_count
+        };
+    }
+});
 </script>
 
 <style lang="scss" scoped>
 header {
+    border-bottom: 1px solid #d9d9d9;
     padding: 32px;
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
     background: #fff;
     display: flex;
     justify-content: space-between;
@@ -40,6 +51,7 @@ header {
         font-size: 16px;
         color: #000;
         align-items: center;
+        text-decoration: unset;
 
         img {
             width: 34px;
@@ -64,10 +76,13 @@ nav {
         display: flex;
         height: 32px;
 
+        &:hover,
         &.router-link-exact-active {
             background: #f5f5f5;
             border-radius: 8px;
         }
+
+
     }
 
     button {
@@ -81,12 +96,20 @@ nav {
         width: 100px;
         height: 32px;
         background: #2c2c2c;
+
+        cursor: pointer;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: #1e1e1e;
+        }
     }
 
     .cart {
         position: relative;
         display: flex;
         align-items: center;
+        cursor: pointer;
 
         img {
             width: 26px;

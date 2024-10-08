@@ -45,58 +45,68 @@
         <section class="products">
             <h3>人気な商品</h3>
             <div class="product-list">
-                <Product :name="'dsdfsdf'"></Product>
-                <div class="product">
-                    <img src="path/to/gray-suit.jpg" alt="エレガンスグレー">
-                    <h3>エレガンスグレー</h3>
-                    <p>¥25,000〜</p>
-                    <button>内容を見る</button>
-                </div>
-                <div class="product">
-                    <img src="path/to/black-suit.jpg" alt="ミッドナイトブラック">
-                    <h3>ミッドナイトブラック</h3>
-                    <p>¥30,000〜</p>
-                    <button>内容を見る</button>
-                </div>
+                <ProductCard>
+                </ProductCard>
+                <ProductCard :name="'エレガンスグレー'" :price="'¥25,000〜'">
+                </ProductCard>
+                <ProductCard :name="'ミッドナイトブラック'" :price="'¥30,000〜'">
+                </ProductCard>
+            </div>
+        </section>
+
+        <section class="products">
+            <h3>新品</h3>
+            <div class="product-list">
+                <ProductCard>
+                </ProductCard>
+                <ProductCard :name="'エレガンスグレー'" :price="'¥25,000〜'">
+                </ProductCard>
+                <ProductCard :name="'ミッドナイトブラック'" :price="'¥30,000〜'">
+                </ProductCard>
             </div>
         </section>
 
         <section class="contact">
-            <h2>連絡</h2>
+            <h3>連絡</h3>
             <form>
-                <label for="name">名前</label>
-                <input id="name" type="text" placeholder="名前を入力してください">
-
-                <label for="email">メール</label>
-                <input id="email" type="email" placeholder="メールアドレスを入力してください">
-
-                <label for="phone">電話番号</label>
-                <input id="phone" type="tel" placeholder="電話番号を入力してください">
-
-                <label for="message">メッセージ</label>
-                <textarea id="message" placeholder="メッセージを入力してください"></textarea>
-
-                <button type="submit">送信</button>
+                <div class="form-elem">
+                    <label for="name">名前</label>
+                    <input id="name" type="text" placeholder="名前を入力してください">
+                </div>
+                <div class="form-elem">
+                    <label for="email">メール</label>
+                    <input id="email" type="email" placeholder="メールアドレスを入力してください">
+                </div>
+                <div class="form-elem">
+                    <label for="phone">電話番号</label>
+                    <input id="phone" type="tel" placeholder="電話番号を入力してください">
+                </div>
+                <div class="form-elem">
+                    <label for="message">メッセージ</label>
+                    <textarea id="message" placeholder="メッセージを入力してください"></textarea>
+                </div>
+                <button class="button" type="submit">送信</button>
             </form>
         </section>
     </div>
 </template>
 
-<script setup>
+<script>
 import { defineComponent } from 'vue';
 
-import Product from '../components/ProductCard.vue';
+export default defineComponent({
+    name: 'HomeView',
+    setup() {
 
-defineComponent({
-    components: {
-        Product
-    },
+        return {
+        };
+    }
 });
 </script>
 
 <style lang="scss" scoped>
 section {
-    padding: 64px;
+    padding: 10px 64px 10px 64px;
 }
 
 .hero {
@@ -124,29 +134,6 @@ section {
             color: #fff;
         }
     }
-}
-
-h2 {
-    font-weight: 400;
-    font-size: 32px;
-    line-height: 120%;
-    text-align: center;
-    color: #1e1e1e;
-}
-
-h3 {
-    font-weight: 600;
-    font-size: 24px;
-    line-height: 120%;
-    letter-spacing: -0.02em;
-    color: #1e1e1e;
-}
-
-.subtitle {
-    font-weight: 400;
-    font-size: 20px;
-    line-height: 120%;
-    color: #757575;
 }
 
 .services {
@@ -195,57 +182,27 @@ h3 {
 
 }
 
-// .services,
-// .products,
-// .testimonials,
-// .contact {
-//     padding: 40px 20px;
-//     text-align: center;
-// }
+.product-list {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
 
-// .strengths {
-//     display: flex;
-//     justify-content: space-around;
-//     margin-top: 20px;
-// }
+.contact {
 
-// .strength {
-//     max-width: 250px;
-// }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        border: 1px solid #d9d9d9;
+        border-radius: 8px;
+        padding: 24px;
 
-// .icon {
-//     font-size: 40px;
-// }
-
-// .product-list {
-//     display: flex;
-//     justify-content: space-around;
-// }
-
-// .product {
-//     max-width: 250px;
-// }
-
-// .testimonial-list {
-//     display: flex;
-//     justify-content: space-around;
-// }
-
-// form {
-//     display: grid;
-//     gap: 10px;
-//     max-width: 500px;
-//     margin: 0 auto;
-// }
-
-// button {
-//     background-color: #42b983;
-//     color: white;
-//     padding: 10px 20px;
-//     border: none;
-//     cursor: pointer;
-// }
-
-// button:hover {
-//     background-color: #3a9f6b;
-// }</style>
+        .form-elem {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+}
+</style>

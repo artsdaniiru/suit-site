@@ -1,19 +1,21 @@
 <template>
-    <div class="suit-card">
-        <img :src="image" :alt="name" class="suit-image" />
-        <div class="suit-info">
-            <h3>{{ name }}</h3>
+    <div class="product-card">
+        <img :src="image" :alt="name" class="product-image" />
+        <div class="product-info">
+            <span class="name">{{ name }}</span>
             <span class="english-name">{{ englishName }}</span>
-            <p class="price">{{ price }}</p>
+            <span class="price">{{ price }}</span>
         </div>
-        <button class="details-button">内容を見る</button>
+        <button class="button">内容を見る</button>
     </div>
 </template>
 
-<script setup>
+<script>
+
 import { defineComponent } from 'vue';
 
-defineComponent({
+export default defineComponent({
+    name: 'ProductCard',
     props: {
         name: {
             type: String,
@@ -33,63 +35,66 @@ defineComponent({
         image: {
             type: String,
             required: false,
-            default: '../assets/suit-image.png', // Замените на правильный путь к изображению
+            default: 'images/suit.webp', // Замените на правильный путь к изображению
         }
+    },
+    setup() {
+
+
+        return {
+
+        };
     }
 });
 </script>
 
 <style lang="scss" scoped>
-.suit-card {
-    border: 1px solid #ddd;
-    padding: 16px;
+.product-card {
+    border: 1px solid #d9d9d9;
     border-radius: 8px;
-    width: 300px;
-    text-align: center;
-    background-color: #fff;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    width: 270px;
+    min-width: 240px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 
-    .suit-image {
+    .product-image {
         width: 100%;
-        border-radius: 8px;
-        margin-bottom: 16px;
+        // border-radius: 8px;
     }
 
-    .suit-info {
-        margin-bottom: 16px;
+    .product-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        line-height: 140%;
 
-        h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0;
+        .name {
+            font-weight: 400;
+            font-size: 16px;
+
+            color: #1e1e1e;
         }
 
         .english-name {
+            font-weight: 400;
             font-size: 14px;
-            color: #666;
+
+            color: #757575;
         }
 
         .price {
-            font-size: 16px;
             font-weight: 600;
-            color: #333;
-            margin: 8px 0 0;
+            font-size: 16px;
+
+            color: #1e1e1e;
         }
     }
 
-    .details-button {
-        background-color: #000;
-        color: #fff;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-
-        &:hover {
-            background-color: #333;
-        }
+    .button {
+        width: -webkit-fill-available;
     }
 }
 </style>
