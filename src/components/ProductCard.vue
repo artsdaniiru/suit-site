@@ -6,13 +6,13 @@
             <span class="english-name">{{ englishName }}</span>
             <span class="price">{{ price }}</span>
         </div>
-        <button class="button">内容を見る</button>
+        <button class="button" @click="updateCount">内容を見る</button>
     </div>
 </template>
 
 <script>
 
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 
 export default defineComponent({
     name: 'ProductCard',
@@ -41,8 +41,11 @@ export default defineComponent({
     setup() {
 
 
-        return {
+        const { cart_count, updateCount } = inject('cart_count')
 
+        return {
+            cart_count,
+            updateCount
         };
     }
 });

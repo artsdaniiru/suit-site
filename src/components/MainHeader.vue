@@ -19,17 +19,20 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, inject } from 'vue';
 
 export default defineComponent({
     name: 'MainHeader',
     setup() {
 
-        const cart_count = ref(0);
+        const { cart_count, updateCount } = inject('cart_count')
+
+        console.log(cart_count);
 
 
         return {
-            cart_count
+            cart_count,
+            updateCount
         };
     }
 });
