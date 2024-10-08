@@ -54,11 +54,11 @@ export default defineComponent({
     border-radius: 8px;
     padding: 16px;
     width: 270px;
-    min-width: 240px;
     background: #fff;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    text-align: start;
 
     .product-image {
         width: 100%;

@@ -8,7 +8,7 @@
 
         </div>
 
-        <section class="services">
+        <div class="section-box services">
             <h2>当社のサービス</h2>
             <p>
                 当サイトでは、豊富な紳士スーツのラインナップをご用意しております。お客様はご自身のサイズを入力するだけで、
@@ -40,33 +40,36 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="products">
+        <div class="section-box products">
             <h3>人気な商品</h3>
-            <div class="product-list">
-                <ProductCard>
-                </ProductCard>
-                <ProductCard :name="'エレガンスグレー'" :price="'¥25,000〜'">
-                </ProductCard>
-                <ProductCard :name="'ミッドナイトブラック'" :price="'¥30,000〜'">
-                </ProductCard>
-            </div>
-        </section>
+            <Carousel :items-to-show="3" :wrap-around="true">
+                <Slide v-for="item in popular" :key="item">
+                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price">
+                    </ProductCard>
+                </Slide>
+                <template #addons>
+                    <Navigation />
+                </template>
+            </Carousel>
+        </div>
 
-        <section class="products">
+        <div class="section-box products">
             <h3>新品</h3>
-            <div class="product-list">
-                <ProductCard>
-                </ProductCard>
-                <ProductCard :name="'エレガンスグレー'" :price="'¥25,000〜'">
-                </ProductCard>
-                <ProductCard :name="'ミッドナイトブラック'" :price="'¥30,000〜'">
-                </ProductCard>
-            </div>
-        </section>
+            <Carousel :items-to-show="3" :wrap-around="true">
+                <Slide v-for="item in new_items" :key="item">
+                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price">
+                    </ProductCard>
+                </Slide>
+                <template #addons>
+                    <Navigation />
+                </template>
+            </Carousel>
+        </div>
 
-        <section class="contact">
+
+        <div class="section-box contact">
             <h3>連絡</h3>
             <form>
                 <div class="form-elem">
@@ -87,25 +90,139 @@
                 </div>
                 <button class="button" type="submit">送信</button>
             </form>
-        </section>
+        </div>
     </div>
 </template>
-
+<!-- eslint-disable -->
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
+
+
+import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
+import 'vue3-carousel/dist/carousel.css'
+
+//ref https://ismail9k.github.io/vue3-carousel/
 
 export default defineComponent({
     name: 'HomeView',
+    components: {
+        Carousel,
+        Slide,
+        Pagination,
+        Navigation,
+    },
     setup() {
 
+        const popular = ref([
+            {
+                "name": "クラシックネイビー",
+                "name_eng": "Classic Navy",
+                "price": "¥28,000"
+            },
+            {
+                "name": "ミッドナイトブラック",
+                "name_eng": "Midnight Black",
+                "price": "¥30,000"
+            },
+            {
+                "name": "ロイヤルブルー",
+                "name_eng": "Royal Blue",
+                "price": "¥26,500"
+            },
+            {
+                "name": "チャコールシャドウ",
+                "name_eng": "Charcoal Shadow",
+                "price": "¥27,500"
+            },
+            {
+                "name": "サンセットブラウン",
+                "name_eng": "Sunset Brown",
+                "price": "¥22,000"
+            },
+            {
+                "name": "ワインレッド",
+                "name_eng": "Wine Red",
+                "price": "¥29,000"
+            },
+            {
+                "name": "フォレストグリーン",
+                "name_eng": "Forest Green",
+                "price": "¥23,500"
+            },
+            {
+                "name": "アーバンチャコール",
+                "name_eng": "Urban Charcoal",
+                "price": "¥31,000"
+            },
+            {
+                "name": "アイスグレー",
+                "name_eng": "Ice Gray",
+                "price": "¥24,500"
+            }
+        ])
+        const new_items = ref([
+            {
+                "name": "スカーレットエレガンス",
+                "name_eng": "Scarlet Elegance",
+                "price": "¥32,000"
+            },
+            {
+                "name": "ディープオリーブ",
+                "name_eng": "Deep Olive",
+                "price": "¥22,500"
+            },
+            {
+                "name": "シルバーストライプ",
+                "name_eng": "Silver Stripe",
+                "price": "¥28,500"
+            },
+            {
+                "name": "モカブラウン",
+                "name_eng": "Mocha Brown",
+                "price": "¥25,500"
+            },
+            {
+                "name": "プラチナムブルー",
+                "name_eng": "Platinum Blue",
+                "price": "¥30,500"
+            },
+            {
+                "name": "ジェットブラック",
+                "name_eng": "Jet Black",
+                "price": "¥27,000"
+            },
+            {
+                "name": "ラベンダーパープル",
+                "name_eng": "Lavender Purple",
+                "price": "¥23,000"
+            },
+            {
+                "name": "サファイアネイビー",
+                "name_eng": "Sapphire Navy",
+                "price": "¥29,500"
+            },
+            {
+                "name": "クリムゾンレッド",
+                "name_eng": "Crimson Red",
+                "price": "¥26,000"
+            },
+            {
+                "name": "ダスクグレー",
+                "name_eng": "Dusk Gray",
+                "price": "¥24,000"
+            }
+        ])
+
         return {
+            popular,
+            new_items
         };
     }
 });
 </script>
 
 <style lang="scss" scoped>
-section {
+.section-box {
     padding: 10px 64px 10px 64px;
 }
 

@@ -1,55 +1,29 @@
 <template>
   <main>
     <MainHeader />
-    <router-view />
+    <RouterView />
     <MainFooter />
   </main>
 </template>
 
-<script setup>
+<!-- eslint-disable -->
+<script>
 import { defineComponent } from 'vue';
+
 import MainHeader from './components/MainHeader.vue';
 import MainFooter from './components/MainFooter.vue';
 
-defineComponent({
+
+export default defineComponent({
+  name: 'App',
   components: {
     MainHeader,
     MainFooter,
   },
+  setup() {
+
+    return {
+    };
+  }
 });
 </script>
-
-<style></style>
-
-
-<!-- <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link> |
-    <router-link to="/users">Users</router-link>
-  </nav>
-  <router-view />
-</template>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-nav {
-  padding: 30px;
-}
-
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style> -->
