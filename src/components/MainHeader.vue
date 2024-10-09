@@ -5,7 +5,7 @@
             <span>サイトーズ</span>
         </router-link>
         <nav>
-            <router-link to="/"><span>カタログ</span></router-link>
+            <router-link to="/catalog"><span>カタログ</span></router-link>
             <router-link to="/delivery"><span>配送について</span></router-link>
             <router-link to="/contact"><span>連絡</span></router-link>
             <router-link to="/login"><span>ログイン</span></router-link>
