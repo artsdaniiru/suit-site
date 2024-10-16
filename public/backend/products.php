@@ -39,6 +39,7 @@ $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
 $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
 $popular = isset($_GET['popular']) && $_GET['popular'] == '1'; // Параметр фильтрации рекомендованных товаров
+$productType = isset($_GET['productType']) ? $_GET['productType'] : ''; // Фильтр по типу продукта (suit или not_suit)
 
 // Определение сортировки в зависимости от параметра $sort
 switch ($sort) {
@@ -52,8 +53,8 @@ switch ($sort) {
         $orderBy = 'min_price ASC'; // Товары с наименьшей минимальной ценой
         break;
     case 'recomended':
-            $orderBy = 'popular DESC'; // Товары с наименьшей минимальной ценой
-            break;
+        $orderBy = 'popular DESC'; // Рекомендованные товары
+        break;
     default:
         $orderBy = 'p.date_of_creation DESC'; // По умолчанию сортировка по дате (новые)
 }
@@ -75,11 +76,19 @@ if ($popular) {
     $popularCondition .= "AND p.popular = 1"; // Фильтрация по популярности
 }
 
-// SQL-запрос с JOIN, MIN, сортировкой, условием поиска и рекомендованными товарами, LIMIT и OFFSET
+// Подготовка условия для фильтра по типу продукта
+$productTypeCondition = '';
+if (!empty($productType)) {
+    // Экранируем значение типа продукта для безопасности
+    $productType = $conn->real_escape_string($productType);
+    $productTypeCondition .= "AND p.type = '$productType'";
+}
+
+// SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
 $sql = "SELECT p.*, MIN(i.price) as min_price 
         FROM products p
         JOIN sizes i ON p.id = i.product_id
-        WHERE 1=1 $searchCondition $popularCondition
+        WHERE 1=1 $searchCondition $popularCondition $productTypeCondition
         GROUP BY p.id
         ORDER BY $orderBy
         LIMIT $offset, $itemsPerPage";
@@ -102,7 +111,7 @@ if ($result->num_rows > 0) {
 $totalCountResult = $conn->query("SELECT COUNT(DISTINCT p.id) as count 
                                   FROM products p 
                                   JOIN sizes i ON p.id = i.product_id
-                                  WHERE 1=1 $searchCondition $popularCondition");
+                                  WHERE 1=1 $searchCondition $popularCondition $productTypeCondition");
 
 if (!$totalCountResult) {
     echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества товаров: ' . $conn->error]);
@@ -126,3 +135,4 @@ echo json_encode([
 
 $conn->close();
 exit();
+?>
