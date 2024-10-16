@@ -56,7 +56,8 @@ export default defineComponent({
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     padding: 16px;
-    width: 270px;
+    width: 14vw;
+    max-width: 250px;
     background: #fff;
     display: flex;
     flex-direction: column;
