@@ -38,7 +38,7 @@ $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest'; // Тип сортир�
 $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Число продуктов на одной странице
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
 $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
-$recomended = isset($_GET['recomended']) && $_GET['recomended'] == '1'; // Параметр фильтрации рекомендованных товаров
+$popular = isset($_GET['popular']) && $_GET['popular'] == '1'; // Параметр фильтрации рекомендованных товаров
 
 // Определение сортировки в зависимости от параметра $sort
 switch ($sort) {
@@ -51,6 +51,9 @@ switch ($sort) {
     case 'lowest_price':
         $orderBy = 'min_price ASC'; // Товары с наименьшей минимальной ценой
         break;
+    case 'recomended':
+            $orderBy = 'popular DESC'; // Товары с наименьшей минимальной ценой
+            break;
     default:
         $orderBy = 'p.date_of_creation DESC'; // По умолчанию сортировка по дате (новые)
 }
@@ -66,17 +69,17 @@ if (!empty($query)) {
     $searchCondition .= "AND (p.name LIKE '%$query%' OR p.name_eng LIKE '%$query%' OR p.description LIKE '%$query%')";
 }
 
-// Подготовка условия для параметра "recomended"
-$recomendedCondition = '';
-if ($recomended) {
-    $recomendedCondition .= "AND p.popular = 1"; // Фильтрация по популярности
+// Подготовка условия для параметра "popular"
+$popularCondition = '';
+if ($popular) {
+    $popularCondition .= "AND p.popular = 1"; // Фильтрация по популярности
 }
 
 // SQL-запрос с JOIN, MIN, сортировкой, условием поиска и рекомендованными товарами, LIMIT и OFFSET
 $sql = "SELECT p.*, MIN(i.price) as min_price 
         FROM products p
-        JOIN items i ON p.id = i.product_id
-        WHERE 1=1 $searchCondition $recomendedCondition
+        JOIN sizes i ON p.id = i.product_id
+        WHERE 1=1 $searchCondition $popularCondition
         GROUP BY p.id
         ORDER BY $orderBy
         LIMIT $offset, $itemsPerPage";
@@ -98,8 +101,8 @@ if ($result->num_rows > 0) {
 // Получение общего количества записей для вычисления количества страниц (с учетом фильтров поиска и рекомендаций)
 $totalCountResult = $conn->query("SELECT COUNT(DISTINCT p.id) as count 
                                   FROM products p 
-                                  JOIN items i ON p.id = i.product_id
-                                  WHERE 1=1 $searchCondition $recomendedCondition");
+                                  JOIN sizes i ON p.id = i.product_id
+                                  WHERE 1=1 $searchCondition $popularCondition");
 
 if (!$totalCountResult) {
     echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества товаров: ' . $conn->error]);
