@@ -1,18 +1,17 @@
 <template>
-    <div class="product-card">
+    <div class="product-card" :style="{ width: width }">
         <img :src="image" :alt="name" class="product-image" />
         <div class="product-info">
             <span class="name">{{ name }}</span>
             <span class="english-name">{{ englishName }}</span>
-            <span class="price">{{ price }}</span>
+            <span class="price">{{ formattedPrice }}</span>
         </div>
         <button class="button" @click="updateCount">内容を見る</button>
     </div>
 </template>
 
 <script>
-
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, computed } from 'vue';
 
 export default defineComponent({
     name: 'ProductCard',
@@ -28,24 +27,31 @@ export default defineComponent({
             default: 'Classic Navy',
         },
         price: {
-            type: String,
+            type: Number, // Изменяем тип на Number
             required: false,
-            default: '¥28,000〜',
+            default: 28000, // Значение по умолчанию
         },
         image: {
             type: String,
             required: false,
             default: 'images/suit.webp', // Замените на правильный путь к изображению
+        },
+        width: {
+            type: String,
+            required: false,
+            default: '-webkit-fill-available',
         }
     },
-    setup() {
+    setup(props) {
+        const { cart_count, updateCount } = inject('cart_count');
 
-
-        const { cart_count, updateCount } = inject('cart_count')
+        // Вычисляемое свойство для форматирования цены
+        const formattedPrice = computed(() => `¥${props.price.toLocaleString('ja-JP')}〜`);
 
         return {
             cart_count,
-            updateCount
+            updateCount,
+            formattedPrice, // Возвращаем форматированную цену
         };
     }
 });
@@ -56,7 +62,7 @@ export default defineComponent({
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     padding: 16px;
-    width: 270px;
+    width: -webkit-fill-available;
     background: #fff;
     display: flex;
     flex-direction: column;

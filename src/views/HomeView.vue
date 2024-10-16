@@ -46,7 +46,7 @@
             <h3>人気な商品</h3>
             <Carousel :items-to-show="3" :wrap-around="true">
                 <Slide v-for="item in popular" :key="item">
-                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price">
+                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price" :width="'270px'">
                     </ProductCard>
                 </Slide>
                 <template #addons>
@@ -59,7 +59,7 @@
             <h3>新品</h3>
             <Carousel :items-to-show="3" :wrap-around="true">
                 <Slide v-for="item in new_items" :key="item">
-                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price">
+                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price" :width="'270px'">
                     </ProductCard>
                 </Slide>
                 <template #addons>
@@ -117,99 +117,99 @@ export default defineComponent({
             {
                 "name": "クラシックネイビー",
                 "name_eng": "Classic Navy",
-                "price": "¥28,000"
+                "price": 28000
             },
             {
                 "name": "ミッドナイトブラック",
                 "name_eng": "Midnight Black",
-                "price": "¥30,000"
+                "price": 30000
             },
             {
                 "name": "ロイヤルブルー",
                 "name_eng": "Royal Blue",
-                "price": "¥26,500"
+                "price": 26500
             },
             {
                 "name": "チャコールシャドウ",
                 "name_eng": "Charcoal Shadow",
-                "price": "¥27,500"
+                "price": 27500
             },
             {
                 "name": "サンセットブラウン",
                 "name_eng": "Sunset Brown",
-                "price": "¥22,000"
+                "price": 22000
             },
             {
                 "name": "ワインレッド",
                 "name_eng": "Wine Red",
-                "price": "¥29,000"
+                "price": 29000
             },
             {
                 "name": "フォレストグリーン",
                 "name_eng": "Forest Green",
-                "price": "¥23,500"
+                "price": 23500
             },
             {
                 "name": "アーバンチャコール",
                 "name_eng": "Urban Charcoal",
-                "price": "¥31,000"
+                "price": 31000
             },
             {
                 "name": "アイスグレー",
                 "name_eng": "Ice Gray",
-                "price": "¥24,500"
+                "price": 24500
             }
         ])
         const new_items = ref([
             {
                 "name": "スカーレットエレガンス",
                 "name_eng": "Scarlet Elegance",
-                "price": "¥32,000"
+                "price": 32000
             },
             {
                 "name": "ディープオリーブ",
                 "name_eng": "Deep Olive",
-                "price": "¥22,500"
+                "price": 22500
             },
             {
                 "name": "シルバーストライプ",
                 "name_eng": "Silver Stripe",
-                "price": "¥28,500"
+                "price": 28500
             },
             {
                 "name": "モカブラウン",
                 "name_eng": "Mocha Brown",
-                "price": "¥25,500"
+                "price": 25500
             },
             {
                 "name": "プラチナムブルー",
                 "name_eng": "Platinum Blue",
-                "price": "¥30,500"
+                "price": 30500
             },
             {
                 "name": "ジェットブラック",
                 "name_eng": "Jet Black",
-                "price": "¥27,000"
+                "price": 27000
             },
             {
                 "name": "ラベンダーパープル",
                 "name_eng": "Lavender Purple",
-                "price": "¥23,000"
+                "price": 23000
             },
             {
                 "name": "サファイアネイビー",
                 "name_eng": "Sapphire Navy",
-                "price": "¥29,500"
+                "price": 29500
             },
             {
                 "name": "クリムゾンレッド",
                 "name_eng": "Crimson Red",
-                "price": "¥26,000"
+                "price": 26000
             },
             {
                 "name": "ダスクグレー",
                 "name_eng": "Dusk Gray",
-                "price": "¥24,000"
+                "price": 24000
             }
         ])
 
