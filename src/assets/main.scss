@@ -20,6 +20,16 @@ main {
   min-width: 1200px; //исправить для мобилки
   margin-left: auto;
   margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.router-view {
+  min-height: calc(100vh - 222px);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
 }
 
 

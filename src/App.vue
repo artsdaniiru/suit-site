@@ -1,7 +1,7 @@
 <template>
   <main>
     <MainHeader />
-    <RouterView />
+    <RouterView class="router-view" />
     <MainFooter />
   </main>
 </template>
@@ -126,3 +126,5 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="scss"></style>
