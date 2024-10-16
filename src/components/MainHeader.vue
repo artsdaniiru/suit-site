@@ -8,8 +8,12 @@
             <router-link to="/catalog"><span>カタログ</span></router-link>
             <router-link to="/delivery"><span>配送について</span></router-link>
             <router-link to="/contact"><span>連絡</span></router-link>
-            <router-link to="/login"><span>ログイン</span></router-link>
-            <button><span>ログイン</span></button>
+            <button v-if="!isUserLoggedIn"><span>ログイン</span></button>
+            <div v-else class="account">
+                <img src="../assets/icons/user.svg" alt="logo">
+                <span class="name">{{ user['name'] }}</span>
+                <button @click="logout" class="danger"><span>ログアウト</span></button>
+            </div>
             <div class="cart">
                 <img src="../assets/icons/cart.svg" alt="logo">
                 <span v-if="cart_count != 0" class="count">{{ cart_count }}</span>
@@ -17,8 +21,9 @@
         </nav>
     </header>
 </template>
-
+<!-- eslint-disable -->
 <script>
+
 import { defineComponent, inject } from 'vue';
 
 export default defineComponent({
@@ -27,12 +32,15 @@ export default defineComponent({
 
         const { cart_count, updateCount } = inject('cart_count')
 
-        console.log(cart_count);
+        const { user, isUserLoggedIn, logout } = inject('auth')
 
 
         return {
             cart_count,
-            updateCount
+            updateCount,
+            user,
+            isUserLoggedIn,
+            logout
         };
     }
 });
@@ -106,6 +114,17 @@ nav {
         &:hover {
             background: #1e1e1e;
         }
+
+
+        &.danger {
+            border: 1px solid #c00f0c;
+            background: #ec221f;
+
+            &:hover {
+                border: 1px solid #900b09;
+                background: #c00f0c;
+            }
+        }
     }
 
     .cart {
@@ -129,6 +148,23 @@ nav {
             font-size: 12px;
             text-align: center;
             color: #fff;
+        }
+    }
+
+    .account {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+
+        .name {
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 100%;
+            color: #000;
+        }
+
+        img {
+            width: 24px;
         }
     }
 }
