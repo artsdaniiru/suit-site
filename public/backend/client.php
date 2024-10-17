@@ -82,16 +82,52 @@ switch ($action) {
         }
         break;
     case 'add_address':
+        $address_name = $request['address_name'];
+        $client_id = $user_id;
+        $address = $request['address'];
+        $phone = $request['phone'];
 
+        $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
+                VALUES ('$address_name', '$client_id', '$address', '$phone')";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+    
         break;
     case 'edit_address':
+        $updateFields = [];
 
+        // Используем функцию для добавления полей
+        addFieldToUpdate($updateFields, $request, 'name');
+        addFieldToUpdate($updateFields, $request, 'address');
+        addFieldToUpdate($updateFields, $request, 'phone');
+
+        if (!empty($updateFields)) {
+            $setClause = implode(', ', $updateFields);
+            $sql = "UPDATE client_addresses SET $setClause WHERE client_id = $user_id";
+
+            if ($conn->query($sql) === TRUE) {
+                echo json_encode(['status' => 'success']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => $conn->error]);
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+        }
         break;
     case 'delete_address':
-
+        $client_id = $user_id;
+        $sql = "DELETE FROM client_addresses WHERE client_id=$client_id";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
         break;
     default:
-        # code...
+        echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
 }
 
