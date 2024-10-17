@@ -6,7 +6,9 @@
             <span class="english-name">{{ englishName }}</span>
             <span class="price">{{ formattedPrice }}</span>
         </div>
-        <button class="button" @click="updateCount">内容を見る</button>
+        <!-- <button class="button" @click="updateCount">内容を見る</button> -->
+        <router-link  to="/product"><button class="button">内容を見る</button></router-link>
+
     </div>
 </template>
 

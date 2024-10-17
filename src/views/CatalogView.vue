@@ -19,6 +19,7 @@
           <label for="items-per-page">кол-во</label>
           <CustomSelect :values="[4, 8, 16]" :defaultValue="itemsPerPage" @update="updateItemsPerPage" />
         </div>
+        
       </div>
     </div>
 
