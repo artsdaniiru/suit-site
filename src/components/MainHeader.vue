@@ -9,7 +9,7 @@
                 <router-link to="/catalog"><span>カタログ</span></router-link>
                 <router-link to="/delivery"><span>配送について</span></router-link>
                 <router-link to="/contact"><span>連絡</span></router-link>
-                <button v-if="!isUserLoggedIn"><span>ログイン</span></button>
+                <button v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>
                 <div v-else class="account">
                     <img src="../assets/icons/user.svg" alt="logo">
                     <span class="name">{{ user['name'] }}</span>
@@ -22,19 +22,27 @@
             </nav>
         </div>
     </header>
+    <LoginForm :closeFlag="closeLogin" @update:closeFlag="closeLogin = false"></LoginForm>
 </template>
 <!-- eslint-disable -->
 <script>
 
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
+
+import LoginForm from './LoginForm.vue';
 
 export default defineComponent({
     name: 'MainHeader',
+    components: {
+        LoginForm
+    },
     setup() {
 
         const { cart_count, updateCount } = inject('cart_count')
 
         const { user, isUserLoggedIn, logout } = inject('auth')
+
+        const closeLogin = ref(false);
 
 
         return {
@@ -42,7 +50,8 @@ export default defineComponent({
             updateCount,
             user,
             isUserLoggedIn,
-            logout
+            logout,
+            closeLogin
         };
     }
 });
