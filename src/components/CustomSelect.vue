@@ -1,6 +1,5 @@
 <template>
     <div>
-      <!-- <label for="custom-select">Выберите значение:</label> -->
       <select v-model="selectedValue" @change="emitSelectedValue">
         <option v-for="value in values" :key="value" :value="value">{{ value }}</option>
       </select>
