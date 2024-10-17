@@ -5,12 +5,11 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
     const url = new URL(request.url)
 
-    // Клонируем исходный запрос, чтобы сохранить все его свойства (метод, заголовки, тело и т.д.)
+    // Опции для перенаправляемого запроса
     const init = {
         method: request.method,
         headers: request.headers,
-        body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().arrayBuffer() : null, // Клонируем тело запроса, если оно есть
-        redirect: 'manual' // Перенаправления обрабатываем вручную
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().text() : null
     };
 
     // Если запрос к корню сайта (example.com), перенаправляем на папку пользователя

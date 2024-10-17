@@ -19,6 +19,7 @@ const remoteServer = {
 
 const remoteDir = process.env.REMOTE_DIR; // 'public_html'
 const localDistFolder = './dist'; // Local dist directory
+const excludedDirs = ['images']; // Add future folders here if needed
 
 async function uploadFiles() {
     try {
@@ -26,9 +27,13 @@ async function uploadFiles() {
         await ssh.connect(remoteServer);
         console.log('Connected to the server');
 
-        // Remove all files in the public_html directory on the server, including hidden files
-        await ssh.execCommand(`rm -rf ${remoteDir}/.* ${remoteDir}/*`);
-        console.log(`All files, including hidden ones, removed from ${remoteDir}`);
+        // Build the rm command to exclude certain directories and their content
+        const prunePattern = excludedDirs.map(dir => `-path ${remoteDir}/${dir} -prune`).join(' -o ');
+        const rmCommand = `find ${remoteDir} -mindepth 1 \\( ${prunePattern} \\) -o -exec rm -rf {} +`;
+
+        // Remove all files in the public_html directory, excluding specified directories and their contents
+        await ssh.execCommand(rmCommand);
+        console.log(`All files, excluding ${excludedDirs.join(', ')}, and their contents were removed from ${remoteDir}`);
 
         // Upload all files from the dist folder, including hidden files (e.g., .htaccess)
         await ssh.putDirectory(localDistFolder, remoteDir, {
