@@ -80,8 +80,10 @@ export default defineComponent({
 
         const sendRequest = async () => {
             try {
-                const url_f = process.env.VUE_APP_BACKEND_URL + url.value;
+                const url_f = process.env.VUE_APP_BACKEND_URL + '/backend/'+url.value;
+        
                 console.log(url_f);
+                
 
                 const config = {
                     method: method.value,

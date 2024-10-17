@@ -127,18 +127,19 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Получение данных пользователя
-    $sql = "SELECT id, name, email FROM clients WHERE auth_token = '$auth_token'";
+    $sql = "SELECT * FROM clients WHERE auth_token = '$auth_token'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
+
+        // Удаляем поля 'login' и 'password' из массива
+        unset($user['login'], $user['password']);
+
+        // Возвращаем оставшиеся данные пользователя
         echo json_encode([
             "status" => "success",
-            "user" => [
-                "id" => $user['id'],
-                "name" => $user['name'],
-                "email" => $user['email']
-            ]
+            "user" => $user
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Invalid token."]);
