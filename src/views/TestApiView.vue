@@ -36,8 +36,9 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
+import { ref, defineComponent, onMounted, watch } from 'vue';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 export default defineComponent({
     name: "TestApiView",
@@ -80,10 +81,8 @@ export default defineComponent({
 
         const sendRequest = async () => {
             try {
-                const url_f = process.env.VUE_APP_BACKEND_URL + '/backend/'+url.value;
-        
+                const url_f = process.env.VUE_APP_BACKEND_URL + '/backend/' + url.value;
                 console.log(url_f);
-                
 
                 const config = {
                     method: method.value,
@@ -113,6 +112,24 @@ export default defineComponent({
         const toggleHighlight = () => {
             highlightEnabled.value = !highlightEnabled.value;
         };
+
+        // Восстановление значений из куки при загрузке
+        onMounted(() => {
+            const savedUrl = Cookies.get('test_api_url');
+            const savedMethod = Cookies.get('test_api_method');
+            const savedBody = Cookies.get('test_api_body');
+
+            if (savedUrl) url.value = savedUrl;
+            if (savedMethod) method.value = savedMethod;
+            if (savedBody) body.value = savedBody;
+        });
+
+        // Сохранение значений в куки при изменении
+        watch([url, method, body], () => {
+            Cookies.set('test_api_url', url.value);
+            Cookies.set('test_api_method', method.value);
+            Cookies.set('test_api_body', body.value);
+        });
 
         return {
             url,
