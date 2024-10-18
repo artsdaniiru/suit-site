@@ -13,8 +13,15 @@
                     <label for="password">パスワード</label>
                     <input type="password" v-model="password" placeholder="パスワード" required />
                 </div>
+
+                <!-- Вывод ошибки логина -->
+                <div v-if="errorMessage" class="alert-filed danger">
+                    <img src="../assets/icons/info-danger.svg" alt="info">
+                    <p>{{ errorMessage }}</p>
+                </div>
+
                 <button class="button" type="submit">ログイン</button>
-                <button class="button" @click="type = 'register'">登録</button>
+                <button class="button" @click="type = 'register'; clear()">登録</button>
             </form>
 
             <!-- Форма регистрации -->
@@ -36,8 +43,15 @@
                     <label for="confirmPassword">パスワード確認</label>
                     <input type="password" v-model="confirmPassword" placeholder="パスワード確認" required />
                 </div>
+
+                <!-- Вывод ошибки регистрации -->
+                <div v-if="errorMessage" class="alert-filed danger">
+                    <img src="../assets/icons/info-danger.svg" alt="info">
+                    <p>{{ errorMessage }}</p>
+                </div>
+
                 <button class="button" type="submit">登録</button>
-                <button class="button" @click="type = 'login'">戻る</button>
+                <button class="button" @click="type = 'login'; clear()">戻る</button>
             </form>
         </div>
     </div>
@@ -46,7 +60,6 @@
 <script>
 import { ref, defineComponent, inject } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
 
 export default defineComponent({
     name: "LoginForm",
@@ -62,44 +75,49 @@ export default defineComponent({
         const password = ref('');
         const name = ref('');
         const confirmPassword = ref('');
+        const errorMessage = ref(''); // Переменная для хранения сообщений об ошибках
 
         const type = ref('login'); // Переключение между логином и регистрацией
         const { reloadUserData } = inject('auth');
-        const router = useRouter();
 
         // Функция для логина
         const login = async () => {
             const url = process.env.VUE_APP_BACKEND_URL + '/backend/auth.php?action=login';
+            errorMessage.value = ''; // Сбрасываем ошибки перед каждой попыткой
             try {
                 const response = await axios.post(url, { email: email.value, password: password.value }, { withCredentials: true });
                 if (response.data.status === 'success') {
                     localStorage.setItem('auth_token', response.data.auth_token);
                     reloadUserData();
                     closeModal();
+                    clear();
                 } else {
-                    alert(response.data.message);
+                    errorMessage.value = response.data.message; // Устанавливаем сообщение об ошибке
                 }
             } catch (error) {
+                errorMessage.value = 'An error occurred during login.';
                 console.error('Error:', error);
             }
         };
 
         // Функция для регистрации
         const register = async () => {
+            errorMessage.value = ''; // Сбрасываем ошибки перед каждой попыткой
             if (password.value !== confirmPassword.value) {
-                alert("Passwords do not match!");
+                errorMessage.value = "Passwords do not match!";
                 return;
             }
             const url = process.env.VUE_APP_BACKEND_URL + '/backend/auth.php?action=register';
             try {
                 const response = await axios.post(url, { name: name.value, email: email.value, password: password.value }, { withCredentials: true });
                 if (response.data.status === 'success') {
-                    router.push('/login');
                     closeModal();
+                    clear();
                 } else {
-                    alert(response.data.message);
+                    errorMessage.value = response.data.message; // Устанавливаем сообщение об ошибке
                 }
             } catch (error) {
+                errorMessage.value = 'An error occurred during registration.';
                 console.error('Error:', error);
             }
         };
@@ -107,6 +125,14 @@ export default defineComponent({
         const closeModal = () => {
             emit('update:closeFlag', false);
         };
+
+        function clear() {
+            email.value = '';
+            password.value = '';
+            name.value = '';
+            confirmPassword.value = '';
+            errorMessage.value = ''; // Очищаем сообщение об ошибке
+        }
 
         return {
             email,
@@ -116,7 +142,9 @@ export default defineComponent({
             login,
             register,
             closeModal,
-            type
+            type,
+            clear,
+            errorMessage // Возвращаем переменную с сообщениями об ошибках
         };
     }
 });
