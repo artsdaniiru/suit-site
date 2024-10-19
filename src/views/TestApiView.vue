@@ -1,36 +1,45 @@
 <template>
     <div class="test-api">
-        <h2>Test API Requests</h2>
-        <form @submit.prevent="sendRequest">
-            <div>
-                <label for="url">Request URL:</label>
-                <input type="text" v-model="url" placeholder="/backend/test.php?action=login" required />
-            </div>
+        <div>
+            <h2>Test API Requests</h2>
+            <form @submit.prevent="sendRequest">
+                <div>
+                    <label for="url">Request URL:</label>
+                    <div class="url-filed">
+                        <span>{{ back_url }}/backend/</span>
+                        <input type="text" v-model="url" placeholder="test.php?action=login" required />
+                    </div>
+                </div>
 
-            <div>
-                <label for="method">HTTP Method:</label>
-                <select v-model="method" required>
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
-                </select>
-            </div>
+                <div>
+                    <label for="method">HTTP Method:</label>
+                    <select v-model="method" required>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
 
-            <div v-if="method !== 'GET'">
-                <label for="body">Request Body (JSON):</label>
-                <textarea v-model="body" placeholder='{"key": "value"}'></textarea>
-            </div>
+                <div v-if="method !== 'GET'">
+                    <label for="body">Request Body (JSON):</label>
+                    <JsonEditorVue v-model="body" :mode="'text'" :askToFormat="false" />
+                </div>
 
-            <button type="submit">Send Request</button>
-        </form>
+                <button type="submit">Send Request</button>
+            </form>
+        </div>
+
+
 
         <div class="response" v-if="response">
-            <h3>Response</h3>
-            <button @click="toggleHighlight" outlined>
+            <h2>Response</h2>
+            <!-- <button @click="toggleHighlight" outlined>
                 {{ highlightEnabled ? 'Отключить' : 'Включить' }} раскраску
             </button>
-            <pre v-html="highlightEnabled ? highlightedJson : formattedJson"></pre>
+            <pre v-html="highlightEnabled ? highlightedJson : formattedJson"></pre> -->
+
+            <JsonEditorVue v-model="response" :mode="'text'" :askToFormat="false" :readOnly="true" />
         </div>
     </div>
 </template>
@@ -40,8 +49,13 @@ import { ref, defineComponent, onMounted, watch } from 'vue';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+import JsonEditorVue from 'json-editor-vue'
+
 export default defineComponent({
     name: "TestApiView",
+    components: {
+        JsonEditorVue
+    },
     setup() {
         const url = ref('');
         const method = ref('GET');
@@ -51,6 +65,7 @@ export default defineComponent({
         const highlightedJson = ref('');
         const highlightEnabled = ref(true);
 
+        const back_url = ref(process.env.VUE_APP_BACKEND_URL);
         // Функция для раскраски JSON
         const syntaxHighlight = (json) => {
             if (typeof json != 'string') {
@@ -141,6 +156,7 @@ export default defineComponent({
             sendRequest,
             toggleHighlight,
             highlightEnabled,
+            back_url
         };
     }
 });
@@ -148,6 +164,12 @@ export default defineComponent({
 
 <style lang="scss">
 .test-api {
+
+    .url-filed {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
 
     .response {
         margin-left: auto;
@@ -191,23 +213,23 @@ export default defineComponent({
 
         /* Стили для раскраски JSON */
         .string {
-            color: green !important;
+            color: #008000 !important;
         }
 
         .number {
-            color: darkorange !important;
+            color: #ee422e !important;
         }
 
         .boolean {
-            color: blue !important;
+            color: #ff8c00 !important;
         }
 
         .null {
-            color: magenta !important;
+            color: #004ed0 !important;
         }
 
         .key {
-            color: red !important;
+            color: #1a1a1a !important;
         }
     }
 }

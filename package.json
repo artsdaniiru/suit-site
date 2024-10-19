@@ -13,6 +13,7 @@
     "core-js": "^3.8.3",
     "dotenv": "^16.4.5",
     "js-cookie": "^3.0.5",
+    "json-editor-vue": "^0.17.2",
     "node-ssh": "^13.2.0",
     "sass-loader": "^14.2.1",
     "vue": "^3.2.13",
