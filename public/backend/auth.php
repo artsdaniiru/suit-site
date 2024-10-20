@@ -111,20 +111,14 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Получение данных пользователя по токену
 } elseif ($action === 'get_user' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Получение токена из заголовка
-    $headers = apache_request_headers();
-    $auth_token = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-
-    if (!$auth_token) {
-        echo json_encode(["status" => "error", "message" => "No token provided."]);
-        exit;
-    }
 
     // Проверка сессии
-    if (!isset($_SESSION['user_id']) || $_SESSION['auth_token'] !== $auth_token) {
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
         echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
         exit;
     }
+
+    $auth_token = $_SESSION['auth_token'];
 
     // Получение данных пользователя
     $sql = "SELECT * FROM clients WHERE auth_token = '$auth_token'";
