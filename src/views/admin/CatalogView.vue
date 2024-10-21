@@ -7,68 +7,56 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
 
-            <div class="actions-btn">
-                <div class="sort-buttons">
-                    <button :class="{ active: sortBy === 'new' }" @click="sortItems('new')">新着商品</button>
-                    <button :class="{ active: sortBy === 'highToLow' }" @click="sortItems('highToLow')">価格: 高い順</button>
-                    <button :class="{ active: sortBy === 'lowToHigh' }" @click="sortItems('lowToHigh')">価格: 安い順</button>
-                    <button :class="{ active: sortBy === 'recommended' }" @click="sortItems('recommended')">おすすめ</button>
-                </div>
-                <div class="pagination-settings">
-                    <label for="items-per-page">кол-во</label>
-                    <CustomSelect :values="[4, 8, 16]" :defaultValue="itemsPerPage" @update="updateItemsPerPage" />
-                </div>
-            </div>
-
+            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" :selectedValue="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" @update="updateItemsPerPage" />
         </div>
 
         <!-- Отображение товаров -->
-        <div class="section-box products">
-
-            <div class="header">
-                <span></span>
-                <span>名前</span>
-                <span>英名</span>
-                <span>値段</span>
-            </div>
-
-            <div class="item-card" v-for="item in paginatedItems" :key="item.id">
-                <img src="/images/suit.webp" alt="name" class="product-image" />
-                <span>{{ item.name }}</span>
-                <span>{{ item.name_eng }}</span>
-                <span>¥{{ item.min_price }}</span>
-            </div>
-        </div>
+        <ItemsTable :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" />
 
         <!-- Пагинация -->
-        <div class="pagination-controls" v-if="visiblePages.length != 0">
-            <button class="prev" @click="prevPage" :disabled="currentPage === 1">← 前へ</button>
-            <button v-for="page in visiblePages" :key="page" @click="setPage(page)" :class="{ active: currentPage === page }">
-                {{ page }}
-            </button>
-            <button class="next" @click="nextPage" :disabled="currentPage === totalPages">次へ →</button>
-        </div>
+        <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
+
     </div>
 </template>
-
+<!-- eslint-disable -->
 <script>
 import { defineComponent, ref, computed, onMounted } from "vue";
 import axios from "axios";
+import ItemsTable from './components/ItemsTable.vue';
 
 export default defineComponent({
-    name: "CatalogView",
+    name: "CatalogView", components: {
+        ItemsTable,
+    },
     setup() {
+
+        const headers = ref([
+            { name: "画像", field: "image_path", sortable: false },
+            { name: "名前", field: "name", sortable: true },
+            { name: "英名", field: "name_eng", sortable: true },
+            { name: "値段", field: "min_price", sortable: true }
+        ]);
+
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
-        const sortBy = ref("recommended");
+
         const itemsPerPage = ref(8);
         const currentPage = ref(1);
-        const maxVisiblePages = 5;
+
+
+        const sortOrder = ref({ index: null, ascending: true });
+
+
+
+
+
+
+
 
         // Метод для получения товаров с сервера
         const fetchProducts = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/products.php', {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=100', {
                     withCredentials: true
                 });
                 // Убедимся, что товары приходят в поле `products`
@@ -86,65 +74,57 @@ export default defineComponent({
             }
         };
 
-        // Логика сортировки
-        const sortedItems = computed(() => {
-            let to_filter = items.value;
-            to_filter = to_filter.filter((item) =>
-                item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-            );
+        const updateSortedItems = () => {
+            const field = headers.value[sortOrder.value.index].field;
+            const sorted = [...items.value].sort((a, b) => {
+                const valA = a[field];
+                const valB = b[field];
+                if (typeof valA === "number" && typeof valB === "number") {
+                    return sortOrder.value.ascending ? valA - valB : valB - valA;
+                }
+                return sortOrder.value.ascending
+                    ? String(valA).localeCompare(String(valB))
+                    : String(valB).localeCompare(String(valA));
+            });
 
-            if (sortBy.value === "highToLow") {
-                return to_filter.sort((a, b) => b.min_price - a.min_price);
-            } else if (sortBy.value === "lowToHigh") {
-                return to_filter.sort((a, b) => a.min_price - b.min_price);
+            items.value = sorted;
+        };
+
+        // Сортировка
+        const sortTable = (index) => {
+            if (sortOrder.value.index === index) {
+                sortOrder.value.ascending = !sortOrder.value.ascending;
+            } else {
+                sortOrder.value.index = index;
+                sortOrder.value.ascending = true;
             }
-            return to_filter;
-        });
+            updateSortedItems();
+        };
+
+        // Логика сортировки
+        const sortedItems = computed(() => items.value);
+
+
+
 
         // Логика пагинации
         const paginatedItems = computed(() => {
+
+            sortedItems.value = sortedItems.value.filter((item) =>
+                item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+            );
+
             const start = (currentPage.value - 1) * itemsPerPage.value;
             const end = start + itemsPerPage.value;
             return sortedItems.value.slice(start, end);
         });
 
-        const totalPages = computed(() => {
-            return Math.ceil(sortedItems.value.length / itemsPerPage.value);
-        });
 
         const updateItemsPerPage = (value) => {
             itemsPerPage.value = value;
             currentPage.value = 1;
         };
 
-        function sortItems(type) {
-            sortBy.value = type;
-            currentPage.value = 1;
-        }
-
-        const nextPage = () => {
-            if (currentPage.value < totalPages.value) currentPage.value++;
-        };
-
-        const prevPage = () => {
-            if (currentPage.value > 1) currentPage.value--;
-        };
-
-        const setPage = (page) => {
-            if (page >= 1 && page <= totalPages.value) currentPage.value = page;
-        };
-
-        const visiblePages = computed(() => {
-            const pages = [];
-            const total = totalPages.value;
-            const start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2));
-            const end = Math.min(total, start + maxVisiblePages - 1);
-
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-            return pages;
-        });
 
         // Загружаем товары при монтировании компонента
         onMounted(() => {
@@ -153,17 +133,14 @@ export default defineComponent({
 
         return {
             searchQuery,
-            sortBy,
             itemsPerPage,
             currentPage,
             paginatedItems,
-            totalPages,
             updateItemsPerPage,
-            sortItems,
-            nextPage,
-            prevPage,
-            setPage,
-            visiblePages,
+            headers,
+            sortOrder,
+            sortTable,
+            items
         };
     },
 });
@@ -177,6 +154,8 @@ export default defineComponent({
 .admin-page {
 
     padding: 32px;
+
+    gap: 32px;
 
     .tabs {
         display: flex;
@@ -199,8 +178,6 @@ export default defineComponent({
     }
 
     .actions {
-        margin-top: 48px;
-        margin-top: 48px;
         display: flex;
         justify-content: space-between;
 
@@ -242,49 +219,6 @@ export default defineComponent({
 
 
 
-    }
-}
-
-.products {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-
-    .header,
-    .item-card {
-        display: grid;
-        grid-template-columns: 100px 1fr 1fr 1fr;
-
-        font-weight: 400;
-        font-size: 16px;
-        line-height: 140%;
-        color: #1e1e1e;
-    }
-
-    .header {
-        font-weight: 700;
-    }
-
-    .item-card {
-        border: 1px solid #d9d9d9;
-        border-radius: 8px;
-        height: 65px;
-        align-items: center;
-        padding-left: 7px;
-        padding-right: 7px;
-        cursor: pointer;
-
-
-        img {
-            border-radius: 5px;
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-        }
-
-        &:hover {
-            background: #f5f5f5;
-        }
     }
 }
 

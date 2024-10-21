@@ -1,5 +1,5 @@
 import './assets/main.scss'
-
+import clickOutSide from './directives/clickoutside'
 import {
     createApp
 } from 'vue'
@@ -15,4 +15,5 @@ Components.forEach((component) => {
 })
 
 app.use(router)
+app.directive('click-out-side', clickOutSide)
 app.mount('#app')
