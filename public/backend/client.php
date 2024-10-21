@@ -69,6 +69,14 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
+    case 'delete_user':
+        $sql = "DELETE FROM clients WHERE id=$client_id";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+            break;
     case 'edit_password':
         $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
         $sql = "UPDATE clients 
@@ -97,6 +105,7 @@ switch ($action) {
     
         break;
     case 'edit_address':
+        $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
         $updateFields = [];
 
         // Используем функцию для добавления полей
@@ -106,7 +115,7 @@ switch ($action) {
 
         if (!empty($updateFields)) {
             $setClause = implode(', ', $updateFields);
-            $sql = "UPDATE client_addresses SET $setClause WHERE client_id = $user_id";
+            $sql = "UPDATE client_addresses SET $setClause WHERE client_id = $user_id AND id=$address_id";
 
             if ($conn->query($sql) === TRUE) {
                 echo json_encode(['status' => 'success']);
@@ -118,8 +127,9 @@ switch ($action) {
         }
         break;
     case 'delete_address':
+        $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
         $client_id = $user_id;
-        $sql = "DELETE FROM client_addresses WHERE client_id=$client_id";
+        $sql = "DELETE FROM client_addresses WHERE client_id=$client_id AND id=$address_id";
         if ($conn->query($sql) === TRUE) {
             echo json_encode(['status' => 'success']);
         } else {
