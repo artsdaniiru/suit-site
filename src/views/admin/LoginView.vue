@@ -1,12 +1,28 @@
 <template>
     <div>
-        <h1>Admin Login</h1>
-        <form @submit.prevent="loginAdmin">
-            <input v-model="email" type="email" placeholder="Email" required />
-            <input v-model="password" type="password" placeholder="Password" required />
-            <button type="submit">Login</button>
-        </form>
+        <div class="form">
+            <form @submit.prevent="loginAdmin">
+                <h3>ログイン</h3>
+                <div class="form-elem">
+                    <label for="email">メールアドレス</label>
+                    <input type="email" v-model="email" placeholder="メールアドレス" required />
+                </div>
+                <div class="form-elem">
+                    <label for="password">パスワード</label>
+                    <input type="password" v-model="password" placeholder="パスワード" required />
+                </div>
+
+                <!-- Вывод ошибки логина -->
+                <div v-if="errorMessage" class="alert-filed danger">
+                    <img src="../../assets/icons/info-danger.svg" alt="info">
+                    <p>{{ errorMessage }}</p>
+                </div>
+
+                <button class="button" type="submit">ログイン</button>
+            </form>
+        </div>
     </div>
+
 </template>
 
 <script>
@@ -21,11 +37,14 @@ export default defineComponent({
         const email = ref('');
         const password = ref('');
 
+        const errorMessage = ref(''); // Переменная для хранения сообщений об ошибках
+
         const { isUserLoggedIn, logout } = inject('auth')
         const { reloadAdminUserData } = inject('admin_auth')
 
         const loginAdmin = async () => {
 
+            errorMessage.value = '';
             if (isUserLoggedIn.value) {
                 logout();
             }
@@ -46,7 +65,7 @@ export default defineComponent({
                     // Успешная авторизация, перенаправляем на панель администратора
                     router.push('/admin/dashboard');
                 } else {
-                    alert(response.message);
+                    errorMessage.value = response.data.message;
                 }
             } catch (error) {
                 console.error('Error during login:', error);
@@ -56,8 +75,40 @@ export default defineComponent({
         return {
             email,
             password,
-            loginAdmin
+            loginAdmin,
+            errorMessage
         };
     }
 });
 </script>
+<style lang="scss" scoped>
+.form {
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 32px;
+    background: #fff;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+
+    height: fit-content;
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        h3 {
+            margin: 0;
+        }
+
+        .form-elem {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 400px;
+        }
+    }
+}
+</style>

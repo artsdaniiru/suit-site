@@ -5,7 +5,7 @@ import {
 import HomeView from '../views/HomeView.vue'
 import DashboardView from '../views/admin/DashboardView.vue'
 import LoginView from '../views/admin/LoginView.vue'
-import axios from 'axios';
+import checkAdminAuth from './checkAdminAuth';
 
 // Маршруты
 const routes = [
@@ -62,21 +62,26 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   // Проверяем, требует ли маршрут авторизации
   if (to.matched.some(record => record.meta.requiresAdmin)) {
-    try {
-      // Проверяем авторизацию администратора
-      const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/auth.php?action=get_user', {
-        withCredentials: true
-      });
-      if (response.data.status === 'success') {
-        next(); // Администратор авторизован
+    const isAdminAuth = await checkAdminAuth();
+    if (isAdminAuth) {
+      if (to.path === '/admin') {
+        next({ path: '/admin/dashboard' }); // Перенаправляем на /admin/dashboard, если уже авторизован
       } else {
-        next({ name: 'LoginView' }); // Не авторизован, перенаправляем на страницу логина
+        next(); // Администратор авторизован, продолжаем
       }
-    } catch (error) {
-      next({ name: 'LoginView' });
+    } else {
+      next({ path: '/admin/login' }); // Не авторизован, перенаправляем на страницу логина
+    }
+  } else if (to.path === '/admin') {
+    // Проверка для маршрута /admin
+    const isAdminAuth = await checkAdminAuth();
+    if (isAdminAuth) {
+      next({ path: '/admin/dashboard' }); // Если администратор авторизован, перенаправляем на dashboard
+    } else {
+      next({ path: '/admin/login' }); // Если не авторизован, перенаправляем на логин
     }
   } else {
-    next();
+    next(); // Пропускаем маршрут, если не требуется авторизация
   }
 })
 
