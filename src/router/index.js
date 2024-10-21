@@ -3,8 +3,9 @@ import {
   createWebHistory
 } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import DashboardView from '../views/admin/DashboardView.vue'
+import CatalogView from '../views/admin/CatalogView.vue'
 import LoginView from '../views/admin/LoginView.vue'
+import NotFound from '../views/NotFound.vue'
 import checkAdminAuth from './checkAdminAuth';
 
 // Маршруты
@@ -45,10 +46,15 @@ const routes = [
     component: LoginView
   },
   {
-    path: '/admin/dashboard',
-    name: 'DashboardView',
-    component: DashboardView,
+    path: '/admin/catalog',
+    name: 'CatalogView',
+    component: CatalogView,
     meta: { requiresAdmin: true }  // Защищённый маршрут
+  },
+  {
+    path: '/:catchAll(.*)', // Маршрут для любых неизвестных путей
+    name: 'NotFound',
+    component: NotFound
   }
 ]
 
@@ -65,7 +71,7 @@ router.beforeEach(async (to, from, next) => {
     const isAdminAuth = await checkAdminAuth();
     if (isAdminAuth) {
       if (to.path === '/admin') {
-        next({ path: '/admin/dashboard' }); // Перенаправляем на /admin/dashboard, если уже авторизован
+        next({ path: '/admin/catalog' }); // Перенаправляем на /admin/catalog, если уже авторизован
       } else {
         next(); // Администратор авторизован, продолжаем
       }
@@ -76,7 +82,7 @@ router.beforeEach(async (to, from, next) => {
     // Проверка для маршрута /admin
     const isAdminAuth = await checkAdminAuth();
     if (isAdminAuth) {
-      next({ path: '/admin/dashboard' }); // Если администратор авторизован, перенаправляем на dashboard
+      next({ path: '/admin/catalog' }); // Если администратор авторизован, перенаправляем на catalog
     } else {
       next({ path: '/admin/login' }); // Если не авторизован, перенаправляем на логин
     }

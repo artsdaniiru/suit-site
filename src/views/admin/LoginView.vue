@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, inject } from 'vue'
+import { defineComponent, ref, inject, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios';
 
@@ -40,7 +40,14 @@ export default defineComponent({
         const errorMessage = ref(''); // Переменная для хранения сообщений об ошибках
 
         const { isUserLoggedIn, logout } = inject('auth')
-        const { reloadAdminUserData } = inject('admin_auth')
+        const { isAdminLoggedIn, reloadAdminUserData } = inject('admin_auth')
+
+
+        onBeforeMount(() => {
+            if (isAdminLoggedIn) {
+                router.push('/admin/catalog');
+            }
+        })
 
         const loginAdmin = async () => {
 
@@ -63,7 +70,7 @@ export default defineComponent({
                     localStorage.setItem('admin_auth_token', response.data.auth_token);
                     reloadAdminUserData();
                     // Успешная авторизация, перенаправляем на панель администратора
-                    router.push('/admin/dashboard');
+                    router.push('/admin/catalog');
                 } else {
                     errorMessage.value = response.data.message;
                 }

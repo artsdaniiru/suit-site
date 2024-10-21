@@ -1,9 +1,7 @@
 <template>
   <div class="catalog-view">
     <div class="section-box services">
-      <div class="section-search">
-        <input type="text" placeholder="キーワードから探す" v-model="searchQuery" />
-      </div>
+      <SearchInput v-model="searchQuery" />
 
       <div class="section-sort">
         <!-- Кнопки сортировки -->
@@ -19,7 +17,7 @@
           <label for="items-per-page">кол-во</label>
           <CustomSelect :values="[4, 8, 16]" :defaultValue="itemsPerPage" @update="updateItemsPerPage" />
         </div>
-        
+
       </div>
     </div>
 
@@ -160,24 +158,6 @@ export default defineComponent({
   align-items: baseline;
   margin: 20px 0;
 
-  .section-search input {
-    border-radius: 20px;
-  }
-
-  .section-search {
-    position: relative;
-
-    &::after {
-      content: url("../assets/icons/search.svg");
-      display: block;
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 16px;
-      height: 16px;
-    }
-  }
-
   .section-sort {
     display: flex;
     justify-content: space-between;
@@ -244,24 +224,6 @@ export default defineComponent({
   margin-bottom: 20px;
 }
 
-.search-box {
-  display: flex;
-  align-items: center;
-
-
-  & input {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    outline: none;
-  }
-
-  & button {
-    margin-left: 10px;
-    background-color: transparent;
-    border: none;
-  }
-}
 
 
 
