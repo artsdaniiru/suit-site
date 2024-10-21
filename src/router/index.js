@@ -17,7 +17,27 @@ const routes = [
   {
     path: '/about',
     name: 'about',
-    component: () => import('../views/AboutView.vue')
+    component: () => import( /* webpackChunkName: "about" */ '../views/AboutView.vue')
+  },
+  {
+    path: '/users',
+    name: 'users',
+    component: () => import( /* webpackChunkName: "about" */ '../views/UsersView.vue')
+  },
+  {
+    path: '/catalog',
+    name: 'catalog',
+    component: () => import('../views/CatalogView.vue')
+  },
+  {
+    path: '/test-api',
+    name: 'Test API',
+    component: () => import('../views/TestApiView.vue')
+  },
+  {
+    path: '/product',
+    name: 'product',
+    component: () => import('../views/ProductView.vue')
   },
   {
     path: '/admin/login',
