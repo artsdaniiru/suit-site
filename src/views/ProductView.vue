@@ -1,118 +1,98 @@
 <template>
-  <div>
-    <div class="product">
-      <div class="product-img">
-        <img :src="image" :alt="name" class="product-image" />
-      </div>
 
-      <div class="product-setting">
-        <div class="product-info">
-          <div class="product-title">
-            <h3 class="product-title">{{ name }}</h3>
-            <h3 class="product-title">{{ englishName }}</h3>
-            <span class="price">{{ formattedPrice }}</span>
-            <div class="setting-inf">
-              <span> 3つのサイズから基本スーツの価格が決定されます。</span>
+  <div class="product">
+    <div class="product-img">
+      <img :src="image" :alt="name" class="product-image" />
+    </div>
+
+    <div class="product-setting">
+      <div class="product-info">
+        <div class="product-title">
+          <h3 class="product-title">{{ name }}</h3>
+          <h3 class="product-title">{{ englishName }}</h3>
+          <span class="price">{{ formattedPrice }}</span>
+          <div class="setting-inf">
+            <span> 3つのサイズから基本スーツの価格が決定されます。</span>
+          </div>
+        </div>
+
+        <div class="size-form">
+          <form @submit.prevent="submitForm">
+            <div class="size-cont">
+              <div class="size-box">
+                <label for="textInput">身長</label>
+                <input v-model="inputValue" id="textInput" type="text" placeholder="身長cm" />
+              </div>
+              <div class="size-box">
+                <label for="textInput">肩幅</label>
+                <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+              </div>
+              <div class="size-box">
+                <label for="textInput">ウェストサイズ</label>
+                <input v-model="inputValue" id="textInput" type="text" placeholder="ウェストサイズcm" />
+              </div>
             </div>
-          </div>
-
-          <div class="size-form">
-            <form @submit.prevent="submitForm">
-              <div class="size-cont">
-                <div class="size-box">
-                  <label for="textInput">身長</label>
-                  <input
-                    v-model="inputValue"
-                    id="textInput"
-                    type="text"
-                    placeholder="身長cm"
-                  />
-                </div>
-                <div class="size-box">
-                  <label for="textInput">肩幅</label>
-                  <input
-                    v-model="inputValue"
-                    id="textInput"
-                    type="text"
-                    placeholder="肩幅cm"
-                  />
-                </div>
-                <div class="size-box">
-                  <label for="textInput">ウェストサイズ</label>
-                  <input
-                    v-model="inputValue"
-                    id="textInput"
-                    type="text"
-                    placeholder="ウェストサイズcm"
-                  />
-                </div>
+            <div class="size-cont">
+              <div class="size-box">
+                <label for="size">生地の種類</label>
+                <select v-model="selectedSize" id="size">
+                  <option disabled value="">コットン (綿)</option>
+                  <option v-for="size in sizes" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
               </div>
-              <div class="size-cont">
-                <div class="size-box">
-                  <label for="size">生地の種類</label>
-                  <select v-model="selectedSize" id="size">
-                    <option disabled value="">コットン (綿)</option>
-                    <option v-for="size in sizes" :key="size" :value="size">
-                      {{ size }}
-                    </option>
-                  </select>
-                </div>
-                <div class="size-box">
-                  <label for="size">生地の色</label>
-                  <select v-model="selectedSize" id="size">
-                    <option disabled value="">赤 (あか)</option>
-                    <option v-for="size in sizes" :key="size" :value="size">
-                      {{ size }}
-                    </option>
-                  </select>
-                </div>
+              <div class="size-box">
+                <label for="size">生地の色</label>
+                <select v-model="selectedSize" id="size">
+                  <option disabled value="">赤 (あか)</option>
+                  <option v-for="size in sizes" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
               </div>
-              <div class="size-cont">
-                <div class="size-box">
-                  <label for="size">裏地の種類</label>
-                  <select v-model="selectedSize" id="size">
-                    <option disabled value="">サテン裏地</option>
-                    <option v-for="size in sizes" :key="size" :value="size">
-                      {{ size }}
-                    </option>
-                  </select>
-                </div>
-                <div class="size-box">
-                  <label for="size">ボタンの種類</label>
-                  <select v-model="selectedSize" id="size">
-                    <option disabled value="">プラスチックボタン</option>
-                    <option v-for="size in sizes" :key="size" :value="size">
-                      {{ size }}
-                    </option>
-                  </select>
-                </div>
+            </div>
+            <div class="size-cont">
+              <div class="size-box">
+                <label for="size">裏地の種類</label>
+                <select v-model="selectedSize" id="size">
+                  <option disabled value="">サテン裏地</option>
+                  <option v-for="size in sizes" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
               </div>
-              <button class="button">カートに追加</button>
-            </form>
-          </div>
+              <div class="size-box">
+                <label for="size">ボタンの種類</label>
+                <select v-model="selectedSize" id="size">
+                  <option disabled value="">プラスチックボタン</option>
+                  <option v-for="size in sizes" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <button class="button">カートに追加</button>
+          </form>
         </div>
       </div>
     </div>
-    <div class="add-product">
-      <h2>追加の商品</h2>
+  </div>
+  <div class="add-product">
+    <h2>追加の商品</h2>
 
-      <div class="add-content">
-
-
-      </div>
+    <div class="add-content">
 
 
-      
-      <div class="form-check">
-        <input
-          type="checkbox"
-          class="form-check-input"
-          id="customCheck"
-          v-model="isChecked"
-        />
-      </div> 
+    </div>
+
+
+
+    <div class="form-check">
+      <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
     </div>
   </div>
+
 </template>
 
 <script>
@@ -160,6 +140,8 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   gap: 60px;
+  padding: 64px;
+  flex-direction: unset;
 
   .product-img {
     width: 50%;
@@ -177,6 +159,7 @@ export default defineComponent({
         margin-top: 0;
         margin-bottom: 5px;
       }
+
       .price {
         font-weight: 700;
         font-size: 48px;
@@ -203,29 +186,30 @@ export default defineComponent({
     .size-form {
       display: flex;
       margin-top: 20px;
-     
-      form{
+
+      form {
         display: flex;
         flex-direction: column;
         gap: 24px;
       }
 
-      .size-cont{
+      .size-cont {
         display: flex;
         gap: 24px;
 
-        .size-box{
+        .size-box {
           display: flex;
           flex-direction: column;
           width: 100%;
           gap: 8px;
         }
 
-        input{
+        input {
           min-width: auto;
           width: 152px;
         }
-        select{
+
+        select {
           margin: 0;
           padding: 12px 12px 12px 16px;
         }
@@ -233,7 +217,7 @@ export default defineComponent({
     }
   }
 
-  .add-content{
+  .add-content {
     border: 1px solid #d9d9d9;
     border-radius: 16px;
     padding: 12px;
