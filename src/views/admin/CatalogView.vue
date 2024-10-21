@@ -7,7 +7,7 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
 
-            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" :selectedValue="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" @update="updateItemsPerPage" />
+            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
         </div>
 
         <!-- Отображение товаров -->

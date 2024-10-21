@@ -3,7 +3,7 @@
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
     <div class="select-box">
-      <div class="selected-value">{{ selectedValue || 'Select an option' }}</div>
+      <div class="selected-value">{{ values[selectedValue] || '選択して下さい' }}</div>
       <span class="arrow" :class="{ open: isOpen }">
         <img src="../assets/icons/chevron-dw.svg" alt="chevron">
       </span>
@@ -29,7 +29,7 @@ export default defineComponent({
       type: Object,
       required: true
     },
-    selectedValue: {
+    modelValue: {
       type: String,
       required: false,
       default: ""
@@ -48,7 +48,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const { labelPosition } = toRefs(props);
-    const selectedValue = ref(props.selectedValue);
+    const selectedValue = ref(props.modelValue);
     const isOpen = ref(false);
 
     const toggleDropdown = () => {
@@ -57,7 +57,7 @@ export default defineComponent({
 
     const selectOption = (value) => {
       selectedValue.value = value;
-      emit("update", value);
+      emit("update:modelValue", value);
       isOpen.value = false; // Закрываем после выбора
     };
 

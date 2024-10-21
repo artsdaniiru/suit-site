@@ -13,7 +13,7 @@
         </div>
 
         <!-- Настройки пагинации -->
-        <CustomSelect :values="{ 4: '4', 8: '8', 16: '16' }" :selectedValue="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" @update="updateItemsPerPage" />
+        <CustomSelect :values="{ 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
 
       </div>
     </div>
