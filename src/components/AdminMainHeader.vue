@@ -3,55 +3,39 @@
         <div class="content">
             <router-link to="/" class="logo">
                 <img src="../assets/icons/logo.svg" alt="logo">
-                <span>サイトーズ</span>
+                <span>管理サイト</span>
             </router-link>
-            <nav>
-                <router-link to="/catalog"><span>カタログ</span></router-link>
-                <router-link to="/delivery"><span>配送について</span></router-link>
-                <router-link to="/contact"><span>連絡</span></router-link>
-                <button v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>
-                <div v-else class="account">
+            <nav v-if="isAdminLoggedIn">
+                <router-link to="/admin/catalog"><span>商品管理</span></router-link>
+                <router-link to="/admin/clients"><span>顧客管理</span></router-link>
+                <router-link to="/admin/orders"><span>注文管理</span></router-link>
+                <div class="account">
                     <img src="../assets/icons/user.svg" alt="logo">
-                    <span class="name">{{ user['name'] }}</span>
-                    <button @click="logout" class="danger"><span>ログアウト</span></button>
-                </div>
-                <div class="cart">
-                    <img src="../assets/icons/cart.svg" alt="logo">
-                    <span v-if="cart_count != 0" class="count">{{ cart_count }}</span>
+                    <span class="name">{{ admin_user['name'] }}</span>
+                    <button @click="admin_logout" class="danger"><span>ログアウト</span></button>
                 </div>
             </nav>
         </div>
     </header>
-    <LoginForm :closeFlag="closeLogin" @update:closeFlag="closeLogin = false"></LoginForm>
 </template>
-<!-- eslint-disable -->
 <script>
 
-import { defineComponent, inject, ref } from 'vue';
-
-import LoginForm from './LoginForm.vue';
+import { defineComponent, inject } from 'vue';
 
 export default defineComponent({
-    name: 'MainHeader',
-    components: {
-        LoginForm
-    },
+    name: 'AdminMainHeader',
     setup() {
 
-        const { cart_count, updateCount } = inject('cart_count')
+        const { admin_user, isAdminLoggedIn, admin_logout } = inject('admin_auth')
 
-        const { user, isUserLoggedIn, logout } = inject('auth')
+        console.log(admin_user);
 
-        const closeLogin = ref(false);
 
 
         return {
-            cart_count,
-            updateCount,
-            user,
-            isUserLoggedIn,
-            logout,
-            closeLogin
+            admin_user,
+            isAdminLoggedIn,
+            admin_logout
         };
     }
 });
@@ -69,12 +53,13 @@ header {
 
     .content {
         display: flex;
-        justify-content: space-between;
         width: -webkit-fill-available;
+        gap: 30px;
 
         .logo {
             display: flex;
             gap: 24px;
+
 
             font-weight: 400;
             font-size: 16px;
@@ -85,14 +70,19 @@ header {
             img {
                 width: 34px;
             }
+
+            span {
+                width: max-content !important;
+            }
         }
 
 
         nav {
             display: flex;
-            justify-content: flex-end;
+            justify-content: start;
             gap: 8px;
             align-items: center;
+            width: -webkit-fill-available;
 
             a {
                 text-decoration: none;
@@ -145,34 +135,12 @@ header {
                 }
             }
 
-            .cart {
-                position: relative;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-
-                img {
-                    width: 26px;
-                }
-
-                .count {
-                    position: absolute;
-                    right: -12px;
-                    top: -5px;
-                    border-radius: 25px;
-                    width: 20px;
-                    height: 20px;
-                    background: #ff7a00;
-                    font-size: 12px;
-                    text-align: center;
-                    color: #fff;
-                }
-            }
-
             .account {
                 align-items: center;
                 display: flex;
                 gap: 10px;
+                margin-left: auto;
+                margin-right: 0px;
 
                 .name {
                     font-weight: 400;

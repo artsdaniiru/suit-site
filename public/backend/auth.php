@@ -111,34 +111,29 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Получение данных пользователя по токену
 } elseif ($action === 'get_user' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Получение токена из заголовка
-    $headers = apache_request_headers();
-    $auth_token = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-
-    if (!$auth_token) {
-        echo json_encode(["status" => "error", "message" => "No token provided."]);
-        exit;
-    }
 
     // Проверка сессии
-    if (!isset($_SESSION['user_id']) || $_SESSION['auth_token'] !== $auth_token) {
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
         echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
         exit;
     }
 
+    $auth_token = $_SESSION['auth_token'];
+
     // Получение данных пользователя
-    $sql = "SELECT id, name, email FROM clients WHERE auth_token = '$auth_token'";
+    $sql = "SELECT * FROM clients WHERE auth_token = '$auth_token'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
+
+        // Удаляем поля 'login' и 'password' из массива
+        unset($user['login'], $user['password']);
+
+        // Возвращаем оставшиеся данные пользователя
         echo json_encode([
             "status" => "success",
-            "user" => [
-                "id" => $user['id'],
-                "name" => $user['name'],
-                "email" => $user['email']
-            ]
+            "user" => $user
         ]);
     } else {
         echo json_encode(["status" => "error", "message" => "Invalid token."]);

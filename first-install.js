@@ -4,7 +4,7 @@ const path = require('path');
 
 
 // Данные для записи в PHP файл
-const envContent = `VUE_APP_BACKEND_URL=http://localhost:8181/public
+const envContent = `VUE_APP_BACKEND_URL=http://localhost/public
 DB_HOST=localhost
 DB_USER=user
 DB_PASS=pass

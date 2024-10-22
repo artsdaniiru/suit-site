@@ -2,24 +2,18 @@
 // Включаем файл конфигурации
 require_once 'config.php';
 
-// Установка заголовков для CORS
+// Разрешаем доступ с любого источника
 if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+    header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Max-Age: 86400'); // cache for 1 day
 }
 
-// Обработка preflight-запроса
+// Обрабатываем preflight-запрос
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-    }
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-        header("Access-Control-Allow-Headers: Content-Type, Authorization");
-    }
-    exit(0);
+    header("HTTP/1.1 200 OK");
+    exit();
 }
 
 // Подключение к базе данных
@@ -74,7 +68,7 @@ if ($product_id == false) {
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             // Применяем array_filter к каждой строке размеров
-            $sizes[] = array_filter($row, function($value) {
+            $sizes[] = array_filter($row, function ($value) {
                 return !is_null($value);
             });
         }
@@ -100,8 +94,8 @@ if ($product_id == false) {
             $product_images[] = $row;
         }
     }
-        $data['product_images'] = $product_images;
-    
+    $data['product_images'] = $product_images;
+
     // SQL-запрос (к options через options_indexes) -  только если тип продукта "suit"
     if ($product_type === 'suit') {
         $sql = "SELECT o.* FROM `options` o JOIN options_indexes op 
@@ -115,7 +109,7 @@ if ($product_id == false) {
                 $options[] = $row;
             }
         }
-            $data['options'] = $options;
+        $data['options'] = $options;
     }
 
     echo json_encode(['status' => 'success', 'data' => $data]);

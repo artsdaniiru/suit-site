@@ -2,24 +2,18 @@
 // Включаем файл конфигурации
 require_once 'config.php';
 
-// Установка заголовков для CORS
+// Разрешаем доступ с любого источника
 if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+    header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Max-Age: 86400'); // cache for 1 day
 }
 
-// Обработка preflight-запроса
+// Обрабатываем preflight-запрос
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-    }
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-        header("Access-Control-Allow-Headers: Content-Type, Authorization");
-    }
-    exit(0);
+    header("HTTP/1.1 200 OK");
+    exit();
 }
 
 // Подключение к базе данных
@@ -85,9 +79,10 @@ if (!empty($productType)) {
 }
 
 // SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
-$sql = "SELECT p.*, MIN(i.price) as min_price 
+$sql = "SELECT p.*, MIN(i.price) as min_price, MAX(im.image_path) as image_path
         FROM products p
         JOIN sizes i ON p.id = i.product_id
+        JOIN product_images im ON p.id = im.product_id
         WHERE 1=1 $searchCondition $popularCondition $productTypeCondition
         GROUP BY p.id
         ORDER BY $orderBy
@@ -135,4 +130,3 @@ echo json_encode([
 
 $conn->close();
 exit();
-?>
