@@ -3,15 +3,8 @@
         <div class="form">
             <form @submit.prevent="loginAdmin">
                 <h3>ログイン</h3>
-                <div class="form-elem">
-                    <label for="email">メールアドレス</label>
-                    <input type="email" v-model="email" placeholder="メールアドレス" required />
-                </div>
-                <div class="form-elem">
-                    <label for="password">パスワード</label>
-                    <input type="password" v-model="password" placeholder="パスワード" required />
-                </div>
-
+                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+                <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
                 <!-- Вывод ошибки логина -->
                 <div v-if="errorMessage" class="alert-filed danger">
                     <img src="../../assets/icons/info-danger.svg" alt="info">
@@ -100,6 +93,7 @@ export default defineComponent({
     position: relative;
 
     height: fit-content;
+    width: 400px;
 
     form {
         display: flex;

@@ -21,8 +21,7 @@
             <form @submit.prevent="submitForm">
               <div class="size-cont">
                 <div class="size-box">
-                  <label for="textInput">身長</label>
-                  <input v-model="inputValue" id="textInput" type="text" placeholder="身長cm" />
+                  <CustomInput style="width: 152px;;" v-model="inputValue" :labelText="'身長'" placeholderText="身長cm" />
                 </div>
                 <div class="size-box">
                   <label for="textInput">肩幅</label>

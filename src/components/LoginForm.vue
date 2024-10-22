@@ -5,14 +5,8 @@
             <!-- Форма входа -->
             <form v-if="type === 'login'" @submit.prevent="login">
                 <h3>ログインフォーム</h3>
-                <div class="form-elem">
-                    <label for="email">メールアドレス</label>
-                    <input type="email" v-model="email" placeholder="メールアドレス" required />
-                </div>
-                <div class="form-elem">
-                    <label for="password">パスワード</label>
-                    <input type="password" v-model="password" placeholder="パスワード" required />
-                </div>
+                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+                <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
 
                 <!-- Вывод ошибки логина -->
                 <div v-if="errorMessage" class="alert-filed danger">
@@ -27,22 +21,11 @@
             <!-- Форма регистрации -->
             <form v-if="type === 'register'" @submit.prevent="register">
                 <h3>登録フォーム</h3>
-                <div class="form-elem">
-                    <label for="name">名前</label>
-                    <input type="text" v-model="name" placeholder="名前" required />
-                </div>
-                <div class="form-elem">
-                    <label for="email">メールアドレス</label>
-                    <input type="email" v-model="email" placeholder="メールアドレス" required />
-                </div>
-                <div class="form-elem">
-                    <label for="password">パスワード</label>
-                    <input type="password" v-model="password" placeholder="パスワード" required />
-                </div>
-                <div class="form-elem">
-                    <label for="confirmPassword">パスワード確認</label>
-                    <input type="password" v-model="confirmPassword" placeholder="パスワード確認" required />
-                </div>
+
+                <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
+                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+                <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
+                <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
 
                 <!-- Вывод ошибки регистрации -->
                 <div v-if="errorMessage" class="alert-filed danger">
@@ -156,6 +139,7 @@ export default defineComponent({
     border-radius: 8px;
     padding: 32px;
     max-width: 600px;
+    width: 400px;
     box-shadow: 0 4px 4px -4px rgba(12, 12, 13, 0.05), 0 16px 32px -4px rgba(12, 12, 13, 0.1);
     background: #fff;
     margin-top: 140px;

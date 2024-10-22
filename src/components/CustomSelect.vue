@@ -3,16 +3,20 @@
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
     <div class="select-box">
-      <div class="selected-value">{{ values[selectedValue] || '選択して下さい' }}</div>
+      <div class="selected-value" v-if="values[selectedValue]">{{ values[selectedValue] }}</div>
+      <div class="selected-value not-selected" v-else>選択して下さい</div>
       <span class="arrow" :class="{ open: isOpen }">
         <img src="../assets/icons/chevron-dw.svg" alt="chevron">
       </span>
 
-      <ul :class="['options-list', { open: isOpen }]" v-if="isOpen">
-        <li :class="{ selected: value == selectedValue }" v-for="(value, index) in values" :key="index" class="option-item" @click="selectOption(index)">
-          {{ value }}
-        </li>
-      </ul>
+      <!-- Добавляем анимацию через <transition> -->
+      <transition name="slide">
+        <ul :class="['options-list', { open: isOpen }]" v-if="isOpen">
+          <li :class="{ selected: value == selectedValue }" v-for="(value, index) in values" :key="index" class="option-item" @click="selectOption(index)">
+            {{ value }}
+          </li>
+        </ul>
+      </transition>
     </div>
 
 
@@ -84,6 +88,8 @@ $hover-color: #f0f0f0;
 $focus-border-color: #adadad;
 
 .custom-select-container {
+
+  user-select: none;
   min-width: 200px;
 
   &.label-top {
@@ -115,7 +121,8 @@ $focus-border-color: #adadad;
     align-items: center;
     background-color: $select-bg-color;
     border: 1px solid $select-border-color;
-    padding: 10px;
+    padding: 0px 12px;
+    height: 40px;
     font-size: $select-font-size;
     border-radius: $select-border-radius;
     cursor: pointer;
@@ -134,6 +141,12 @@ $focus-border-color: #adadad;
       }
     }
 
+    .selected-value {
+      &.not-selected {
+        color: #b3b3b3;
+      }
+    }
+
 
     .options-list {
       position: absolute;
@@ -147,17 +160,21 @@ $focus-border-color: #adadad;
       max-height: 200px; // Ограничение по высоте
       overflow-y: auto;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
+      // opacity: 0;
+      // transform: translateY(-10px);
+      // transition: all 0.3s ease;
+      transform-origin: top;
+      transition: transform .2s ease-in-out;
+
       z-index: 100;
       top: 30px;
       left: 0px;
 
       li {
+        transition: opacity 0.3s ease;
         padding: 10px;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: background-color 0.5s ease;
 
         &:hover,
         &.selected {
@@ -168,15 +185,18 @@ $focus-border-color: #adadad;
           border-top: 1px solid #e0e0e0;
         }
       }
-
-      // Когда класс open активен, выпадающий список отображается
-      &.open {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
   }
 
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: scaleY(0);
+
+  li {
+    opacity: 0;
+  }
 
 }
 </style>
