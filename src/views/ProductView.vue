@@ -19,8 +19,23 @@
 
           <div class="size-form">
             <form @submit.prevent="submitForm">
-              <div class="size-cont">
-                <div class="size-box">
+
+              <div class="size-cont grid">
+
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+
+                <!-- <div class="size-box">
                   <CustomInput style="width: 152px;;" v-model="inputValue" :labelText="'身長'" placeholderText="身長cm" />
                 </div>
                 <div class="size-box">
@@ -30,8 +45,9 @@
                 <div class="size-box">
                   <label for="textInput">ウェストサイズ</label>
                   <input v-model="inputValue" id="textInput" type="text" placeholder="ウェストサイズcm" />
-                </div>
+                </div> -->
               </div>
+              
               <div class="size-cont">
                 <div class="size-box">
                   <CustomSelect :values="['コットン (綿)', 'コットン (綿)2', 'コットン (綿)3', 'コットン (綿)4']" v-model="selectedSize" :labelText="'生地の種類'" />
@@ -62,6 +78,13 @@
 
       <div class="add-content">
 
+        <div class="add-card">
+
+
+          <div class="img-box">
+            <!-- <img :src="image" :alt="name" class="product-image" /> -->
+          </div>
+        </div>
 
       </div>
 
@@ -263,4 +286,58 @@ export default defineComponent({
     // box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 }
+
+.size-cont.grid{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+
+  .size-box{
+    width: 100%;
+
+    input{
+      width: 100%;
+    }
+  }
+}
+// чтобы инпуты не разьебывало которые нужно вводить текст
+.size-cont input{
+  width: auto;
+  min-width: none;
+}
+
+.add-content{
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  padding: 10px 40px;
+  position: relative;
+
+
+  &::before{
+    content: url(../assets/icons/plus.svg);
+    display: block;
+    position: absolute;
+    top: -16px;
+    left: calc(50% - 16px);
+    padding: 0 8px;
+    background-color: #fff;
+
+  }
+  .img-box{
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: url(../assets/images/main.webp);
+    border: 1px solid black;
+
+
+      img{
+        width: 100%;
+      }
+    }
+
+}
+
+
+
+
 </style>
