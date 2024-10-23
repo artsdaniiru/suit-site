@@ -4,32 +4,35 @@
         <div class="header">
             <span v-for="(header, index) in headers" :key="index" @click="header.sortable && sortTable(index)">
                 {{ header.name }}
-                <span v-if="header.sortable" class="sort-indicator">
+                <span v-if="header.sortable != undefined && header.sortable" class="sort-indicator">
                     <!-- Указываем направление сортировки -->
                     {{ getSortDirection(index) }}
                 </span>
             </span>
         </div>
         <!-- Строки с товарами -->
-        <div class="item-card" v-for="item in modelValue" :key="item.id">
-            <span v-for="(header, index) in headers" :key="index">
+        <div class="item-card" v-for="item in modelValue" :key="item.id" @click="clickOnItem(item.id)">
+            <div class="elem" v-for="(header, index) in headers" :key="index">
                 <!-- Отображение данных согласно полю -->
-                <span v-if="header.field === 'image_path'">
-                    <img :src="item[header.field]" alt="product" class="product-image" />
-                </span>
+                <img v-if="header.field === 'image_path'" :src="item[header.field]" alt="product" class="product-image" />
+                <CustomSwitch @click.stop="" v-else-if="header.switch != undefined && header.switch" v-model="item[header.field]" />
                 <span v-else>
                     {{ item[header.field] }}
                 </span>
-            </span>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent } from "vue";
+import CustomSwitch from './CustomSwitch.vue';
 
 export default defineComponent({
     name: "ItemsTable",
+    components: {
+        CustomSwitch,
+    },
     props: {
         headers: {
             type: Array,
@@ -52,6 +55,11 @@ export default defineComponent({
             emit("sorted", index);
         };
 
+        // Сортировка
+        const clickOnItem = (index) => {
+            emit("clickOnItem", index);
+        };
+
 
 
         const getSortDirection = (index) => {
@@ -61,13 +69,14 @@ export default defineComponent({
 
         return {
             sortTable,
-            getSortDirection
+            getSortDirection,
+            clickOnItem
         };
     }
 });
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .items-table {
     display: flex;
     flex-direction: column;
@@ -112,6 +121,11 @@ export default defineComponent({
 
         &:hover {
             background: #f5f5f5;
+        }
+
+        .elem {
+            display: flex;
+            align-items: center;
         }
     }
 }

@@ -1,20 +1,22 @@
 <template>
   <div :class="['custom-select-container', labelPositionClass]" v-click-out-side="() => isOpen = false">
-    <!-- Условно отображаем лейбл с учетом позиции -->
+    <!-- Отображаем лейбл, если передан -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
+
+    <!-- Основной блок селекта -->
     <div class="select-box" @click="toggleDropdown">
-      <!-- Отображаем выбранное значение, либо скрываем текст "選択して下さい" при notSelect -->
-      <div class="selected-value" v-if="selectedValue !== '' && values[selectedValue]">{{ values[selectedValue] }}</div>
+      <!-- Отображаем выбранные значения -->
+      <div class="selected-value" v-if="selectedValue.length">{{ selectedValuesText }}</div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
       <span class="arrow" :class="{ open: isOpen }">
         <img src="../assets/icons/chevron-dw.svg" alt="chevron">
       </span>
 
-      <!-- Добавляем анимацию через <transition> -->
+      <!-- Список опций -->
       <transition name="slide">
         <ul :class="['options-list', { open: isOpen }]" v-if="isOpen">
-          <li :class="{ selected: index === selectedValue }" v-for="(value, index) in values" :key="index" class="option-item" @click.stop="selectOption(index)">
-            {{ value }}
+          <li :class="{ selected: isSelected(index) }" v-for="(label, key, index) in values" :key="key" class="option-item" @click.stop="selectOption(key)">
+            {{ label }}
           </li>
         </ul>
       </transition>
@@ -23,19 +25,19 @@
 </template>
 
 <script>
-import { defineComponent, ref, toRefs, watch, onMounted } from "vue";
+import { defineComponent, ref, toRefs, watch, computed } from "vue";
 
 export default defineComponent({
-  name: "CustomSelect",
+  name: "CustomMultiSelect",
   props: {
     values: {
       type: Object,
       required: true
     },
     modelValue: {
-      type: String,
+      type: Array,
       required: false,
-      default: ""
+      default: () => [] // Массив для хранения выбранных ключей
     },
     labelText: {
       type: String,
@@ -45,44 +47,42 @@ export default defineComponent({
     labelPosition: {
       type: String,
       required: false,
-      default: "top", // Позиция лейбла: "top" (сверху) или "side" (сбоку)
+      default: "top",
       validator: value => ["top", "side"].includes(value)
-    },
-    notSelect: {
-      type: Boolean,
-      required: false,
-      default: false
     }
   },
   setup(props, { emit }) {
-    const { labelPosition, modelValue, values, notSelect } = toRefs(props);
-    const selectedValue = ref(props.modelValue);
+    const { labelPosition, modelValue, values } = toRefs(props);
+    const selectedValue = ref([...props.modelValue]); // Используем массив для мультивыбора
     const isOpen = ref(false);
 
-    // Следим за изменением modelValue, чтобы обновить selectedValue
+    // Следим за изменениями modelValue и обновляем selectedValue
     watch(modelValue, (newValue) => {
-      selectedValue.value = newValue;
-    });
-
-    // При монтировании проверяем, есть ли modelValue и если notSelect == true
-    onMounted(() => {
-      if (!selectedValue.value && notSelect.value && Object.keys(values.value).length > 0) {
-        // Устанавливаем первое значение из values как выбранное
-        const firstValue = Object.keys(values.value)[0];
-        selectedValue.value = firstValue;
-        emit("update:modelValue", firstValue);
-      }
+      selectedValue.value = [...newValue];
     });
 
     const toggleDropdown = () => {
       isOpen.value = !isOpen.value;
     };
 
-    const selectOption = (value) => {
-      selectedValue.value = value;
-      emit("update:modelValue", value);
-      isOpen.value = false; // Закрываем после выбора
+    const selectOption = (key) => {
+      // Если элемент уже выбран — убираем его из массива, иначе добавляем
+      if (selectedValue.value.includes(key)) {
+        selectedValue.value = selectedValue.value.filter(val => val !== key);
+      } else {
+        selectedValue.value.push(key);
+      }
+      emit("update:modelValue", selectedValue.value);
     };
+
+    const isSelected = (key) => {
+      return selectedValue.value.includes(key);
+    };
+
+    // Преобразуем массив выбранных ключей в текстовые значения для отображения
+    const selectedValuesText = computed(() => {
+      return selectedValue.value.map(val => values.value[val]).join(', ');
+    });
 
     // Класс для позиции лейбла
     const labelPositionClass = ref(labelPosition.value === "side" ? "label-side" : "label-top");
@@ -92,6 +92,8 @@ export default defineComponent({
       isOpen,
       toggleDropdown,
       selectOption,
+      isSelected,
+      selectedValuesText,
       labelPositionClass
     };
   }
@@ -107,7 +109,6 @@ $hover-color: #f0f0f0;
 $focus-border-color: #adadad;
 
 .custom-select-container {
-
   user-select: none;
   min-width: 200px;
 
@@ -161,11 +162,13 @@ $focus-border-color: #adadad;
     }
 
     .selected-value {
-      &.not-selected {
-        color: #b3b3b3;
-      }
-    }
 
+      &.not-selected {
+        color: #b3b3b3 !important;
+      }
+
+
+    }
 
     .options-list {
       position: absolute;
@@ -179,12 +182,8 @@ $focus-border-color: #adadad;
       max-height: 200px; // Ограничение по высоте
       overflow-y: auto;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      // opacity: 0;
-      // transform: translateY(-10px);
-      // transition: all 0.3s ease;
       transform-origin: top;
       transition: transform .2s ease-in-out;
-
       z-index: 100;
       top: 30px;
       left: 0px;
@@ -206,7 +205,6 @@ $focus-border-color: #adadad;
       }
     }
   }
-
 }
 
 .slide-enter-from,
@@ -216,6 +214,5 @@ $focus-border-color: #adadad;
   li {
     opacity: 0;
   }
-
 }
 </style>

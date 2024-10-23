@@ -6,16 +6,22 @@
         </div>
         <div class="actions">
             <SearchInput v-model="searchQuery" />
+            <div class="filters">
+                <button class="button" @click="closeFlag = true">新商品作成</button>
+                <CustomSelect :values="{ active: 'Active', popular: 'Popular', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'表示件数'" :labelPosition="'side'" />
+                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
+            </div>
 
-            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
         </div>
-
         <!-- Отображение товаров -->
-        <ItemsTable :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" />
+        <ItemsTable :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" />
 
         <!-- Пагинация -->
         <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
 
+        <CustomModal v-model="closeFlag" :title="'商品変更'">
+            <EditProduct :product_id="product_id" />
+        </CustomModal>
     </div>
 </template>
 <!-- eslint-disable -->
@@ -23,32 +29,44 @@
 import { defineComponent, ref, computed, onMounted } from "vue";
 import axios from "axios";
 import ItemsTable from './components/ItemsTable.vue';
+import EditProduct from './components/EditProduct.vue';
 
 export default defineComponent({
     name: "CatalogView", components: {
         ItemsTable,
+        EditProduct,
     },
     setup() {
 
         const headers = ref([
-            { name: "画像", field: "image_path", sortable: false },
+            { name: "画像", field: "image_path" },
             { name: "名前", field: "name", sortable: true },
             { name: "英名", field: "name_eng", sortable: true },
-            { name: "値段", field: "min_price", sortable: true }
+            { name: "値段", field: "min_price", sortable: true },
+            { name: "表示", field: "active", switch: true }
         ]);
 
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
 
         const itemsPerPage = ref(8);
+        const filter = ref('');
         const currentPage = ref(1);
+
+        const closeFlag = ref(false);
 
 
         const sortOrder = ref({ index: null, ascending: true });
 
+        const product_id = ref(null);
 
 
+        const editItem = (index) => {
 
+
+            product_id.value = index;
+            closeFlag.value = true;
+        }
 
 
 
@@ -56,7 +74,7 @@ export default defineComponent({
         // Метод для получения товаров с сервера
         const fetchProducts = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=100', {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_products&itemsPerPage=100', {
                     withCredentials: true
                 });
                 // Убедимся, что товары приходят в поле `products`
@@ -140,7 +158,11 @@ export default defineComponent({
             headers,
             sortOrder,
             sortTable,
-            items
+            items,
+            filter,
+            closeFlag,
+            product_id,
+            editItem
         };
     },
 });
@@ -181,40 +203,9 @@ export default defineComponent({
         display: flex;
         justify-content: space-between;
 
-        &-btn {
+        .filters {
             display: flex;
             gap: 20px;
-
-            .sort-buttons {
-                display: flex;
-                gap: 10px;
-
-
-                button {
-                    padding: 8px;
-                    background: #f5f5f5;
-                    border-radius: 8px;
-                    border: 0px;
-                    cursor: pointer;
-
-                    font-weight: 400;
-                    font-size: 16px;
-                    line-height: 100%;
-                    color: #757575;
-
-                    outline: unset;
-
-
-                    &.active {
-                        background: #2c2c2c;
-                        color: #f5f5f5;
-                    }
-
-                }
-
-
-            }
-
         }
 
 
