@@ -193,6 +193,10 @@ export default defineComponent({
         height: 100px;
     }
 
+    input {
+        width: 100%;
+    }
+
     button {
         margin-top: 20px;
     }
