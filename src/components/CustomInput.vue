@@ -2,7 +2,7 @@
   <div :class="['custom-input-container', labelPositionClass]">
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
-    <input :type="type" :value="modelValue" @input="updateValue($event.target.value)" :placeholder="placeholderText" :required="required" @blur="validateInput" />
+    <input :type="type" :value="modelValue" @input="updateValue($event.target.value)" :placeholder="placeholderText" :required="required" @blur="validateInput" :disabled="disabled" />
     <!-- Условно отображаем сообщение об ошибке -->
     <span v-if="showError" class="error-message">This field is required</span>
   </div>
@@ -44,6 +44,11 @@ export default defineComponent({
       type: String,
       required: false,
       default: "text"
+    },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   setup(props, { emit }) {

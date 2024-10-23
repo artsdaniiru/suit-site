@@ -120,7 +120,7 @@ export default defineComponent({
     }
 
     input:checked+.slider {
-        background-color: #4caf50;
+        background-color: #2c2c2c;
 
         &:before {
             transform: translateX(26px);

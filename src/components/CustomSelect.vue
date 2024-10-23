@@ -2,7 +2,7 @@
   <div :class="['custom-select-container', labelPositionClass]" v-click-out-side="() => isOpen = false">
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
-    <div class="select-box" @click="toggleDropdown">
+    <div class="select-box" :class="{ disabled: disabled }" @click="toggleDropdown">
       <!-- Отображаем выбранное значение, либо скрываем текст "選択して下さい" при notSelect -->
       <div class="selected-value" v-if="selectedValue !== '' && values[selectedValue]">{{ values[selectedValue] }}</div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
@@ -52,6 +52,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false
+    },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   setup(props, { emit }) {
@@ -75,7 +80,9 @@ export default defineComponent({
     });
 
     const toggleDropdown = () => {
-      isOpen.value = !isOpen.value;
+      if (!props.disabled) {
+        isOpen.value = !isOpen.value;
+      }
     };
 
     const selectOption = (value) => {
@@ -150,6 +157,15 @@ $focus-border-color: #adadad;
 
     &:hover {
       border-color: $focus-border-color;
+    }
+
+    &.disabled {
+      background: #d9d9d9;
+      color: #b3b3b3;
+
+      &:hover {
+        border-color: $select-border-color;
+      }
     }
 
     .arrow {

@@ -4,7 +4,7 @@
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
 
     <!-- Основной блок селекта -->
-    <div class="select-box" @click="toggleDropdown">
+    <div class="select-box" :class="{ disabled: disabled }" @click="toggleDropdown">
       <!-- Отображаем выбранные значения -->
       <div class="selected-value" v-if="selectedValue.length">{{ selectedValuesText }}</div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
@@ -49,6 +49,11 @@ export default defineComponent({
       required: false,
       default: "top",
       validator: value => ["top", "side"].includes(value)
+    },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   setup(props, { emit }) {
@@ -62,7 +67,9 @@ export default defineComponent({
     });
 
     const toggleDropdown = () => {
-      isOpen.value = !isOpen.value;
+      if (!props.disabled) {
+        isOpen.value = !isOpen.value;
+      }
     };
 
     const selectOption = (key) => {
@@ -151,6 +158,15 @@ $focus-border-color: #adadad;
 
     &:hover {
       border-color: $focus-border-color;
+    }
+
+    &.disabled {
+      background: #d9d9d9;
+      color: #b3b3b3;
+
+      &:hover {
+        border-color: $select-border-color;
+      }
     }
 
     .arrow {
