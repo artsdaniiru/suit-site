@@ -14,8 +14,8 @@
 
         </div>
         <!-- Отображение товаров -->
-        <ItemsTable :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" />
-
+        <ItemsTable v-if="is_loading" :headers="headers" :itemsPerPage="itemsPerPage" :isLoader="true" />
+        <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" />
         <!-- Пагинация -->
         <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
 
@@ -37,6 +37,8 @@ export default defineComponent({
         EditProduct,
     },
     setup() {
+
+        const is_loading = ref(true);
 
         const headers = ref([
             { name: "画像", field: "image_path" },
@@ -73,6 +75,7 @@ export default defineComponent({
 
         // Метод для получения товаров с сервера
         const fetchProducts = async () => {
+            is_loading.value = true;
             try {
                 const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_products&itemsPerPage=100', {
                     withCredentials: true
@@ -84,6 +87,7 @@ export default defineComponent({
                         ...product,
                         min_price: Number(product.min_price), // Преобразуем строку в число
                     }));
+                    is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
                 }
@@ -155,6 +159,7 @@ export default defineComponent({
         });
 
         return {
+            is_loading,
             searchQuery,
             itemsPerPage,
             currentPage,
@@ -215,45 +220,5 @@ export default defineComponent({
 
 
     }
-}
-
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: auto;
-    gap: 8px;
-
-    button {
-        padding: 8px 12px;
-        margin: 0;
-        cursor: pointer;
-        background-color: #f0f0f0;
-        border: none;
-        border-radius: 5px;
-        font-weight: 400;
-        font-size: 16px;
-        line-height: 100%;
-
-        &:disabled {
-            color: #757575;
-            cursor: not-allowed;
-        }
-
-        &.active {
-            background: #2c2c2c;
-            color: #f5f5f5;
-        }
-
-        &.prev,
-        &.next {
-            background: transparent !important;
-        }
-    }
-}
-
-.pagination-settings {
-    display: flex;
-    justify-content: flex-end;
 }
 </style>

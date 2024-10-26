@@ -1,5 +1,5 @@
 <template>
-    <div class="items-table">
+    <div v-if="!isLoader" class="items-table">
         <!-- Заголовки таблицы -->
         <div class="header">
             <span v-for="(header, index) in headers" :key="index" @click="header.sortable && sortTable(index)">
@@ -22,6 +22,23 @@
             </div>
         </div>
     </div>
+    <div v-else class="items-table">
+        <!-- Заголовки таблицы -->
+        <div class="header">
+            <span v-for="(header, index) in headers" :key="index">
+                {{ header.name }}
+            </span>
+        </div>
+        <!-- Строки с товарами -->
+        <div class="item-card is_loading" v-for="item in itemsPerPage" :key="item">
+            <div class="elem" v-for="(header, index) in headers" :key="index">
+                <!-- Отображение данных согласно полю -->
+                <div v-if="header.field === 'image_path'" class="img"></div>
+                <div v-else-if="header.switch != undefined && header.switch" class="switch"></div>
+                <span v-else></span>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -40,11 +57,21 @@ export default defineComponent({
         },
         modelValue: {
             type: Array,
-            required: true
+            required: false,
         },
         sortOrder: {
             type: Array,
-            required: true
+            required: false,
+        },
+        itemsPerPage: {
+            type: Number,
+            required: false,
+            default: 8
+        },
+        isLoader: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['update:modelValue'],
@@ -127,6 +154,60 @@ export default defineComponent({
             display: flex;
             align-items: center;
         }
+
+        &.is_loading {
+            //ref https: //codepen.io/chris__sev/pen/mdrzYQE
+
+            cursor: unset;
+
+            &:hover {
+                background: unset;
+            }
+
+
+            .elem {
+                display: flex;
+                align-items: center;
+
+
+                .img {
+                    border-radius: 5px;
+                    width: 45px;
+                    height: 45px;
+                }
+
+                .switch {
+                    width: 50px;
+                    height: 24px;
+                    border-radius: 20px;
+                }
+
+                span {
+                    width: 130px;
+                    height: 22px;
+                    border-radius: 8px;
+                }
+
+                .img,
+                .switch,
+                span {
+
+                    background: #eee;
+                    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+                    background-size: 200% 100%;
+                    animation: 1.5s shine linear infinite;
+                }
+
+                @keyframes shine {
+                    to {
+                        background-position-x: -200%;
+                    }
+                }
+            }
+
+        }
+
+
     }
 }
 </style>
