@@ -8,8 +8,8 @@
             <SearchInput v-model="searchQuery" />
             <div class="filters">
                 <button class="button" @click="closeFlag = true">新商品作成</button>
-                <CustomSelect :values="{ active: 'Active', popular: 'Popular', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'表示件数'" :labelPosition="'side'" />
-                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
+                <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
             </div>
 
         </div>
@@ -138,11 +138,6 @@ export default defineComponent({
 
             const start = (currentPage.value - 1) * Number(itemsPerPage.value);
             const end = Number(start) + Number(itemsPerPage.value);
-            console.log('start', start);
-            console.log('end', end);
-
-            console.log(sortedItems.value.slice(start, end));
-
             return sortedItems.value.slice(start, end);
         });
 

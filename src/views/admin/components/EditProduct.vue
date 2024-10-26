@@ -3,10 +3,6 @@
     <div class="product-edit">
 
         <div class="grid-selection">
-
-
-
-
             <div class="side">
                 <div class="product-main">
                     <div class="product-main-head">
@@ -22,7 +18,8 @@
                         <CustomSwitch v-else-if="key == 'popular'" v-model="data.product[key]" :labelText="item" />
                         <div class="description" v-else-if="key == 'description'">
                             <label>{{ item }}</label>
-                            <textarea :value="data.product[key]" />
+                            <!-- <textarea :value="data.product[key]" /> -->
+                            <QuillEditor theme="snow" v-model:content="data.product[key]" contentType="html" />
                         </div>
                         <CustomInput v-else v-model="data.product[key]" :labelText="item" :placeholderText="item" />
                     </template>
@@ -98,10 +95,14 @@ import axios from "axios";
 import { defineComponent, ref, onMounted, watch } from "vue";
 import CustomSwitch from './CustomSwitch.vue';
 
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
 export default defineComponent({
     name: "EditProduct",
     components: {
         CustomSwitch,
+        QuillEditor
     },
     props: {
         product_id: {
@@ -122,7 +123,7 @@ export default defineComponent({
         });
         const size_headers = ref({
             name: '名前',
-            price: '価格',
+            price: '値段',
             height_min: "身長最小",
             height_max: "身長最大",
             shoulder_width_min: "肩幅最小",
@@ -255,7 +256,10 @@ export default defineComponent({
             .description {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+
+                label {
+                    margin-bottom: 8px;
+                }
 
                 textarea {
                     width: -webkit-fill-available;
@@ -425,5 +429,17 @@ export default defineComponent({
             gap: 12px;
         }
     }
+}
+</style>
+
+<style lang="scss">
+.ql-toolbar {
+    border-radius: 8px 8px 0px 0px;
+    border: 1px solid #d9d9d9;
+}
+
+.ql-container {
+    border-radius: 0px 0px 8px 8px;
+    border: 1px solid #d9d9d9;
 }
 </style>

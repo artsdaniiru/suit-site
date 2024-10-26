@@ -4,9 +4,12 @@
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
 
     <!-- Основной блок селекта -->
-    <div class="select-box" :class="{ disabled: disabled }" @click="toggleDropdown">
+    <div ref="selectBox" class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown">
       <!-- Отображаем выбранные значения -->
-      <div class="selected-value" v-if="selectedValue.length">{{ selectedValuesText }}</div>
+      <div class="selected-value" v-if="selectedValue.length">
+        <span v-for="key in visibleSelectedValues" :key="key">{{ values[key] }}</span>
+        <span v-if="remainingCount > 0">+{{ remainingCount }}</span>
+      </div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
       <span class="arrow" :class="{ open: isOpen }">
         <img src="../assets/icons/chevron-dw.svg" alt="chevron">
@@ -15,7 +18,7 @@
       <!-- Список опций -->
       <transition name="slide">
         <ul :class="['options-list', { open: isOpen }]" v-if="isOpen">
-          <li :class="{ selected: isSelected(index) }" v-for="(label, key, index) in values" :key="key" class="option-item" @click.stop="selectOption(key)">
+          <li v-for="(label, key) in values" :key="key" class="option-item" :class="{ selected: isSelected(key) }" @click.stop="selectOption(key)">
             {{ label }}
           </li>
         </ul>
@@ -54,10 +57,15 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false
+    },
+    width: {
+      type: String,
+      required: false,
+      default: "-webkit-fill-available"
     }
   },
   setup(props, { emit }) {
-    const { labelPosition, modelValue, values } = toRefs(props);
+    const { labelPosition, modelValue } = toRefs(props);
     const selectedValue = ref([...props.modelValue]); // Используем массив для мультивыбора
     const isOpen = ref(false);
 
@@ -86,13 +94,13 @@ export default defineComponent({
       return selectedValue.value.includes(key);
     };
 
-    // Преобразуем массив выбранных ключей в текстовые значения для отображения
-    const selectedValuesText = computed(() => {
-      return selectedValue.value.map(val => values.value[val]).join(', ');
-    });
-
     // Класс для позиции лейбла
     const labelPositionClass = ref(labelPosition.value === "side" ? "label-side" : "label-top");
+
+
+    const maxVisibleItems = ref(2);
+    const visibleSelectedValues = computed(() => selectedValue.value.slice(0, maxVisibleItems.value));
+    const remainingCount = computed(() => selectedValue.value.length - maxVisibleItems.value);
 
     return {
       selectedValue,
@@ -100,8 +108,9 @@ export default defineComponent({
       toggleDropdown,
       selectOption,
       isSelected,
-      selectedValuesText,
-      labelPositionClass
+      remainingCount,
+      labelPositionClass,
+      visibleSelectedValues
     };
   }
 });
@@ -155,6 +164,7 @@ $focus-border-color: #adadad;
     cursor: pointer;
     transition: border-color 0.3s ease;
     position: relative;
+    min-width: 130px;
 
     &:hover {
       border-color: $focus-border-color;
@@ -181,6 +191,19 @@ $focus-border-color: #adadad;
 
       &.not-selected {
         color: #b3b3b3 !important;
+      }
+
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+
+      span {
+        font-size: 12px;
+        padding: 2px 4px;
+        color: #f5f5f5;
+        background: #2c2c2c;
+
+        border-radius: 4px;
       }
 
 
