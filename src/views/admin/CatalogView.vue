@@ -26,7 +26,7 @@
 </template>
 <!-- eslint-disable -->
 <script>
-import { defineComponent, ref, computed, onMounted } from "vue";
+import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './components/ItemsTable.vue';
 import EditProduct from './components/EditProduct.vue';
@@ -132,17 +132,22 @@ export default defineComponent({
                 item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
             );
 
-            const start = (currentPage.value - 1) * itemsPerPage.value;
-            const end = start + itemsPerPage.value;
+            const start = (currentPage.value - 1) * Number(itemsPerPage.value);
+            const end = Number(start) + Number(itemsPerPage.value);
+            console.log('start', start);
+            console.log('end', end);
+
+            console.log(sortedItems.value.slice(start, end));
+
             return sortedItems.value.slice(start, end);
         });
 
 
-        const updateItemsPerPage = (value) => {
-            itemsPerPage.value = value;
-            currentPage.value = 1;
-        };
 
+
+        watch(itemsPerPage, () => {
+            currentPage.value = 1;
+        });
 
         // Загружаем товары при монтировании компонента
         onMounted(() => {
@@ -154,7 +159,6 @@ export default defineComponent({
             itemsPerPage,
             currentPage,
             paginatedItems,
-            updateItemsPerPage,
             headers,
             sortOrder,
             sortTable,
