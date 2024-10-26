@@ -9,11 +9,11 @@
                 <router-link to="/catalog"><span>カタログ</span></router-link>
                 <router-link to="/delivery"><span>配送について</span></router-link>
                 <router-link to="/contact"><span>連絡</span></router-link>
-                <button v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>
+                <button class="button" v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>
                 <div v-else class="account">
                     <img src="../assets/icons/user.svg" alt="logo">
                     <span class="name">{{ user['name'] }}</span>
-                    <button @click="logout" class="danger"><span>ログアウト</span></button>
+                    <button @click="logout" class="button danger"><span>ログアウト</span></button>
                 </div>
                 <div class="cart">
                     <img src="../assets/icons/cart.svg" alt="logo">
@@ -115,34 +115,8 @@ header {
             }
 
             button {
-                font-weight: 400;
-                font-size: 16px;
-                line-height: 100%;
-                color: #f5f5f5;
-                border: 1px solid #2c2c2c;
-                border-radius: 8px;
-                padding: 8px 8px 8px 8px;
-                width: 100px;
+                padding: 8px;
                 height: 32px;
-                background: #2c2c2c;
-
-                cursor: pointer;
-                transition: background 0.3s ease;
-
-                &:hover {
-                    background: #1e1e1e;
-                }
-
-
-                &.danger {
-                    border: 1px solid #c00f0c;
-                    background: #ec221f;
-
-                    &:hover {
-                        border: 1px solid #900b09;
-                        background: #c00f0c;
-                    }
-                }
             }
 
             .cart {

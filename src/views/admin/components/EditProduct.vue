@@ -9,13 +9,21 @@
 
             <div class="side">
                 <div class="product-main">
-                    <div class="type">
-                        <label>タイプ：</label>
-                        <span>{{ data.product.type == 'suit' ? 'スーツ' : '他の' }}</span>
+                    <div class="product-main-head">
+                        <div class="type">
+                            <label>タイプ：</label>
+                            <span>{{ data.product.type == 'suit' ? 'スーツ' : '他の' }}</span>
+                        </div>
+                        <CustomSwitch v-model="data.product.active" :labelText="'表示'" labelPosition="side" />
                     </div>
+
                     <template v-for="(item, key) in product_headers" :key="item">
                         <CustomSelect v-if="key == 'type'" :values="{ suit: 'スーツ', not_suit: '他の' }" v-model="data.product[key]" :labelText="item" :notSelect="false" />
-                        <CustomSwitch v-else-if="key == 'popular' || key == 'active'" v-model="data.product[key]" :labelText="item" labelPosition="'top'" />
+                        <CustomSwitch v-else-if="key == 'popular'" v-model="data.product[key]" :labelText="item" />
+                        <div class="description" v-else-if="key == 'description'">
+                            <label>{{ item }}</label>
+                            <textarea :value="data.product[key]" />
+                        </div>
                         <CustomInput v-else v-model="data.product[key]" :labelText="item" :placeholderText="item" />
                     </template>
                 </div>
@@ -66,8 +74,22 @@
             </div>
         </div>
         <div class="actions">
-            <button class="button" :disabled="areDataEqual">保存</button>
-            <button class="button danger">削除</button>
+            <div class="dates">
+                <div class="date">
+                    <span>作成日：</span>
+                    <span>{{ data.product.date_of_creation }}</span>
+                </div>
+                <div class="date">
+                    <span>変更日：</span>
+                    <span>{{ data.product.date_of_change }}</span>
+                </div>
+
+            </div>
+            <div class="buttons">
+                <button class="button danger">削除</button>
+                <button class="button" :disabled="areDataEqual">保存</button>
+            </div>
+
         </div>
     </div>
 </template>
@@ -96,9 +118,6 @@ export default defineComponent({
             name: '名前',
             name_eng: '英名',
             description: '説明',
-            // date_of_creation: '作成日',
-            // date_of_change: '変更日',
-            active: '表示',
             popular: '人気'
         });
         const size_headers = ref({
@@ -206,21 +225,44 @@ export default defineComponent({
             flex-direction: column;
             gap: 12px;
 
-            .type {
+            &-head {
                 display: flex;
-                gap: 8px;
-                align-items: center;
-                font-size: 18px;
+                gap: 12px;
 
-                span {
-                    padding: 4px 8px;
-                    color: #f5f5f5;
-                    background: #2c2c2c;
+                .type {
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    font-size: 18px;
+                    width: max-content;
 
-                    border-radius: 8px;
+                    span {
+                        padding: 4px 8px;
+                        color: #f5f5f5;
+                        background: #2c2c2c;
 
+                        border-radius: 8px;
+                        width: max-content;
+
+                    }
+
+                    label {
+                        width: max-content;
+                    }
                 }
             }
+
+            .description {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                textarea {
+                    width: -webkit-fill-available;
+                    height: 150px;
+                }
+            }
+
         }
 
         .product-sizes {
@@ -362,7 +404,26 @@ export default defineComponent({
     .actions {
         display: flex;
         gap: 12px;
-        flex-direction: row-reverse;
+        justify-content: space-between;
+        width: 100%;
+
+        .dates {
+            display: flex;
+            flex-direction: column;
+            color: #ccc;
+            font-size: 14px;
+
+            .date {
+                align-items: center;
+                display: flex;
+                gap: 8px;
+            }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+        }
     }
 }
 </style>

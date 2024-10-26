@@ -62,18 +62,18 @@ main {
   &:disabled {
     cursor: unset;
     background: #d9d9d9;
-    border: 1px solid #b3b3b3;
+    border: 1px solid #d9d9d9;
     color: #b3b3b3;
   }
 
   &.danger {
-    border: 1px solid #c00f0c;
+    border: 1px solid #ec221f;
     background: #ec221f;
     color: #fee9e7;
 
     &:hover {
       background: #c00f0c;
-      border: 1px solid #900b09;
+      border: 1px solid #c00f0c;
     }
   }
 }
