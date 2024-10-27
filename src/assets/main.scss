@@ -76,6 +76,77 @@ main {
       border: 1px solid #c00f0c;
     }
   }
+
+  &-plain {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 75px;
+    height: 40px;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 100%;
+    color: #2c2c2c;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    background: transparent;
+    font-weight: 500;
+
+    &:hover {
+      color: #1e1e1e;
+    }
+
+    &:disabled {
+      cursor: unset;
+      color: #2c2c2c;
+      opacity: 0.7;
+    }
+
+    &.danger {
+      color: #ec221f;
+
+      &:hover {
+        color: #c00f0c;
+      }
+    }
+  }
+
+  &-outlined {
+    border: 1px solid #2c2c2c;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 75px;
+    height: 40px;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 100%;
+    color: #2c2c2c;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    transition: background 0.3s ease;
+    background: transparent;
+    font-weight: 500;
+
+    &:hover {
+      border: 1px solid #1e1e1e;
+      color: #1e1e1e;
+    }
+
+    &:disabled {
+      cursor: unset;
+      opacity: 0.7;
+    }
+
+    &.danger {
+      border: 1px solid #ec221f;
+      color: #ec221f;
+
+      &:hover {
+        border: 1px solid #c00f0c;
+        color: #c00f0c;
+      }
+    }
+  }
 }
 
 

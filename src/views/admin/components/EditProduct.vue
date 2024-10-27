@@ -27,14 +27,24 @@
                 <div class="product-images">
                     <label>画像</label>
                     <div class="gallery">
-                        <div class="img-elem" v-for="(img, key)  in data.product_images" :key="img">
+                        <!-- Отображение загруженных с сервера изображений -->
+                        <div class="img-elem" v-for="(img, key) in data.product_images" :key="img.id">
                             <div class="delete">
                                 <img src="../../../assets/icons/delete.svg" alt="delete" @click="deleteImg(key)">
                             </div>
                             <img :src="img.image_path" alt="product" class="item-pic" />
                         </div>
 
-                        <div class="add-file">
+                        <!-- Отображение временных изображений -->
+                        <div class="img-elem" v-for="(img, index) in tempImages" :key="index">
+                            <div class="delete">
+                                <img src="../../../assets/icons/delete.svg" alt="delete" @click="deleteTempImg(index)">
+                            </div>
+                            <img :src="img.preview" alt="product" class="item-pic" />
+                        </div>
+
+                        <div class="add-file" @click="triggerFileInput">
+                            <input type="file" @change="previewImage" style="display: none" ref="fileInput" multiple accept="image/*" />
                             <img class="close" src="../../../assets/icons/plus-white.svg" alt="add">
                             <span>画像追加</span>
                         </div>
@@ -57,8 +67,11 @@
                     <div class="headers">
                         <div class="elem" v-for="(size, key)  in data.sizes" :key="size" :class="{ active: key == active_size }" @click="active_size = key">
                             <span>{{ size.name }}</span>
+                            <div class="delete">
+                                <img src="../../../assets/icons/delete.svg" alt="delete" @click.stop="deleteSize(key)">
+                            </div>
                         </div>
-                        <div class="elem">
+                        <div class="elem" @click="addSize">
                             <span>+</span>
                         </div>
                     </div>
@@ -162,7 +175,7 @@ export default defineComponent({
 
 
         function deleteImg(key) {
-            console.log(key);
+
             data.value.product_images.splice(key, 1);
 
         }
@@ -170,6 +183,63 @@ export default defineComponent({
         onMounted(() => {
             fetchProduct();
         });
+
+
+        function deleteSize(key) {
+            data.value.sizes.splice(key, 1);
+
+            if (active_size.value == key) {
+                active_size.value = 0;
+            } else {
+
+                if (active_size.value != 0) {
+                    if (active_size.value > key) {
+                        active_size.value--;
+                    }
+                }
+            }
+
+        }
+
+        function addSize() {
+            let size_template = {
+                id: null,
+                product_id: data.value.product.id,
+                name: "New size",
+                price: 0,
+                date_of_creation: new Date('YYYY-MM-DD HH:MM:SS'),
+                date_of_change: new Date('YYYY-MM-DD HH:MM:SS'),
+                stock: 0
+            }
+            if (data.value.product.type == 'suit') {
+                size_template = {
+                    id: null,
+                    product_id: data.value.product.id,
+                    name: "New size",
+                    price: 0,
+                    height_min: 0,
+                    height_max: 0,
+                    shoulder_width_min: 0,
+                    shoulder_width_max: 0,
+                    waist_size_min: 0,
+                    waist_size_max: 0,
+                    date_of_creation: new Date('YYYY-MM-DD HH:MM:SS'),
+                    date_of_change: new Date('YYYY-MM-DD HH:MM:SS'),
+                    stock: 0
+                }
+            }
+
+            if (data.value.sizes.length != 0) {
+                size_template = data.value.sizes[data.value.sizes.length - 1];
+                size_template.id = null;
+                size_template.date_of_creation = new Date('YYYY-MM-DD HH:MM:SS');
+                size_template.date_of_change = new Date('YYYY-MM-DD HH:MM:SS');
+            }
+
+
+            data.value.sizes.push(size_template)
+            active_size.value = data.value.sizes.length - 1;
+        }
 
 
         // Функция для глубокого сравнения двух объектов или массивов
@@ -185,6 +255,84 @@ export default defineComponent({
             areDataEqual.value = deepEqual(data.value, data_original.value);
         }, { deep: true });
 
+        const fileInput = ref(null);
+
+        const triggerFileInput = () => {
+
+            if (fileInput.value) {
+                fileInput.value.click();
+            }
+        };
+
+
+        const tempImages = ref([]);
+
+        const previewImage = (event) => {
+            const files = Array.from(event.target.files);
+
+            files.forEach((file) => {
+                if (file && file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        tempImages.value.push({
+                            file: file,
+                            preview: e.target.result,
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        };
+
+        const deleteTempImg = (index) => {
+            tempImages.value.splice(index, 1);
+        };
+
+
+
+        // const saveProduct = async () => {
+        //     try {
+        //         // Сначала отправляем данные продукта (если необходимо)
+        //         const productResponse = await axios.post(
+        //             process.env.VUE_APP_BACKEND_URL + '/backend/update_product.php',
+        //             { product: data.value.product },
+        //             { withCredentials: true }
+        //         );
+
+        //         if (productResponse.data.status !== "success") {
+        //             console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+        //             return;
+        //         }
+
+        //         // Затем загружаем изображения
+        //         for (const img of tempImages.value) {
+        //             const formData = new FormData();
+        //             formData.append("image", img.file);
+        //             formData.append("product_id", data.value.product.id);
+
+        //             const imageResponse = await axios.post(
+        //                 process.env.VUE_APP_BACKEND_URL + '/backend/upload_image.php',
+        //                 formData,
+        //                 {
+        //                     headers: { "Content-Type": "multipart/form-data" },
+        //                     withCredentials: true,
+        //                 }
+        //             );
+
+        //             if (imageResponse.data.status === "success") {
+        //                 data.value.product_images.push(imageResponse.data.image);
+        //             } else {
+        //                 console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
+        //             }
+        //         }
+
+        //         // Очищаем временные изображения после успешного сохранения
+        //         tempImages.value = [];
+        //     } catch (error) {
+        //         console.error("Ошибка при сохранении продукта:", error);
+        //     }
+        // };
+
 
         return {
             data,
@@ -193,7 +341,14 @@ export default defineComponent({
             active_size,
             size_headers,
             hasSizeKey,
-            areDataEqual
+            areDataEqual,
+            deleteSize,
+            addSize,
+            tempImages,
+            previewImage,
+            deleteTempImg,
+            triggerFileInput,
+            fileInput
         };
     }
 });
@@ -276,8 +431,9 @@ export default defineComponent({
 
             .headers {
                 display: flex;
-                gap: 8px;
+                gap: 12px;
                 margin-bottom: 4px;
+                flex-wrap: wrap;
 
                 .elem {
                     height: 32px;
@@ -291,11 +447,41 @@ export default defineComponent({
                     align-items: center;
                     border-radius: 8px;
                     cursor: pointer;
+                    position: relative;
 
                     &.active,
                     &:hover {
                         color: #f5f5f5;
                         background: #2c2c2c;
+                    }
+
+                    .delete {
+                        position: absolute;
+                        top: -10px;
+                        right: -10px;
+
+                        background-color: #fff;
+
+                        border: 1px solid #2c2c2c;
+                        border-radius: 20px;
+
+                        width: 20px;
+                        height: 20px;
+                        display: flex;
+                        cursor: pointer;
+
+                        transition: border 0.3s ease;
+
+                        &:hover {
+                            border: 1px solid #1e1e1e;
+                        }
+
+                        img {
+                            width: 12px;
+                            height: 12px;
+                            margin: auto;
+                        }
+
                     }
                 }
             }
@@ -315,6 +501,7 @@ export default defineComponent({
             .gallery {
                 display: flex;
                 gap: 12px;
+                flex-wrap: wrap;
 
 
                 .img-elem {
