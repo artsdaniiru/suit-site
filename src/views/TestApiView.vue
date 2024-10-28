@@ -130,13 +130,13 @@ export default defineComponent({
 
         // Восстановление значений из куки при загрузке
         onMounted(() => {
-            const savedUrl = Cookies.get('test_api_url');
-            const savedMethod = Cookies.get('test_api_method');
-            const savedBody = Cookies.get('test_api_body');
+            // const savedUrl = Cookies.get('test_api_url');
+            // const savedMethod = Cookies.get('test_api_method');
+            // const savedBody = Cookies.get('test_api_body');
 
-            if (savedUrl) url.value = savedUrl;
-            if (savedMethod) method.value = savedMethod;
-            if (savedBody) body.value = savedBody;
+            // if (savedUrl) url.value = savedUrl;
+            // if (savedMethod) method.value = savedMethod;
+            // if (savedBody) body.value = savedBody;
         });
 
         // Сохранение значений в куки при изменении

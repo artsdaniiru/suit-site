@@ -1,0 +1,224 @@
+{
+    "data_original": {
+      "product": {
+      "id": "1",
+      "type": "suit",
+      "name": "スーツAAA",
+      "name_eng": "Suit AAA",
+      "description": "A stylish suit.",
+      "date_of_creation": "2023-09-25 10:00:00",
+      "date_of_change": "2023-09-30 12:00:00",
+      "active": "1",
+      "popular": "1"
+    },
+    "sizes": [
+      {
+        "id": "69",
+        "product_id": "1",
+        "name": "S",
+        "price": "13000",
+        "height_min": "160",
+        "height_max": "165",
+        "shoulder_width_min": "42",
+        "shoulder_width_max": "44",
+        "waist_size_min": "72",
+        "waist_size_max": "76",
+        "date_of_creation": "2024-10-28 10:20:51",
+        "date_of_change": "2024-10-28 10:20:51",
+        "stock": "4"
+      },
+      {
+        "id": "70",
+        "product_id": "1",
+        "name": "M",
+        "price": "14000",
+        "height_min": "165",
+        "height_max": "170",
+        "shoulder_width_min": "44",
+        "shoulder_width_max": "46",
+        "waist_size_min": "76",
+        "waist_size_max": "80",
+        "date_of_creation": "2024-10-28 10:20:51",
+        "date_of_change": "2024-10-28 10:20:51",
+        "stock": "4"
+      },
+      {
+        "id": "71",
+        "product_id": "1",
+        "name": "L",
+        "price": "15000",
+        "height_min": "170",
+        "height_max": "175",
+        "shoulder_width_min": "46",
+        "shoulder_width_max": "48",
+        "waist_size_min": "80",
+        "waist_size_max": "84",
+        "date_of_creation": "2024-10-28 10:20:51",
+        "date_of_change": "2024-10-28 10:20:51",
+        "stock": "3"
+      },
+      {
+        "id": "72",
+        "product_id": "1",
+        "name": "XL",
+        "price": "16000",
+        "height_min": "175",
+        "height_max": "180",
+        "shoulder_width_min": "48",
+        "shoulder_width_max": "50",
+        "waist_size_min": "84",
+        "waist_size_max": "88",
+        "date_of_creation": "2024-10-28 10:20:51",
+        "date_of_change": "2024-10-28 10:20:51",
+        "stock": "2"
+      }
+    ],
+    "product_images": [
+      {
+        "id": "1",
+        "product_id": "1",
+        "image_path": "/images/suit.webp",
+        "date_of_creation": "2024-10-09 11:38:45",
+        "date_of_change": "2024-10-09 11:38:45"
+      },
+      {
+        "id": "4",
+        "product_id": "1",
+        "image_path": "/images/suit_white.webp",
+        "date_of_creation": "2024-10-09 11:38:45",
+        "date_of_change": "2024-10-09 11:38:45"
+      }
+    ],
+    "options": [
+      {
+        "id": "1",
+        "name": "コットン (綿)",
+        "type": "cloth",
+        "price": "2000",
+        "stock": "10",
+        "date_of_creation": "2024-10-09 11:30:18",
+        "date_of_change": "2024-10-09 11:30:18"
+      },
+      {
+        "id": "2",
+        "name": "赤 (あか)",
+        "type": "color",
+        "price": "1000",
+        "stock": "10",
+        "date_of_creation": "2024-10-09 11:32:05",
+        "date_of_change": "2024-10-09 11:32:05"
+      }
+    ]
+    },
+    "data": {
+        "product": {
+            "id": "1",
+            "type": "suit",
+            "name": "スーツA",
+            "name_eng": "Suit A",
+            "description": "A stylish suit.",
+            "date_of_creation": "2023-09-25 10:00:00",
+            "date_of_change": "2023-09-30 12:00:00",
+            "active": "1",
+            "popular": "1"
+          },
+          "sizes": [
+            {
+              "id": "69",
+              "product_id": "1",
+              "name": "S",
+              "price": "13000",
+              "height_min": "160",
+              "height_max": "165",
+              "shoulder_width_min": "42",
+              "shoulder_width_max": "44",
+              "waist_size_min": "72",
+              "waist_size_max": "76",
+              "date_of_creation": "2024-10-28 10:20:51",
+              "date_of_change": "2024-10-28 10:20:51",
+              "stock": "4"
+            },
+            {
+              "id": "70",
+              "product_id": "1",
+              "name": "M",
+              "price": "14000",
+              "height_min": "165",
+              "height_max": "170",
+              "shoulder_width_min": "44",
+              "shoulder_width_max": "46",
+              "waist_size_min": "76",
+              "waist_size_max": "80",
+              "date_of_creation": "2024-10-28 10:20:51",
+              "date_of_change": "2024-10-28 10:20:51",
+              "stock": "4"
+            },
+            {
+              "id": "71",
+              "product_id": "1",
+              "name": "L",
+              "price": "15000",
+              "height_min": "170",
+              "height_max": "175",
+              "shoulder_width_min": "46",
+              "shoulder_width_max": "48",
+              "waist_size_min": "80",
+              "waist_size_max": "84",
+              "date_of_creation": "2024-10-28 10:20:51",
+              "date_of_change": "2024-10-28 10:20:51",
+              "stock": "3"
+            },
+            {
+              "id": "72",
+              "product_id": "1",
+              "name": "XL",
+              "price": "16000",
+              "height_min": "175",
+              "height_max": "180",
+              "shoulder_width_min": "48",
+              "shoulder_width_max": "50",
+              "waist_size_min": "84",
+              "waist_size_max": "88",
+              "date_of_creation": "2024-10-28 10:20:51",
+              "date_of_change": "2024-10-28 10:20:51",
+              "stock": "2"
+            }
+          ],
+          "product_images": [
+            {
+              "id": "1",
+              "product_id": "1",
+              "image_path": "/images/suit.webp",
+              "date_of_creation": "2024-10-09 11:38:45",
+              "date_of_change": "2024-10-09 11:38:45"
+            },
+            {
+              "id": "4",
+              "product_id": "1",
+              "image_path": "/images/suit_white.webp",
+              "date_of_creation": "2024-10-09 11:38:45",
+              "date_of_change": "2024-10-09 11:38:45"
+            }
+          ],
+          "options": [
+            {
+              "id": "1",
+              "name": "コットン (綿)",
+              "type": "cloth",
+              "price": "2000",
+              "stock": "10",
+              "date_of_creation": "2024-10-09 11:30:18",
+              "date_of_change": "2024-10-09 11:30:18"
+            },
+            {
+              "id": "2",
+              "name": "赤 (あか)",
+              "type": "color",
+              "price": "1000",
+              "stock": "10",
+              "date_of_creation": "2024-10-09 11:32:05",
+              "date_of_change": "2024-10-09 11:32:05"
+            }
+          ]
+    }
+  }

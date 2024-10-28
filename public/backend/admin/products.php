@@ -163,40 +163,18 @@ switch ($action) {
         }
 
         break;
-    case 'add_product_images':
-        //TODO: реализовать логику добавление картинки
-        $image_path = $request['image_path'];
+        // case 'add_product_images':
+        //     //TODO: реализовать логику добавление картинки
+        //     $image_path = $request['image_path'];
 
-        $sql = "INSERT INTO product_images (product_id, image_path)
-                VALUES ('$product_id', '$image_path')";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-        break;
-    case 'add_sizes':
-        $name = $request['name'];
-        $price = $request['price'];
-        $height_min = $request['height_min'];
-        $height_max = $request['height_max'];
-        $shoulder_width_min = $request['shoulder_width_min'];
-        $shoulder_width_max = $request['shoulder_width_max'];
-        $waist_size_min = $request['waist_size_min'];
-        $waist_size_max = $request['waist_size_max'];
-        $stock = $request['stock'];
-
-
-        $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, shoulder_width_max, 
-                            waist_size_min, waist_size_max, stock)                   
-                VALUES ('$product_id', '$name', '$price','$height_min','$height_max','$shoulder_width_min','$shoulder_width_max',
-                        '$waist_size_min','$waist_size_max','$stock')";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-        break;
+        //     $sql = "INSERT INTO product_images (product_id, image_path)
+        //             VALUES ('$product_id', '$image_path')";
+        //     if ($conn->query($sql) === TRUE) {
+        //         echo json_encode(['status' => 'success']);
+        //     } else {
+        //         echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        //     }
+        //     break;
     case 'add_options':
         $name = $request['name'];
         $type = $request['type'];
@@ -204,7 +182,7 @@ switch ($action) {
         $stock = $request['stock'];
 
         $sql = "INSERT INTO options (name, type, price, stock)
-        VALUES ('$name', '$type', '$price', '$stock')";
+            VALUES ('$name', '$type', '$price', '$stock')";
         if ($conn->query($sql) === TRUE) {
             echo json_encode(['status' => 'success']);
         } else {
@@ -212,46 +190,157 @@ switch ($action) {
         }
 
         break;
-    case 'link_option':
-        $option_id = isset($_GET['option_id']) ? $_GET['option_id'] : '';
+        // case 'link_option':
+        // $option_id = isset($_GET['option_id']) ? $_GET['option_id'] : '';
 
-        $sql = "INSERT INTO options_indexes (product_id, option_id)
-            VALUES ('$product_id', '$option_id')";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        // $sql = "INSERT INTO options_indexes (product_id, option_id)
+        //     VALUES ('$product_id', '$option_id')";
+        // if ($conn->query($sql) === TRUE) {
+        //     echo json_encode(['status' => 'success']);
+        // } else {
+        //     echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        // }
+
+        //     break;
+    case 'edit_product':
+        // Получение данных из запроса
+        $originalData = $request['data_original'];
+        $updatedData = $request['data'];
+
+        $productId = $originalData['product']['id'];
+
+        // Обновление основного продукта
+        if ($originalData['product'] !== $updatedData['product']) {
+            $sql = "UPDATE products SET
+                    type = '" . $conn->real_escape_string($updatedData['product']['type']) . "',
+                    name = '" . $conn->real_escape_string($updatedData['product']['name']) . "',
+                    name_eng = '" . $conn->real_escape_string($updatedData['product']['name_eng']) . "',
+                    description = '" . $conn->real_escape_string($updatedData['product']['description']) . "',
+                    active = '" . $conn->real_escape_string($updatedData['product']['active']) . "',
+                    popular = '" . $conn->real_escape_string($updatedData['product']['popular']) . "',
+                    date_of_change = '" . date("Y-m-d H:i:s") . "'
+                    WHERE id = '$productId'";
+            if ($conn->query($sql) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления продукта: ' . $conn->error]);
+                exit;
+            }
         }
 
-        break;
-    case 'delete_product':
-        // Начинаем транзакцию
-        $conn->begin_transaction();
+        // Обработка размеров
+        $originalSizes = array_column($originalData['sizes'], null, 'id'); // Используем ID как ключи
+        $updatedSizes = array_column($updatedData['sizes'], null, 'id');
 
-        try {
-            // Удаляем продукт
-            $conn->query("DELETE FROM products WHERE id=$product_id");
-
-            // Удаляем связанные изображения
-            $conn->query("DELETE FROM product_images WHERE product_id = $product_id");
-
-            // Удаляем связанные размеры
-            $conn->query("DELETE FROM sizes WHERE product_id = $product_id");
-
-            // Удаляем связанные опции
-            $conn->query("DELETE FROM options_indexes WHERE product_id = $product_id");
-
-            // TODO: добавить удаление файла изображения
-
-            // Если все запросы прошли успешно, фиксируем транзакцию
-            $conn->commit();
-            echo json_encode(['status' => 'success']);
-        } catch (Exception $e) {
-            // В случае ошибки откатываем транзакцию
-            $conn->rollback();
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        // Удаление размеров, которых нет в обновленных данных
+        foreach ($originalSizes as $id => $originalSize) {
+            if (!isset($updatedSizes[$id])) {
+                $sql = "DELETE FROM sizes WHERE id = '$id'";
+                if ($conn->query($sql) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления размеров: ' . $conn->error]);
+                    exit;
+                }
+            }
         }
 
+        // Обновление или добавление размеров
+        foreach ($updatedSizes as $id => $updatedSize) {
+            if (isset($originalSizes[$id])) {
+                // Если размер существует, обновляем его
+                if ($originalSizes[$id] != $updatedSize) {
+                    $sql = "UPDATE sizes SET
+                            name = '" . $conn->real_escape_string($updatedSize['name']) . "',
+                            price = '" . $conn->real_escape_string($updatedSize['price']) . "',
+                            height_min = '" . $conn->real_escape_string($updatedSize['height_min']) . "',
+                            height_max = '" . $conn->real_escape_string($updatedSize['height_max']) . "',
+                            shoulder_width_min = '" . $conn->real_escape_string($updatedSize['shoulder_width_min']) . "',
+                            shoulder_width_max = '" . $conn->real_escape_string($updatedSize['shoulder_width_max']) . "',
+                            waist_size_min = '" . $conn->real_escape_string($updatedSize['waist_size_min']) . "',
+                            waist_size_max = '" . $conn->real_escape_string($updatedSize['waist_size_max']) . "',
+                            stock = '" . $conn->real_escape_string($updatedSize['stock']) . "'
+                            date_of_change = '" . date("Y-m-d H:i:s") . "'
+                            WHERE id = '$id'";
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления размеров: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            } else {
+                // Если размер новый, добавляем его
+                $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, shoulder_width_max, waist_size_min, waist_size_max, stock)
+                            VALUES ('$productId', '" . $conn->real_escape_string($updatedSize['name']) . "', '" . $conn->real_escape_string($updatedSize['price']) . "', '" . $conn->real_escape_string($updatedSize['height_min']) . "', '" . $conn->real_escape_string($updatedSize['height_max']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_min']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_max']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_min']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_max']) . "', '" . $conn->real_escape_string($updatedSize['stock']) . "')";
+                if ($conn->query($sql) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления нового размера: ' . $conn->error]);
+                    exit;
+                }
+            }
+        }
+
+        // Обработка изображений (аналогично размерам)
+        $originalImages = array_column($originalData['product_images'], null, 'id');
+        $updatedImages = array_column($updatedData['product_images'], null, 'id');
+
+        // Удаление изображений
+        foreach ($originalImages as $id => $originalImage) {
+            if (!isset($updatedImages[$id])) {
+                $sql = "DELETE FROM product_images WHERE id = '$id'";
+                if ($conn->query($sql) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления изображения: ' . $conn->error]);
+                    exit;
+                }
+            }
+        }
+
+        // Обновление или добавление изображений
+        foreach ($updatedImages as $id => $updatedImage) {
+            if (isset($originalImages[$id])) {
+                // Если изображение существует, обновляем его
+                if ($originalImages[$id] != $updatedImage) {
+                    $sql = "UPDATE product_images SET
+                            image_path = '" . $conn->real_escape_string($updatedImage['image_path']) . "',
+                            date_of_change = '" . date("Y-m-d H:i:s") . "'
+                            WHERE id = '$id'";
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления изображения: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            } else {
+                // Если изображение новое,  добавляем его (???)
+                $sql = "INSERT INTO product_images (product_id, image_path)
+                            VALUES ('$productId', '" . $conn->real_escape_string($updatedImage['image_path']) . "')";
+                if ($conn->query($sql) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
+                    exit;
+                }
+            }
+        }
+
+        // Работа с опциями и связями в таблице options_indexes
+        $originalOptionIds = array_column($originalData['options'], 'id');
+        $updatedOptionIds = array_column($updatedData['options'], 'id');
+
+        // Удаление старых связей (опций, которых нет в обновленных данных)
+        $optionsToRemove = array_diff($originalOptionIds, $updatedOptionIds);
+        if (!empty($optionsToRemove)) {
+            $optionsToRemoveStr = implode(',', array_map('intval', $optionsToRemove));
+            $sql = "DELETE FROM options_indexes WHERE product_id = '$productId' AND option_id IN ($optionsToRemoveStr)";
+            if ($conn->query($sql) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с опциями: ' . $conn->error]);
+                exit;
+            }
+        }
+
+        // Добавление новых связей (опций, которых нет в оригинальных данных)
+        $optionsToAdd = array_diff($updatedOptionIds, $originalOptionIds);
+        foreach ($optionsToAdd as $optionId) {
+            $sql = "INSERT INTO options_indexes (product_id, option_id)
+                VALUES ('$productId', '" . intval($optionId) . "')";
+            if ($conn->query($sql) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления связей с опциями: ' . $conn->error]);
+                exit;
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'message' => 'Продукт успешно обновлен']);
         break;
     case 'deactive_product':
         $sql = "UPDATE products
@@ -277,8 +366,6 @@ switch ($action) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
 }
-
-
 
 $conn->close();
 exit();
