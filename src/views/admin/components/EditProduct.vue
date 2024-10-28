@@ -97,7 +97,7 @@
             </div>
             <div class="buttons">
                 <button class="button danger">削除</button>
-                <button class="button" :disabled="areDataEqual">保存</button>
+                <button class="button" :disabled="areDataEqual" @click="saveProduct">保存</button>
             </div>
 
         </div>
@@ -290,48 +290,56 @@ export default defineComponent({
 
 
 
-        // const saveProduct = async () => {
-        //     try {
-        //         // Сначала отправляем данные продукта (если необходимо)
-        //         const productResponse = await axios.post(
-        //             process.env.VUE_APP_BACKEND_URL + '/backend/update_product.php',
-        //             { product: data.value.product },
-        //             { withCredentials: true }
-        //         );
+        const saveProduct = async () => {
+            try {
 
-        //         if (productResponse.data.status !== "success") {
-        //             console.error("Ошибка при сохранении продукта:", productResponse.data.message);
-        //             return;
-        //         }
 
-        //         // Затем загружаем изображения
-        //         for (const img of tempImages.value) {
-        //             const formData = new FormData();
-        //             formData.append("image", img.file);
-        //             formData.append("product_id", data.value.product.id);
 
-        //             const imageResponse = await axios.post(
-        //                 process.env.VUE_APP_BACKEND_URL + '/backend/upload_image.php',
-        //                 formData,
-        //                 {
-        //                     headers: { "Content-Type": "multipart/form-data" },
-        //                     withCredentials: true,
-        //                 }
-        //             );
+                // Затем загружаем изображения
+                for (const img of tempImages.value) {
+                    const formData = new FormData();
+                    formData.append("image", img.file);
+                    formData.append("product_id", data.value.product.id);
 
-        //             if (imageResponse.data.status === "success") {
-        //                 data.value.product_images.push(imageResponse.data.image);
-        //             } else {
-        //                 console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
-        //             }
-        //         }
+                    const imageResponse = await axios.post(
+                        process.env.VUE_APP_BACKEND_URL + '/backend/admin/upload_image.php?product_id=' + data.value.product.id,
+                        formData,
+                        {
+                            headers: { "Content-Type": "multipart/form-data" },
+                            withCredentials: true,
+                        }
+                    );
 
-        //         // Очищаем временные изображения после успешного сохранения
-        //         tempImages.value = [];
-        //     } catch (error) {
-        //         console.error("Ошибка при сохранении продукта:", error);
-        //     }
-        // };
+                    console.log(imageResponse);
+
+
+                    if (imageResponse.data.status === "success") {
+                        data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
+                    } else {
+                        console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
+                    }
+                }
+
+                // Очищаем временные изображения после успешного сохранения
+                tempImages.value = [];
+
+                // const productResponse = await axios.post(
+                //     process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&product_id='+data.value.product.id,
+                //     {
+                //         data: data.value,
+                //         data_original: data_original.value
+                //     },
+                //     { withCredentials: true }
+                // );
+
+                // if (productResponse.data.status !== "success") {
+                //     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                //     return;
+                // }
+            } catch (error) {
+                console.error("Ошибка при сохранении продукта:", error);
+            }
+        };
 
 
         return {
@@ -348,7 +356,8 @@ export default defineComponent({
             previewImage,
             deleteTempImg,
             triggerFileInput,
-            fileInput
+            fileInput,
+            saveProduct
         };
     }
 });
