@@ -14,7 +14,7 @@
         <div class="item-card" v-for="item in modelValue" :key="item.id" @click="clickOnItem(item.id)">
             <div class="elem" v-for="(header, index) in headers" :key="index" :class="{ 'not-active': item.active != undefined && item.active == 0 }">
                 <!-- Отображение данных согласно полю -->
-                <img v-if="header.field === 'image_path'" :src="item[header.field]" alt="product" class="product-image" />
+                <img v-if="header.field === 'image_path'" :src="item[header.field] == undefined ? '/Image.png' : item[header.field]" alt="product" class="product-image" />
                 <CustomSwitch @click.stop="" v-else-if="header.switch != undefined && header.switch" v-model="item[header.field]" @changed="switchChange(item.id, header.field, $event)" />
                 <span v-else>
                     {{ item[header.field] }}

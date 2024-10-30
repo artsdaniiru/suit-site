@@ -61,6 +61,24 @@ switch ($sort) {
     case 'recomended':
         $orderBy = 'popular DESC'; // Рекомендованные товары
         break;
+    case 'name_asc':
+        $orderBy = 'name ASC'; // Рекомендованные товары
+        break;
+    case 'name_desc':
+        $orderBy = 'name DESC'; // Рекомендованные товары
+        break;
+    case 'name_eng_asc':
+        $orderBy = 'name_eng ASC'; // Рекомендованные товары
+        break;
+    case 'name_eng_desc':
+        $orderBy = 'name_eng DESC'; // Рекомендованные товары
+        break;
+    case 'active_asc':
+        $orderBy = 'active ASC'; // Рекомендованные товары
+        break;
+    case 'active_desc':
+        $orderBy = 'active DESC'; // Рекомендованные товары
+        break;
     default:
         $orderBy = 'p.date_of_creation DESC'; // По умолчанию сортировка по дате (новые)
 }
@@ -94,12 +112,18 @@ $product_id = isset($_GET['product_id']) ? $_GET['product_id'] : '';
 
 switch ($action) {
     case 'list_all_products':
+
+        $where = "";
+        if ($searchCondition != "" || $popularCondition != "" || $productTypeCondition != "") {
+            $where = "WHERE 1=1 $searchCondition $popularCondition $productTypeCondition";
+        }
+
         // SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
-        $sql = "SELECT p.*, MIN(i.price) as min_price, MAX(im.image_path) as image_path
+        $sql = "SELECT p.*, MIN(i.price) as min_price, COALESCE(MIN(im.image_path), NULL) AS image_path
         FROM products p
         JOIN sizes i ON p.id = i.product_id
-        JOIN product_images im ON p.id = im.product_id
-        WHERE 1=1 $searchCondition $popularCondition $productTypeCondition
+        LEFT JOIN product_images im ON p.id = im.product_id
+        $where
         GROUP BY p.id
         ORDER BY $orderBy
         LIMIT $offset, $itemsPerPage";
@@ -130,7 +154,7 @@ switch ($action) {
             exit;
         }
         $totalCountRow = $totalCountResult->fetch_assoc();
-        $totalItems = $totalCountRow['count'];
+        $totalItems = intval($totalCountRow['count']);
         $totalPages = ceil($totalItems / $itemsPerPage);
 
         // Вывод результата (ответ с информацией о продуктах и пагинации) в формате JSON
@@ -343,21 +367,33 @@ switch ($action) {
             if (isset($originalSizes[$id])) {
                 // Если размер существует, обновляем его
                 if ($originalSizes[$id] != $updatedSize) {
-                    $sql = "UPDATE sizes SET
-                            name = '" . $conn->real_escape_string($updatedSize['name']) . "',
-                            price = '" . $conn->real_escape_string($updatedSize['price']) . "',
-                            height_min = '" . $conn->real_escape_string($updatedSize['height_min']) . "',
-                            height_max = '" . $conn->real_escape_string($updatedSize['height_max']) . "',
-                            shoulder_width_min = '" . $conn->real_escape_string($updatedSize['shoulder_width_min']) . "',
-                            shoulder_width_max = '" . $conn->real_escape_string($updatedSize['shoulder_width_max']) . "',
-                            waist_size_min = '" . $conn->real_escape_string($updatedSize['waist_size_min']) . "',
-                            waist_size_max = '" . $conn->real_escape_string($updatedSize['waist_size_max']) . "',
-                            stock = '" . $conn->real_escape_string($updatedSize['stock']) . "'
-                            date_of_change = '" . date("Y-m-d H:i:s") . "'
-                            WHERE id = '$id'";
-                    if ($conn->query($sql) === FALSE) {
-                        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления размеров: ' . $conn->error]);
-                        exit;
+
+
+                    $updateFields = [];
+
+                    // Используем функцию для добавления полей
+                    addFieldToUpdate($updateFields, $updatedSize, 'name');
+                    addFieldToUpdate($updateFields, $updatedSize, 'price');
+                    addFieldToUpdate($updateFields, $updatedSize, 'height_min');
+                    addFieldToUpdate($updateFields, $updatedSize, 'height_max');
+                    addFieldToUpdate($updateFields, $updatedSize, 'shoulder_width_min');
+                    addFieldToUpdate($updateFields, $updatedSize, 'shoulder_width_max');
+                    addFieldToUpdate($updateFields, $updatedSize, 'waist_size_min');
+                    addFieldToUpdate($updateFields, $updatedSize, 'waist_size_max');
+                    addFieldToUpdate($updateFields, $updatedSize, 'stock');
+                    $updatedSize['date_of_change'] = date("Y-m-d H:i:s");
+                    addFieldToUpdate($updateFields, $updatedSize, 'date_of_change');
+
+                    if (!empty($updateFields)) {
+
+                        $setClause = implode(', ', $updateFields);
+                        $sql = "UPDATE sizes SET $setClause WHERE id = $id";
+                        if ($conn->query($sql) === FALSE) {
+                            echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления размеров: ' . $sql . $conn->error]);
+                            exit;
+                        }
+                    } else {
+                        echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
                     }
                 }
             } else {
@@ -534,4 +570,14 @@ switch ($action) {
 }
 
 $conn->close();
+
+
+function addFieldToUpdate(&$updateFields, $request, $fieldName)
+{
+    if (isset($request[$fieldName])) {
+        $fieldValue = $request[$fieldName];
+        $updateFields[] = "$fieldName='$fieldValue'";
+    }
+}
+
 exit();

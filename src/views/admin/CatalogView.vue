@@ -15,9 +15,9 @@
         </div>
         <!-- Отображение товаров -->
         <ItemsTable v-if="is_loading" :headers="headers" :itemsPerPage="itemsPerPage" :isLoader="true" />
-        <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" @switchChange="switchAction" />
+        <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="items" @sorted="sortTable" @clickOnItem="editItem" @switchChange="switchAction" />
         <!-- Пагинация -->
-        <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
+        <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'商品変更'">
             <EditProduct :product_id="product_id" @productUpdate="fetchProducts" />
@@ -45,13 +45,14 @@ export default defineComponent({
             { name: "名前", field: "name", sortable: true },
             { name: "英名", field: "name_eng", sortable: true },
             { name: "値段", field: "min_price", sortable: true },
-            { name: "表示", field: "active", switch: true }
+            { name: "表示", field: "active", switch: true, sortable: true }
         ]);
 
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
 
         const itemsPerPage = ref(8);
+        const totalPages = ref(0);
         const filter = ref('');
         const currentPage = ref(1);
 
@@ -94,9 +95,64 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_products&itemsPerPage=100', {
+                console.log(sortOrder.value);
+
+                let sort = '';
+
+                if (sortOrder.value.index != null) {
+                    switch (headers.value[sortOrder.value.index].field) {
+                        case 'name':
+                            sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
+                            break;
+                        case 'name_eng':
+                            sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+                            break;
+                        case 'min_price':
+                            sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+                            break;
+                        case 'active':
+                            sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                let q_filter = '';
+                switch (filter.value) {
+                    case 'active':
+                        q_filter = '&active=1';
+                        break;
+                    case 'popular':
+                        q_filter = '&popular=1';
+                        break;
+                    case 'suit':
+                        q_filter = '&productType=suit';
+                        break;
+                    case 'not_suit':
+                        q_filter = '&productType=not_suit';
+                        break;
+
+                    default:
+                        break;
+                }
+
+                let query = '';
+
+                if (searchQuery.value != '') {
+                    query = '&query=' + searchQuery.value;
+                }
+
+                let url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_products&itemsPerPage=' + itemsPerPage.value + '&page=' + currentPage.value + sort + q_filter + query;
+
+
+                const response = await axios.get(url, {
                     withCredentials: true
                 });
+
+                // console.log(response);
+
                 // Убедимся, что товары приходят в поле `products`
                 if (Array.isArray(response.data.products)) {
                     // Преобразуем данные (например, конвертируем цену в число)
@@ -104,6 +160,7 @@ export default defineComponent({
                         ...product,
                         min_price: Number(product.min_price), // Преобразуем строку в число
                     }));
+                    totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
@@ -113,21 +170,6 @@ export default defineComponent({
             }
         };
 
-        const updateSortedItems = () => {
-            const field = headers.value[sortOrder.value.index].field;
-            const sorted = [...items.value].sort((a, b) => {
-                const valA = a[field];
-                const valB = b[field];
-                if (typeof valA === "number" && typeof valB === "number") {
-                    return sortOrder.value.ascending ? valA - valB : valB - valA;
-                }
-                return sortOrder.value.ascending
-                    ? String(valA).localeCompare(String(valB))
-                    : String(valB).localeCompare(String(valA));
-            });
-
-            items.value = sorted;
-        };
 
         // Сортировка
         const sortTable = (index) => {
@@ -137,34 +179,19 @@ export default defineComponent({
                 sortOrder.value.index = index;
                 sortOrder.value.ascending = true;
             }
-            updateSortedItems();
+            // updateSortedItems();
+            fetchProducts();
+            currentPage.value = 1;
         };
 
-        // Логика сортировки
-        const sortedItems = computed(() => items.value);
 
-
-
-
-        // Логика пагинации
-        const paginatedItems = computed(() => {
-
-            sortedItems.value = sortedItems.value.filter((item) =>
-                item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-            );
-
-            const start = (currentPage.value - 1) * Number(itemsPerPage.value);
-            const end = Number(start) + Number(itemsPerPage.value);
-            return sortedItems.value.slice(start, end);
-        });
-
-
-
-
-        watch(itemsPerPage, () => {
+        watch([itemsPerPage, filter, searchQuery], () => {
+            fetchProducts()
             currentPage.value = 1;
         });
-
+        watch(currentPage, () => {
+            fetchProducts()
+        });
         // Загружаем товары при монтировании компонента
         onMounted(() => {
             fetchProducts();
@@ -174,8 +201,8 @@ export default defineComponent({
             is_loading,
             searchQuery,
             itemsPerPage,
+            totalPages,
             currentPage,
-            paginatedItems,
             headers,
             sortOrder,
             sortTable,
