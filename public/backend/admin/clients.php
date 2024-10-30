@@ -56,12 +56,59 @@ switch ($action) {
         echo json_encode(['status' => 'success', 'users' => $clients]);
         break;
     case 'delete_user':
-        $sql = "DELETE FROM clients WHERE id=$client_id";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        // Получение ID клиента из запроса
+        $client_id = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
+
+        // Проверка, что ID клиента передан
+        if ($client_id <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID клиента']);
+            exit;
         }
+
+        // Начало транзакции
+        $conn->begin_transaction();
+
+        try {
+            // Удаление заказов клиента
+            // Сначала удалим связанные элементы корзины в client_order_indexes
+            $sqlDeleteOrderIndexes = "DELETE FROM client_order_indexes WHERE client_order_id IN (SELECT id FROM client_orders WHERE client_id = $client_id)";
+            if ($conn->query($sqlDeleteOrderIndexes) === FALSE) {
+                throw new Exception('Ошибка удаления элементов корзины: ' . $conn->error);
+            }
+
+            // Затем удаляем сами заказы клиента
+            $sqlDeleteOrders = "DELETE FROM client_orders WHERE client_id = $client_id";
+            if ($conn->query($sqlDeleteOrders) === FALSE) {
+                throw new Exception('Ошибка удаления заказов клиента: ' . $conn->error);
+            }
+
+            // Удаление методов оплаты клиента
+            $sqlDeletePaymentMethods = "DELETE FROM client_payment_methods WHERE client_id = $client_id";
+            if ($conn->query($sqlDeletePaymentMethods) === FALSE) {
+                throw new Exception('Ошибка удаления методов оплаты клиента: ' . $conn->error);
+            }
+
+            // Удаление адресов клиента после удаления заказов
+            $sqlDeleteAddresses = "DELETE FROM client_addresses WHERE client_id = $client_id";
+            if ($conn->query($sqlDeleteAddresses) === FALSE) {
+                throw new Exception('Ошибка удаления адресов клиента: ' . $conn->error);
+            }
+
+            // Удаление самого клиента
+            $sqlDeleteClient = "DELETE FROM clients WHERE id = $client_id";
+            if ($conn->query($sqlDeleteClient) === FALSE) {
+                throw new Exception('Ошибка удаления клиента: ' . $conn->error);
+            }
+
+            // Если все прошло успешно, подтверждаем транзакцию
+            $conn->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Клиент и все связанные данные успешно удалены']);
+        } catch (Exception $e) {
+            // В случае ошибки откатываем транзакцию
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+
         break;
     case 'edit_user':
         $updateFields = [];
