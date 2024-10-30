@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
         // Перемещение файла в папку /images
         if (move_uploaded_file($tmpName, $targetPath)) {
 
+            chmod($targetPath, 0777);
             $image_path = '/images/' . $uniqueName;
 
             $sql = "INSERT INTO product_images (product_id, image_path) 

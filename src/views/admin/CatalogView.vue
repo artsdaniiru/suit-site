@@ -15,12 +15,12 @@
         </div>
         <!-- Отображение товаров -->
         <ItemsTable v-if="is_loading" :headers="headers" :itemsPerPage="itemsPerPage" :isLoader="true" />
-        <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" />
+        <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="paginatedItems" @sorted="sortTable" @clickOnItem="editItem" @switchChange="switchAction" />
         <!-- Пагинация -->
         <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'商品変更'">
-            <EditProduct :product_id="product_id" />
+            <EditProduct :product_id="product_id" @productUpdate="fetchProducts" />
         </CustomModal>
     </div>
 </template>
@@ -64,10 +64,27 @@ export default defineComponent({
 
 
         const editItem = (index) => {
-
-
             product_id.value = index;
             closeFlag.value = true;
+        }
+
+
+        const switchAction = async (data) => {
+            if (data.type == 'active') {
+                let url = '';
+
+                if (data.val == '0') {
+                    url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=deactive_product&product_id=' + data.id;
+                } else {
+                    url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=active_product&product_id=' + data.id;
+                }
+                const response = await axios.get(url, {
+                    withCredentials: true
+                });
+
+                console.log(response);
+
+            }
         }
 
 
@@ -166,7 +183,9 @@ export default defineComponent({
             filter,
             closeFlag,
             product_id,
-            editItem
+            editItem,
+            fetchProducts,
+            switchAction
         };
     },
 });

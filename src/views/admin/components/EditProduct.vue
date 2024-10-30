@@ -123,7 +123,7 @@ export default defineComponent({
             required: true
         }
     },
-    setup(props) {
+    setup(props, { emit }) {
 
         const data_original = ref({ product: [], sizes: [], product_images: [] });
         const data = ref({ product: [], sizes: [], product_images: [] });
@@ -282,6 +282,7 @@ export default defineComponent({
                     reader.readAsDataURL(file);
                 }
             });
+            areDataEqual.value = false;
         };
 
         const deleteTempImg = (index) => {
@@ -292,8 +293,6 @@ export default defineComponent({
 
         const saveProduct = async () => {
             try {
-
-
 
                 // Затем загружаем изображения
                 for (const img of tempImages.value) {
@@ -323,19 +322,28 @@ export default defineComponent({
                 // Очищаем временные изображения после успешного сохранения
                 tempImages.value = [];
 
-                // const productResponse = await axios.post(
-                //     process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&product_id='+data.value.product.id,
-                //     {
-                //         data: data.value,
-                //         data_original: data_original.value
-                //     },
-                //     { withCredentials: true }
-                // );
+                const productResponse = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&product_id=' + data.value.product.id,
+                    {
+                        data: data.value,
+                        data_original: data_original.value
+                    },
+                    { withCredentials: true }
+                );
 
-                // if (productResponse.data.status !== "success") {
-                //     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
-                //     return;
-                // }
+                console.log(productResponse);
+
+
+                if (productResponse.data.status !== "success") {
+                    console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                    return;
+                } else {
+                    setTimeout(() => {
+                        emit("productUpdate");
+                        fetchProduct();
+                    }, 200);
+
+                }
             } catch (error) {
                 console.error("Ошибка при сохранении продукта:", error);
             }

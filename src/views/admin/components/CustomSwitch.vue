@@ -42,6 +42,7 @@ export default defineComponent({
         // Обрабатываем изменение свича
         const toggleSwitch = (event) => {
             emit("update:modelValue", event.target.checked ? "1" : "0");
+            emit("changed", event.target.checked ? "1" : "0");
         };
 
         const labelPositionClass = ref(labelPosition.value === "side" ? "label-side" : "label-top");

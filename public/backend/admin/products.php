@@ -379,6 +379,18 @@ switch ($action) {
         foreach ($originalImages as $id => $originalImage) {
             if (!isset($updatedImages[$id])) {
                 $sql = "DELETE FROM product_images WHERE id = '$id'";
+                $imagePath = $originalImage['image_path'];
+
+                $fullPath = __DIR__ . '/../..' . $imagePath;
+
+                // Удаление файла, если он существует
+                if (file_exists($fullPath)) {
+                    if (!unlink($fullPath)) {
+                        echo json_encode(['status' => 'error', 'message' => 'Не удалось удалить файл. Файл не найден.']);
+                        exit;
+                    }
+                }
+
                 if ($conn->query($sql) === FALSE) {
                     echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления изображения: ' . $conn->error]);
                     exit;
@@ -387,55 +399,58 @@ switch ($action) {
         }
 
         // Обновление или добавление изображений
-        foreach ($updatedImages as $id => $updatedImage) {
-            if (isset($originalImages[$id])) {
-                // Если изображение существует, обновляем его
-                if ($originalImages[$id] != $updatedImage) {
-                    $sql = "UPDATE product_images SET
-                            image_path = '" . $conn->real_escape_string($updatedImage['image_path']) . "',
-                            date_of_change = '" . date("Y-m-d H:i:s") . "'
-                            WHERE id = '$id'";
-                    if ($conn->query($sql) === FALSE) {
-                        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления изображения: ' . $conn->error]);
-                        exit;
-                    }
-                }
-            } else {
-                // Если изображение новое,  добавляем его
-                $sql = "INSERT INTO product_images (product_id, image_path)
-                            VALUES ('$productId', '" . $conn->real_escape_string($updatedImage['image_path']) . "')";
+        // foreach ($updatedImages as $id => $updatedImage) {
+        //     if (isset($originalImages[$id])) {
+        //         // Если изображение существует, обновляем его
+        //         if ($originalImages[$id] != $updatedImage) {
+        //             $sql = "UPDATE product_images SET
+        //                     image_path = '" . $conn->real_escape_string($updatedImage['image_path']) . "',
+        //                     date_of_change = '" . date("Y-m-d H:i:s") . "'
+        //                     WHERE id = '$id'";
+        //             if ($conn->query($sql) === FALSE) {
+        //                 echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления изображения: ' . $conn->error]);
+        //                 exit;
+        //             }
+        //         }
+        //     } else {
+        //         // Если изображение новое,  добавляем его
+        //         $sql = "INSERT INTO product_images (product_id, image_path)
+        //                     VALUES ('$productId', '" . $conn->real_escape_string($updatedImage['image_path']) . "')";
+        //         if ($conn->query($sql) === FALSE) {
+        //             echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
+        //             exit;
+        //         }
+        //     }
+        // }
+
+        if (isset($originalData['options'])) {
+            // Работа с опциями и связями в таблице options_indexes
+            $originalOptionIds = array_column($originalData['options'], 'id');
+            $updatedOptionIds = array_column($updatedData['options'], 'id');
+
+            // Удаление старых связей (опций, которых нет в обновленных данных)
+            $optionsToRemove = array_diff($originalOptionIds, $updatedOptionIds);
+            if (!empty($optionsToRemove)) {
+                $optionsToRemoveStr = implode(',', array_map('intval', $optionsToRemove));
+                $sql = "DELETE FROM options_indexes WHERE product_id = '$productId' AND option_id IN ($optionsToRemoveStr)";
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с опциями: ' . $conn->error]);
+                    exit;
+                }
+            }
+
+            // Добавление новых связей (опций, которых нет в оригинальных данных) - добавление в таблицу options_indexes
+            $optionsToAdd = array_diff($updatedOptionIds, $originalOptionIds);
+            foreach ($optionsToAdd as $optionId) {
+                $sql = "INSERT INTO options_indexes (product_id, option_id)
+                VALUES ('$productId', '" . intval($optionId) . "')";
+                if ($conn->query($sql) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления связей с опциями: ' . $conn->error]);
                     exit;
                 }
             }
         }
 
-        // Работа с опциями и связями в таблице options_indexes
-        $originalOptionIds = array_column($originalData['options'], 'id');
-        $updatedOptionIds = array_column($updatedData['options'], 'id');
-
-        // Удаление старых связей (опций, которых нет в обновленных данных)
-        $optionsToRemove = array_diff($originalOptionIds, $updatedOptionIds);
-        if (!empty($optionsToRemove)) {
-            $optionsToRemoveStr = implode(',', array_map('intval', $optionsToRemove));
-            $sql = "DELETE FROM options_indexes WHERE product_id = '$productId' AND option_id IN ($optionsToRemoveStr)";
-            if ($conn->query($sql) === FALSE) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с опциями: ' . $conn->error]);
-                exit;
-            }
-        }
-
-        // Добавление новых связей (опций, которых нет в оригинальных данных) - добавление в таблицу options_indexes
-        $optionsToAdd = array_diff($updatedOptionIds, $originalOptionIds);
-        foreach ($optionsToAdd as $optionId) {
-            $sql = "INSERT INTO options_indexes (product_id, option_id)
-                VALUES ('$productId', '" . intval($optionId) . "')";
-            if ($conn->query($sql) === FALSE) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления связей с опциями: ' . $conn->error]);
-                exit;
-            }
-        }
 
         echo json_encode(['status' => 'success', 'message' => 'Продукт успешно обновлен']);
         break;
