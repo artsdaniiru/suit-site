@@ -76,23 +76,56 @@
     <div class="add-product">
       <h2>追加の商品</h2>
 
-      <div class="add-content">
+      <form class="add-content">
 
         <div class="add-card">
+          <div class="card-box">
+            <div class="img-box"></div>
+            <p>シャツ</p>
+            <p>¥5000</p>
+          </div>
 
-
-          <div class="img-box">
-            <!-- <img :src="image" :alt="name" class="product-image" /> -->
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
           </div>
         </div>
 
-      </div>
+        <div class="add-card">
+          <div class="card-box">
+            <div class="img-box"></div>
+            <p>靴下</p>
+            <p>¥1000</p>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
+          </div>
+          <span class="card-icq"></span>
+        </div>
+
+        <div class="add-card">
+          <div class="card-box opacity">
+            <div class="img-box"></div>
+            <p>シューズ</p>
+            <p>¥7000</p>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
+          </div>
+          <span class="card-icq"></span>
+        </div>
+
+        <div class="add-card buy">
+          <span class="price">{{ formattedPrice }}</span>
+          <button class="button">カートに追加</button>
+
+        </div>
+
+      </form>
 
 
 
-      <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
-      </div>
     </div>
   </div>
 </template>
@@ -308,8 +341,11 @@ export default defineComponent({
 .add-content{
   border: 1px solid #d9d9d9;
   border-radius: 12px;
-  padding: 10px 40px;
+  padding: 40px 20px 40px 10px;
   position: relative;
+  display: flex;
+  justify-content: space-between;
+
 
 
   &::before{
@@ -330,11 +366,64 @@ export default defineComponent({
     border: 1px solid black;
 
 
-      img{
-        width: 100%;
+  }
+  .add-card{
+    text-align: center;
+    width: max-content;
+    position: relative;
+
+    .card-box{
+
+      p{
+      font-weight: 600;
+      font-size: 24px;
+      margin: 10px;
+
       }
     }
+    .form-check{
+      position: absolute;
+      top: -25px;
+      right: 0;
+    }
+    .card-icq{
+        position: absolute;
+        top: calc(50% - 16px);
+        left: -50px;
+      &::before{
+        content: url(../assets/icons/plus.svg);
+        display: block;
+        position: absolute;
+        top: calc(50% - 16px);
+        left: -16px;
+      }
+    }
+    .opacity{
+      opacity: 50%;
+    }
 
+
+  }
+  .buy{
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+
+    .price{
+      font-weight: 700;
+      font-size: 48px;
+    }
+    .button{
+      width: 100%;
+    }    
+  }
+
+
+
+  
 }
 
 

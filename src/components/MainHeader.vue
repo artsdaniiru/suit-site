@@ -15,10 +15,13 @@
                     <span class="name">{{ user['name'] }}</span>
                     <button @click="logout" class="danger"><span>ログアウト</span></button>
                 </div>
-                <div class="cart">
+                <router-link to="/cart">
+                    <div class="cart">
                     <img src="../assets/icons/cart.svg" alt="logo">
                     <span v-if="cart_count != 0" class="count">{{ cart_count }}</span>
                 </div>
+                </router-link>
+
             </nav>
         </div>
     </header>
