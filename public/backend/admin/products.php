@@ -145,6 +145,102 @@ switch ($action) {
             ]
         ]);
         break;
+    case 'list_all_options':
+        // Получение параметров из GET-запроса
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Тип сортировки по умолчанию - по имени
+        $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Число опций на одной странице
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
+        $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+
+        // Определение сортировки в зависимости от параметра $sort
+        switch ($sort) {
+            case 'name_asc':
+                $orderBy = 'o.name ASC'; // Сортировка по имени по возрастанию
+                break;
+            case 'name_desc':
+                $orderBy = 'o.name DESC'; // Сортировка по имени по убыванию
+                break;
+            case 'price_high':
+                $orderBy = 'o.price DESC'; // Сортировка по цене по убыванию
+                break;
+            case 'price_low':
+                $orderBy = 'o.price ASC'; // Сортировка по цене по возрастанию
+                break;
+            default:
+                $orderBy = 'o.name ASC'; // По умолчанию сортировка по имени по возрастанию
+        }
+
+        // Вычисление смещения для пагинации
+        $offset = ($page - 1) * $itemsPerPage;
+
+        // Подготовка условия для строки поиска
+        $searchCondition = '';
+        if (!empty($query)) {
+            // Экранируем значение поиска для безопасности
+            $query = $conn->real_escape_string($query);
+            $searchCondition .= "AND (o.name LIKE '%$query%' OR o.type LIKE '%$query%')";
+        }
+
+        $splitByType = isset($_GET['splitByType']) ? true : false;
+
+        $limit = "LIMIT $offset, $itemsPerPage";
+        if ($splitByType) {
+            $limit = "";
+        }
+
+        // SQL-запрос для получения списка опций
+        $sql = "SELECT o.* 
+                    FROM options o
+                    WHERE 1=1 $searchCondition
+                    ORDER BY $orderBy
+                    $limit";
+
+        $result = $conn->query($sql);
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+            exit;
+        }
+
+
+        $options = [];
+
+        // Сохранение результатов в массив
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                if ($splitByType) {
+                    $options[$row['type']][] = $row;
+                } else {
+                    $options[] = $row;
+                }
+            }
+        }
+
+        // Получение общего количества записей для вычисления количества страниц
+        $totalCountResult = $conn->query("SELECT COUNT(*) as count 
+                                              FROM options o 
+                                              WHERE 1=1 $searchCondition");
+
+        if (!$totalCountResult) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества опций: ' . $conn->error]);
+            exit;
+        }
+
+        $totalCountRow = $totalCountResult->fetch_assoc();
+        $totalItems = $totalCountRow['count'];
+        $totalPages = ceil($totalItems / $itemsPerPage);
+
+        // Вывод результата (ответ с информацией об опциях и пагинации) в формате JSON
+        echo json_encode([
+            'status' => 'success',
+            'options' => $options,
+            'pagination' => [
+                'currentPage' => $page,
+                'itemsPerPage' => $itemsPerPage,
+                'totalPages' => $totalPages,
+                'totalItems' => $totalItems
+            ]
+        ]);
+        break;
     case 'add_product':
         $type = $request['type'];
         $name = $request['name'];
@@ -163,18 +259,6 @@ switch ($action) {
         }
 
         break;
-        // case 'add_product_images':
-        //     //TODO: реализовать логику добавление картинки
-        //     $image_path = $request['image_path'];
-
-        //     $sql = "INSERT INTO product_images (product_id, image_path)
-        //             VALUES ('$product_id', '$image_path')";
-        //     if ($conn->query($sql) === TRUE) {
-        //         echo json_encode(['status' => 'success']);
-        //     } else {
-        //         echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        //     }
-        //     break;
     case 'add_options':
         $name = $request['name'];
         $type = $request['type'];
@@ -190,18 +274,31 @@ switch ($action) {
         }
 
         break;
-        // case 'link_option':
-        // $option_id = isset($_GET['option_id']) ? $_GET['option_id'] : '';
+    case 'delete_options':
+        // Получение ID опции из запроса
+        $option_id = isset($_GET['option_id']) ? (int)$_GET['option_id'] : 0;
 
-        // $sql = "INSERT INTO options_indexes (product_id, option_id)
-        //     VALUES ('$product_id', '$option_id')";
-        // if ($conn->query($sql) === TRUE) {
-        //     echo json_encode(['status' => 'success']);
-        // } else {
-        //     echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        // }
+        // Проверка, что ID опции передан
+        if ($option_id <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID опции']);
+            exit;
+        }
 
-        //     break;
+        // Удаление связей опции с продуктами в таблице options_indexes
+        $sqlDeleteIndexes = "DELETE FROM options_indexes WHERE option_id = $option_id";
+        if ($conn->query($sqlDeleteIndexes) === FALSE) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с продуктами: ' . $conn->error]);
+            exit;
+        }
+
+        // Удаление самой опции из таблицы options
+        $sqlDeleteOption = "DELETE FROM options WHERE id = $option_id";
+        if ($conn->query($sqlDeleteOption) === TRUE) {
+            echo json_encode(['status' => 'success', 'message' => 'Опция успешно удалена']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления опции: ' . $conn->error]);
+        }
+        break;
     case 'edit_product':
         // Получение данных из запроса
         $originalData = $request['data_original'];
@@ -304,7 +401,7 @@ switch ($action) {
                     }
                 }
             } else {
-                // Если изображение новое,  добавляем его (???)
+                // Если изображение новое,  добавляем его
                 $sql = "INSERT INTO product_images (product_id, image_path)
                             VALUES ('$productId', '" . $conn->real_escape_string($updatedImage['image_path']) . "')";
                 if ($conn->query($sql) === FALSE) {
@@ -329,7 +426,7 @@ switch ($action) {
             }
         }
 
-        // Добавление новых связей (опций, которых нет в оригинальных данных)
+        // Добавление новых связей (опций, которых нет в оригинальных данных) - добавление в таблицу options_indexes
         $optionsToAdd = array_diff($updatedOptionIds, $originalOptionIds);
         foreach ($optionsToAdd as $optionId) {
             $sql = "INSERT INTO options_indexes (product_id, option_id)
@@ -341,6 +438,60 @@ switch ($action) {
         }
 
         echo json_encode(['status' => 'success', 'message' => 'Продукт успешно обновлен']);
+        break;
+    case 'delete_product':
+        // Получение ID продукта из запроса
+        $product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
+
+        // Проверка, что ID продукта передан
+        if ($product_id <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID продукта']);
+            exit;
+        }
+
+        // Начало транзакции
+        $conn->begin_transaction();
+
+        try {
+            // Удаление изображений продукта
+            $sqlDeleteImages = "DELETE FROM product_images WHERE product_id = $product_id";
+            if ($conn->query($sqlDeleteImages) === FALSE) {
+                throw new Exception('Ошибка удаления изображений продукта: ' . $conn->error);
+            }
+
+            // Удаление размеров продукта
+            $sqlDeleteSizes = "DELETE FROM sizes WHERE product_id = $product_id";
+            if ($conn->query($sqlDeleteSizes) === FALSE) {
+                throw new Exception('Ошибка удаления размеров продукта: ' . $conn->error);
+            }
+
+            // Удаление связей продукта с опциями в таблице options_indexes
+            $sqlDeleteOptionIndexes = "DELETE FROM options_indexes WHERE product_id = $product_id";
+            if ($conn->query($sqlDeleteOptionIndexes) === FALSE) {
+                throw new Exception('Ошибка удаления связей с опциями: ' . $conn->error);
+            }
+
+            // Удаление записей из client_order_indexes, связанных с продуктом
+            $sqlDeleteClientOrders = "DELETE FROM client_order_indexes WHERE product_id = $product_id";
+            if ($conn->query($sqlDeleteClientOrders) === FALSE) {
+                throw new Exception('Ошибка удаления заказов, связанных с продуктом: ' . $conn->error);
+            }
+
+            // Удаление самого продукта
+            $sqlDeleteProduct = "DELETE FROM products WHERE id = $product_id";
+            if ($conn->query($sqlDeleteProduct) === FALSE) {
+                throw new Exception('Ошибка удаления продукта: ' . $conn->error);
+            }
+
+            // Если все прошло успешно, подтверждаем транзакцию
+            $conn->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Продукт и все связанные данные успешно удалены']);
+        } catch (Exception $e) {
+            // В случае ошибки откатываем транзакцию
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+
         break;
     case 'deactive_product':
         $sql = "UPDATE products
