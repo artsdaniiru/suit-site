@@ -26,12 +26,12 @@
     </div>
 
     <!-- Пагинация -->
-    <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
+    <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ProductCard from "../components/ProductCard.vue";
 import CustomSelect from "../components/CustomSelect.vue";
@@ -174,6 +174,13 @@ export default defineComponent({
       currentPage.value = 1;
     }
 
+    watch([itemsPerPage, filter, searchQuery], () => {
+      fetchProducts()
+      currentPage.value = 1;
+    });
+    watch(currentPage, () => {
+      fetchProducts()
+    });
 
     // Загружаем товары при монтировании компонента
     onMounted(() => {
@@ -189,6 +196,7 @@ export default defineComponent({
       currentPage,
       // paginatedItems,
       // updateItemsPerPage,
+      totalPages,
       sortItems,
       items
     };
