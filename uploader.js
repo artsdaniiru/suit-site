@@ -53,6 +53,12 @@ async function uploadFiles() {
             }
         });
         console.log(`Files from ${localDistFolder}, including hidden ones, successfully uploaded to ${remoteDir}`);
+
+        // Grant all permissions to the images folder
+        const chmodCommand = `chmod -R 777 ${remoteDir}/images`;
+        await ssh.execCommand(chmodCommand);
+        console.log('All permissions have been granted to the images folder');
+
     } catch (err) {
         console.error(`Error: ${err.message}`);
     } finally {

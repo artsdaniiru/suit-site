@@ -1,35 +1,55 @@
 <template>
-    <div class="items-table">
+    <div v-if="!isLoader" class="items-table">
         <!-- Заголовки таблицы -->
         <div class="header">
             <span v-for="(header, index) in headers" :key="index" @click="header.sortable && sortTable(index)">
                 {{ header.name }}
-                <span v-if="header.sortable" class="sort-indicator">
+                <span v-if="header.sortable != undefined && header.sortable" class="sort-indicator">
                     <!-- Указываем направление сортировки -->
                     {{ getSortDirection(index) }}
                 </span>
             </span>
         </div>
         <!-- Строки с товарами -->
-        <div class="item-card" v-for="item in modelValue" :key="item.id">
-            <span v-for="(header, index) in headers" :key="index">
+        <div class="item-card" v-for="item in modelValue" :key="item.id" @click="clickOnItem(item.id)">
+            <div class="elem" v-for="(header, index) in headers" :key="index" :class="{ 'not-active': item.active != undefined && item.active == 0 }">
                 <!-- Отображение данных согласно полю -->
-                <span v-if="header.field === 'image_path'">
-                    <img :src="item[header.field]" alt="product" class="product-image" />
-                </span>
+                <img v-if="header.field === 'image_path'" :src="item[header.field] == undefined ? '/Image.png' : item[header.field]" alt="product" class="product-image" />
+                <CustomSwitch @click.stop="" v-else-if="header.switch != undefined && header.switch" v-model="item[header.field]" @changed="switchChange(item.id, header.field, $event)" />
                 <span v-else>
                     {{ item[header.field] }}
                 </span>
+            </div>
+        </div>
+    </div>
+    <div v-else class="items-table">
+        <!-- Заголовки таблицы -->
+        <div class="header">
+            <span v-for="(header, index) in headers" :key="index">
+                {{ header.name }}
             </span>
+        </div>
+        <!-- Строки с товарами -->
+        <div class="item-card is_loading" v-for="item in itemsPerPage" :key="item">
+            <div class="elem" v-for="(header, index) in headers" :key="index">
+                <!-- Отображение данных согласно полю -->
+                <div v-if="header.field === 'image_path'" class="img"></div>
+                <div v-else-if="header.switch != undefined && header.switch" class="switch"></div>
+                <span v-else></span>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent } from "vue";
+import CustomSwitch from './CustomSwitch.vue';
 
 export default defineComponent({
     name: "ItemsTable",
+    components: {
+        CustomSwitch,
+    },
     props: {
         headers: {
             type: Array,
@@ -37,11 +57,21 @@ export default defineComponent({
         },
         modelValue: {
             type: Array,
-            required: true
+            required: false,
         },
         sortOrder: {
             type: Array,
-            required: true
+            required: false,
+        },
+        itemsPerPage: {
+            type: Number,
+            required: false,
+            default: 8
+        },
+        isLoader: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['update:modelValue'],
@@ -52,6 +82,11 @@ export default defineComponent({
             emit("sorted", index);
         };
 
+        // Сортировка
+        const clickOnItem = (index) => {
+            emit("clickOnItem", index);
+        };
+
 
 
         const getSortDirection = (index) => {
@@ -59,15 +94,24 @@ export default defineComponent({
             return props.sortOrder.ascending ? "↑" : "↓";
         };
 
+
+        // Сортировка
+        const switchChange = (id, type, val) => {
+            emit("switchChange", { id: id, type: type, val: val });
+        };
+
+
         return {
             sortTable,
-            getSortDirection
+            getSortDirection,
+            clickOnItem,
+            switchChange
         };
     }
 });
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .items-table {
     display: flex;
     flex-direction: column;
@@ -113,6 +157,70 @@ export default defineComponent({
         &:hover {
             background: #f5f5f5;
         }
+
+        .elem {
+            display: flex;
+            align-items: center;
+            transition: opacity 0.3s ease;
+
+            &.not-active {
+                opacity: 0.7;
+            }
+        }
+
+        &.is_loading {
+            //ref https: //codepen.io/chris__sev/pen/mdrzYQE
+
+            cursor: unset;
+
+            &:hover {
+                background: unset;
+            }
+
+
+            .elem {
+                display: flex;
+                align-items: center;
+
+
+                .img {
+                    border-radius: 5px;
+                    width: 45px;
+                    height: 45px;
+                }
+
+                .switch {
+                    width: 50px;
+                    height: 24px;
+                    border-radius: 20px;
+                }
+
+                span {
+                    width: 130px;
+                    height: 22px;
+                    border-radius: 8px;
+                }
+
+                .img,
+                .switch,
+                span {
+
+                    background: #eee;
+                    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+                    background-size: 200% 100%;
+                    animation: 1.5s shine linear infinite;
+                }
+
+                @keyframes shine {
+                    to {
+                        background-position-x: -200%;
+                    }
+                }
+            }
+
+        }
+
+
     }
 }
 </style>

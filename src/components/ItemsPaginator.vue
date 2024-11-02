@@ -21,11 +21,16 @@ export default defineComponent({
         },
         itemsPerPage: {
             type: Number,
-            required: true
+            required: false
         },
         items: {
             type: Array,
-            required: true
+            required: false
+        },
+        totalPages: {
+            type: Number,
+            required: false,
+            default: null
         }
     },
     emits: ['update:modelValue'],
@@ -44,7 +49,13 @@ export default defineComponent({
 
         const totalPages = computed(() => {
 
-            return Math.ceil(props.items.length / props.itemsPerPage);
+            if (props.totalPages != null) {
+                return Number(props.totalPages)
+            } else {
+                return Math.ceil(props.items.length / props.itemsPerPage);
+            }
+
+
         });
 
         const nextPage = () => {
@@ -86,7 +97,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .pagination-controls {
     display: flex;
     justify-content: center;

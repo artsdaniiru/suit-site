@@ -26,3 +26,13 @@ fs.writeFile(phpFilePath, phpContent, (err) => {
         console.log('PHP файл успешно обновлен.');
     }
 });
+
+// Удаление папки images из dist
+const imagesFolderPath = path.join(__dirname, 'dist', 'images');
+fs.rm(imagesFolderPath, { recursive: true, force: true }, (err) => {
+    if (err) {
+        console.error('Ошибка при удалении папки images:', err);
+    } else {
+        console.log('Папка images успешно удалена.');
+    }
+});

@@ -26,7 +26,7 @@
                     <JsonEditorVue v-model="body" :mode="'text'" :askToFormat="false" />
                 </div>
 
-                <button type="submit">Send Request</button>
+                <button style="width: 200px;" class="button" type="submit">Send Request</button>
             </form>
         </div>
 
@@ -130,13 +130,13 @@ export default defineComponent({
 
         // Восстановление значений из куки при загрузке
         onMounted(() => {
-            const savedUrl = Cookies.get('test_api_url');
-            const savedMethod = Cookies.get('test_api_method');
-            const savedBody = Cookies.get('test_api_body');
+            // const savedUrl = Cookies.get('test_api_url');
+            // const savedMethod = Cookies.get('test_api_method');
+            // const savedBody = Cookies.get('test_api_body');
 
-            if (savedUrl) url.value = savedUrl;
-            if (savedMethod) method.value = savedMethod;
-            if (savedBody) body.value = savedBody;
+            // if (savedUrl) url.value = savedUrl;
+            // if (savedMethod) method.value = savedMethod;
+            // if (savedBody) body.value = savedBody;
         });
 
         // Сохранение значений в куки при изменении
@@ -172,16 +172,17 @@ export default defineComponent({
     }
 
     .response {
-        margin-left: auto;
-        margin-right: auto;
+
+        width: 100%;
+        margin: 0 60px;
     }
 
     /* Стили для формы */
     form {
         display: flex;
         flex-direction: column;
-        max-width: 400px;
-        margin: 0 auto;
+        width: 100%;
+        margin: 0 60px;
     }
 
     label {
@@ -190,6 +191,10 @@ export default defineComponent({
 
     textarea {
         height: 100px;
+    }
+
+    input {
+        width: 100%;
     }
 
     button {

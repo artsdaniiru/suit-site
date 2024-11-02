@@ -12,7 +12,7 @@
                 <div class="account">
                     <img src="../assets/icons/user.svg" alt="logo">
                     <span class="name">{{ admin_user['name'] }}</span>
-                    <button @click="admin_logout" class="danger"><span>ログアウト</span></button>
+                    <button @click="admin_logout" class="button danger"><span>ログアウト</span></button>
                 </div>
             </nav>
         </div>
@@ -105,34 +105,8 @@ header {
             }
 
             button {
-                font-weight: 400;
-                font-size: 16px;
-                line-height: 100%;
-                color: #f5f5f5;
-                border: 1px solid #2c2c2c;
-                border-radius: 8px;
-                padding: 8px 8px 8px 8px;
-                width: 100px;
+                padding: 8px;
                 height: 32px;
-                background: #2c2c2c;
-
-                cursor: pointer;
-                transition: background 0.3s ease;
-
-                &:hover {
-                    background: #1e1e1e;
-                }
-
-
-                &.danger {
-                    border: 1px solid #c00f0c;
-                    background: #ec221f;
-
-                    &:hover {
-                        border: 1px solid #900b09;
-                        background: #c00f0c;
-                    }
-                }
             }
 
             .account {

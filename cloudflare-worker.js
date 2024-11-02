@@ -8,11 +8,16 @@ async function handleRequest(request) {
     // Опции для перенаправляемого запроса
     const init = {
         method: request.method,
-        headers: request.headers,
-        body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().text() : null
+        headers: new Headers(request.headers),
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? request.clone().body : null
     };
 
-    // Если запрос к корню сайта (example.com), перенаправляем на папку пользователя
+    // Проверяем, является ли запрос загрузкой файла и корректируем заголовок Content-Type
+    if (request.headers.get("content-type") && request.headers.get("content-type").includes("multipart/form-data")) {
+        init.headers.set("content-type", request.headers.get("content-type"));
+    }
+
+    // Проверка пути и перенаправление
     if (url.pathname === '/') {
         return fetch(`https://${url.host}/~k23b${url.search}`, init)
     } else {

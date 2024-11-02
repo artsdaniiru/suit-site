@@ -20,18 +20,19 @@
 
     <!-- Отображение товаров -->
     <div class="section-box products">
-      <div class="item-card" v-for="item in paginatedItems" :key="item">
-        <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price" />
+      <div class="item-card" v-for="item in items" :key="item">
+        <ProductCard :item="item" />
       </div>
     </div>
 
     <!-- Пагинация -->
-    <ItemsPaginator :items="items" :itemsPerPage="itemsPerPage" v-model="currentPage" />
+    <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, onMounted, watch } from "vue";
+import axios from "axios";
 import ProductCard from "../components/ProductCard.vue";
 import CustomSelect from "../components/CustomSelect.vue";
 
@@ -42,58 +43,149 @@ export default defineComponent({
     CustomSelect,
   },
   setup() {
-    const items = [
-      { name: "スカーレットエレガンス", name_eng: "Scarlet Elegance", price: 32000 },
-      { name: "ディープオリーブ", name_eng: "Deep Olive", price: 22500 },
-      { name: "シルバーストライプ", name_eng: "Silver Stripe", price: 28500 },
-      { name: "モカブラウン", name_eng: "Mocha Brown", price: 25500 },
-      { name: "プラチナムブルー", name_eng: "Platinum Blue", price: 30500 },
-      { name: "ジェットブラック", name_eng: "Jet Black", price: 27000 },
-      { name: "ラベンダーパープル", name_eng: "Lavender Purple", price: 23000 },
-      { name: "サファイアネイビー", name_eng: "Sapphire Navy", price: 29500 },
-      { name: "クリムゾンレッド", name_eng: "Crimson Red", price: 26000 },
-      { name: "モカブラウン", name_eng: "Mocha Brown", price: 25500 },
-      // Добавьте другие товары
-    ];
 
+    const is_loading = ref(true);
+
+    const items = ref([]); // Хранение товаров
     const searchQuery = ref("");
-    const sortBy = ref("recommended");
+
     const itemsPerPage = ref(8);
+    const totalPages = ref(0);
+    const filter = ref('');
     const currentPage = ref(1);
 
-    // Логика сортировки
-    const sortedItems = computed(() => {
+    const sortBy = ref("recommended");
 
-      let to_filter = items;
-      to_filter = to_filter.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
 
-      if (sortBy.value === "highToLow") {
-        return to_filter.sort((a, b) => b.price - a.price);
-      } else if (sortBy.value === "lowToHigh") {
-        return to_filter.sort((a, b) => a.price - b.price);
+
+    // Метод для получения товаров с сервера
+    const fetchProducts = async () => {
+      is_loading.value = true;
+      try {
+        // console.log(sortOrder.value);
+
+        let sort = '';
+
+        // if (sortOrder.value.index != null) {
+        //   switch (headers.value[sortOrder.value.index].field) {
+        //     case 'name':
+        //       sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
+        //       break;
+        //     case 'name_eng':
+        //       sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+        //       break;
+        //     case 'min_price':
+        //       sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+        //       break;
+        //     case 'active':
+        //       sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
+        //       break;
+
+        //     default:
+        //       break;
+        //   }
+        // }
+
+        let q_filter = '';
+        switch (filter.value) {
+          case 'active':
+            q_filter = '&active=1';
+            break;
+          case 'popular':
+            q_filter = '&popular=1';
+            break;
+          case 'suit':
+            q_filter = '&productType=suit';
+            break;
+          case 'not_suit':
+            q_filter = '&productType=not_suit';
+            break;
+
+          default:
+            break;
+        }
+
+        let query = '';
+
+        if (searchQuery.value != '') {
+          query = '&query=' + searchQuery.value;
+        }
+
+        let url = process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=' + itemsPerPage.value + '&page=' + currentPage.value + sort + q_filter + query;
+
+
+        const response = await axios.get(url, {
+          withCredentials: true
+        });
+
+        // console.log(response);
+
+        // Убедимся, что товары приходят в поле `products`
+        if (Array.isArray(response.data.products)) {
+          // Преобразуем данные (например, конвертируем цену в число)
+          items.value = response.data.products.map(product => ({
+            ...product,
+            min_price: Number(product.min_price), // Преобразуем строку в число
+          }));
+          totalPages.value = response.data.pagination.totalPages
+          is_loading.value = false;
+        } else {
+          console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+        }
+      } catch (error) {
+        console.error("Ошибка при получении товаров:", error);
       }
-      return to_filter;
-    });
-
-    // Логика пагинации
-    const paginatedItems = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage.value;
-      const end = start + itemsPerPage.value;
-
-      return sortedItems.value.slice(start, end);
-    });
-
-    const updateItemsPerPage = (value) => {
-      itemsPerPage.value = value;
-      currentPage.value = 1;
     };
+
+
+
+
+    // // Логика сортировки
+    // const sortedItems = computed(() => {
+
+    //   let to_filter = items;
+    //   to_filter = to_filter.filter((item) =>
+    //     item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    //   );
+
+    //   if (sortBy.value === "highToLow") {
+    //     return to_filter.sort((a, b) => b.price - a.price);
+    //   } else if (sortBy.value === "lowToHigh") {
+    //     return to_filter.sort((a, b) => a.price - b.price);
+    //   }
+    //   return to_filter;
+    // });
+
+    // // Логика пагинации
+    // const paginatedItems = computed(() => {
+    //   const start = (currentPage.value - 1) * itemsPerPage.value;
+    //   const end = start + itemsPerPage.value;
+
+    //   return sortedItems.value.slice(start, end);
+    // });
+
+    // const updateItemsPerPage = (value) => {
+    //   itemsPerPage.value = value;
+    //   currentPage.value = 1;
+    // };
 
     function sortItems(type) {
       sortBy.value = type;
       currentPage.value = 1;
     }
+
+    watch([itemsPerPage, filter, searchQuery], () => {
+      fetchProducts()
+      currentPage.value = 1;
+    });
+    watch(currentPage, () => {
+      fetchProducts()
+    });
+
+    // Загружаем товары при монтировании компонента
+    onMounted(() => {
+      fetchProducts();
+    });
 
 
 
@@ -102,8 +194,9 @@ export default defineComponent({
       sortBy,
       itemsPerPage,
       currentPage,
-      paginatedItems,
-      updateItemsPerPage,
+      // paginatedItems,
+      // updateItemsPerPage,
+      totalPages,
       sortItems,
       items
     };
