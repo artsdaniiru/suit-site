@@ -36,7 +36,7 @@ const routes = [
     component: () => import('../views/TestApiView.vue')
   },
   {
-    path: '/product',
+    path: '/product/:uid',
     name: 'product',
     component: () => import('../views/ProductView.vue')
   },

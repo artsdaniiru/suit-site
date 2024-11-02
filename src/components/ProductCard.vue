@@ -1,42 +1,33 @@
 <template>
     <div class="product-card" :style="{ width: width }">
-        <img :src="image" :alt="name" class="product-image" />
+        <img :src="product.image_path == undefined ? '/Image.png' : product.image_path" :alt="product.name" class="product-image" />
         <div class="product-info">
-            <span class="name">{{ name }}</span>
-            <span class="english-name">{{ englishName }}</span>
+            <span class="name">{{ product.name }}</span>
+            <span class="english-name">{{ product.name_eng }}</span>
             <span class="price">{{ formattedPrice }}</span>
         </div>
         <!-- <button class="button" @click="updateCount">内容を見る</button> -->
-        <router-link  to="/product"><button class="button">内容を見る</button></router-link>
+        <button class="button" @click="goToProduct">内容を見る</button>
 
     </div>
 </template>
 
 <script>
-import { defineComponent, inject, computed } from 'vue';
+import { defineComponent, inject, computed, ref } from 'vue';
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
     name: 'ProductCard',
     props: {
-        name: {
-            type: String,
+        item: {
+            type: Object,
             required: false,
-            default: 'クラシックネイビー',
-        },
-        englishName: {
-            type: String,
-            required: false,
-            default: 'Classic Navy',
-        },
-        price: {
-            type: Number, // Изменяем тип на Number
-            required: false,
-            default: 28000, // Значение по умолчанию
-        },
-        image: {
-            type: String,
-            required: false,
-            default: 'images/suit.webp', // Замените на правильный путь к изображению
+            default: () => ({
+                name: '商品名',
+                name_eng: 'Product name',
+                min_price: 28000,
+                image_path: '/Image.png',
+            })
         },
         width: {
             type: String,
@@ -45,15 +36,24 @@ export default defineComponent({
         }
     },
     setup(props) {
+
+        const router = useRouter();
         const { cart_count, updateCount } = inject('cart_count');
 
-        // Вычисляемое свойство для форматирования цены
-        const formattedPrice = computed(() => `¥${props.price.toLocaleString('ja-JP')}〜`);
+        const product = ref(props.item);
 
+        // Вычисляемое свойство для форматирования цены
+        const formattedPrice = computed(() => `¥${product.value.min_price.toLocaleString('ja-JP')}` + (product.value.type == 'suit' ? '〜' : ''));
+
+        function goToProduct() {
+            router.push('/product/' + product.value.id);
+        }
         return {
             cart_count,
             updateCount,
             formattedPrice, // Возвращаем форматированную цену
+            product,
+            goToProduct,
         };
     }
 });
@@ -73,7 +73,9 @@ export default defineComponent({
 
     .product-image {
         width: 100%;
-        // border-radius: 8px;
+        border-radius: 8px;
+        height: 250px;
+        object-fit: cover;
     }
 
     .product-info {
