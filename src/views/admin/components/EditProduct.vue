@@ -27,20 +27,11 @@
                 <div class="product-images">
                     <label>画像</label>
                     <div class="gallery">
-                        <!-- Отображение загруженных с сервера изображений -->
-                        <div class="img-elem" v-for="(img, key) in data.product_images" :key="img.id">
+                        <div class="img-elem" v-for="(img, index) in galleryImages" :key="index" @click="showImage(img, index)">
                             <div class="delete">
-                                <img src="../../../assets/icons/delete.svg" alt="delete" @click="deleteImg(key)">
+                                <img src="../../../assets/icons/delete.svg" alt="delete" @click.stop="deleteImg(img)">
                             </div>
                             <img :src="img.image_path" alt="product" class="item-pic" />
-                        </div>
-
-                        <!-- Отображение временных изображений -->
-                        <div class="img-elem" v-for="(img, index) in tempImages" :key="index">
-                            <div class="delete">
-                                <img src="../../../assets/icons/delete.svg" alt="delete" @click="deleteTempImg(index)">
-                            </div>
-                            <img :src="img.preview" alt="product" class="item-pic" />
                         </div>
 
                         <div class="add-file" @click="triggerFileInput">
@@ -49,6 +40,7 @@
                             <span>画像追加</span>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -56,10 +48,10 @@
                 <div v-if="data.product.type == 'suit'" class="product-options">
                     <label>追加オプション</label>
                     <div class="types">
-                        <CustomMultiSelect :values="['コットン (綿)', 'コットン (綿)2', 'コットン (綿)3', 'コットン (綿)4']" :labelText="'生地の種類'" />
-                        <CustomMultiSelect :values="['赤 (あか)', '赤 (あか)2', '赤 (あか)3', '赤 (あか)4']" :labelText="'生地の色'" />
-                        <CustomMultiSelect :values="['サテン裏地', 'サテン裏地2', 'サテン裏地3', 'サテン裏地4']" :labelText="'裏地の種類'" />
-                        <CustomMultiSelect :values="['プラスチックボタン', 'プラスチックボタン2', 'プラスチックボタン3', 'プラスチックボタン4']" :labelText="'ボタンの種類'" />
+                        <CustomMultiSelect :values="options_e.cloth" v-model="selected_options.cloth" :labelText="'生地の種類'" />
+                        <CustomMultiSelect :values="options_e.color" v-model="selected_options.color" :labelText="'生地の色'" />
+                        <CustomMultiSelect :values="options_e.lining" v-model="selected_options.lining" :labelText="'裏地の種類'" />
+                        <CustomMultiSelect :values="options_e.button" v-model="selected_options.button" :labelText="'ボタンの種類'" />
                     </div>
                 </div>
                 <div class="product-sizes">
@@ -102,10 +94,18 @@
 
         </div>
     </div>
+
+    <div v-if="show_image" class="modal in-modal" @click="show_image = false">
+        <img class="close" src="../../../assets/icons/close-white.svg" alt="close">
+        <img class="prev" src="../../../assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
+        <img class="image" @click.stop="showImageNext" :src="show_image_path" alt="">
+        <img class="next" src="../../../assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
+    </div>
+
 </template>
 <script>
 import axios from "axios";
-import { defineComponent, ref, onMounted, watch } from "vue";
+import { defineComponent, ref, onMounted, watch, computed } from "vue";
 import CustomSwitch from './CustomSwitch.vue';
 
 import { QuillEditor } from '@vueup/vue-quill'
@@ -121,12 +121,31 @@ export default defineComponent({
         product_id: {
             type: Number,
             required: true
+        },
+        options: {
+            type: Object,
+            required: true
         }
     },
     setup(props, { emit }) {
+        //main data
+        const data_original = ref({ product: [], sizes: [], product_images: [], options: [] });
+        const data = ref({ product: [], sizes: [], product_images: [], options: [] });
 
-        const data_original = ref({ product: [], sizes: [], product_images: [] });
-        const data = ref({ product: [], sizes: [], product_images: [] });
+        // Функция для глубокого сравнения двух объектов или массивов
+        const deepEqual = (obj1, obj2) => {
+            return JSON.stringify(obj1) === JSON.stringify(obj2);
+        };
+
+        // computed для сравнения data и data_original
+        const areDataEqual = ref(true);
+
+        // Watch для глубокого отслеживания изменений
+        watch(data, () => {
+            areDataEqual.value = deepEqual(data.value, data_original.value);
+        }, { deep: true });
+
+
 
         const product_headers = ref({
             name: '名前',
@@ -134,6 +153,162 @@ export default defineComponent({
             description: '説明',
             popular: '人気'
         });
+
+        //Images 
+        const show_image = ref(false);
+        const show_image_path = ref('/image.png');
+        const show_image_id = ref(0);
+        const show_message = ref(false);
+
+        function showImage(img, index) {
+
+            show_image_path.value = img.image_path
+            show_image_id.value = index
+            show_image.value = true;
+        }
+
+        function showImageNext() {
+            if ((show_image_id.value + 1) != galleryImages.value.length) {
+                show_image_id.value = show_image_id.value + 1;
+            } else {
+                show_image_id.value = 0;
+            }
+
+            show_image_path.value = galleryImages.value[show_image_id.value].image_path;
+        }
+
+        function showImagePrev() {
+            if ((show_image_id.value - 1) != -1) {
+                show_image_id.value = show_image_id.value - 1;
+            } else {
+                show_image_id.value = galleryImages.value.length - 1;
+            }
+
+            show_image_path.value = galleryImages.value[show_image_id.value].image_path;
+        }
+
+
+
+        const tempImages = ref([]);
+
+        const galleryImages = computed(() => {
+            let images = [];
+            data.value.product_images.forEach((val, index) => {
+                images.push({
+                    type: 'db',
+                    image_path: val.image_path,
+                    original_index: index,
+                })
+            })
+            tempImages.value.forEach((val, index) => {
+                images.push({
+                    type: 'tmp',
+                    image_path: val.preview,
+                    original_index: index,
+                })
+            })
+
+            return images
+        });
+
+        function deleteImg(img) {
+
+            if (img.type == 'db') {
+                data.value.product_images.splice(img.type.original_index, 1);
+            } else {
+                tempImages.value.splice(img.type.original_index, 1);
+            }
+
+        }
+
+        const fileInput = ref(null);
+
+        const triggerFileInput = () => {
+
+            if (fileInput.value) {
+                fileInput.value.click();
+            }
+        };
+
+
+        const previewImage = (event) => {
+            const files = Array.from(event.target.files);
+
+            files.forEach((file) => {
+                if (file && file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        tempImages.value.push({
+                            file: file,
+                            preview: e.target.result,
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            areDataEqual.value = false;
+        };
+
+
+
+
+        //options
+        const options_e = computed(() => {
+
+            let options = {};
+
+            Object.keys(props.options).forEach(key => {
+                options[key] = {};
+                props.options[key].forEach(val => {
+
+                    let id = val.id
+                    options[key][id] = val.name;
+                })
+            })
+            return options;
+        })
+
+        const selected_options = ref({})
+
+        function getSelectedOptions() {
+
+            let options = {};
+            Object.keys(props.options).forEach(key => {
+
+
+                options[key] = [];
+                if (data.value.options != undefined) {
+                    data.value.options.forEach(val => {
+                        if (val.type == key) {
+                            options[key].push(val.id)
+                        }
+                    })
+                }
+            })
+            return options;
+        }
+
+        watch(selected_options, () => {
+            let options = [];
+            Object.keys(selected_options.value).forEach(key => {
+
+                selected_options.value[key].forEach(val => {
+
+                    props.options[key].forEach(val_o => {
+                        if (val == val_o.id) {
+                            options.push(val_o)
+                        }
+                    })
+
+                })
+            })
+            data.value.options = options;
+        }, { deep: true })
+
+
+
+
+        //Sizes
         const size_headers = ref({
             name: '名前',
             price: '値段',
@@ -145,7 +320,6 @@ export default defineComponent({
             waist_size_max: "ウエスト最大",
             stock: "在庫数量"
         });
-
         const active_size = ref(0);
 
         const hasSizeKey = (activeSizeIndex, key) => {
@@ -154,36 +328,6 @@ export default defineComponent({
                 data.value.sizes[activeSizeIndex][key] !== undefined
             );
         };
-
-        // Метод для получения товара
-        const fetchProduct = async () => {
-            try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/product.php?product_id=' + props.product_id, {
-                    withCredentials: true
-                });
-                if (response.data.status == "success") {
-                    data.value = response.data.data;
-                    data_original.value = JSON.parse(JSON.stringify(response.data.data));
-                } else {
-                    console.error("Ошибка при получении товара:", response.data.status);
-                }
-
-            } catch (error) {
-                console.error("Ошибка при получении товара:", error);
-            }
-        };
-
-
-        function deleteImg(key) {
-
-            data.value.product_images.splice(key, 1);
-
-        }
-
-        onMounted(() => {
-            fetchProduct();
-        });
-
 
         function deleteSize(key) {
             data.value.sizes.splice(key, 1);
@@ -242,54 +386,27 @@ export default defineComponent({
         }
 
 
-        // Функция для глубокого сравнения двух объектов или массивов
-        const deepEqual = (obj1, obj2) => {
-            return JSON.stringify(obj1) === JSON.stringify(obj2);
-        };
+        // Метод для получения товара
+        const fetchProduct = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/product.php?product_id=' + props.product_id, {
+                    withCredentials: true
+                });
+                if (response.data.status == "success") {
 
-        // computed для сравнения data и data_original
-        const areDataEqual = ref(true);
+                    let raw_data = response.data.data;
 
-        // Watch для глубокого отслеживания изменений
-        watch(data, () => {
-            areDataEqual.value = deepEqual(data.value, data_original.value);
-        }, { deep: true });
+                    data.value = raw_data;
+                    data_original.value = JSON.parse(JSON.stringify(raw_data));
+                    selected_options.value = getSelectedOptions();
+                } else {
+                    console.error("Ошибка при получении товара:", response.data.status);
+                }
 
-        const fileInput = ref(null);
-
-        const triggerFileInput = () => {
-
-            if (fileInput.value) {
-                fileInput.value.click();
+            } catch (error) {
+                console.error("Ошибка при получении товара:", error);
             }
         };
-
-
-        const tempImages = ref([]);
-
-        const previewImage = (event) => {
-            const files = Array.from(event.target.files);
-
-            files.forEach((file) => {
-                if (file && file.type.startsWith("image/")) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        tempImages.value.push({
-                            file: file,
-                            preview: e.target.result,
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            areDataEqual.value = false;
-        };
-
-        const deleteTempImg = (index) => {
-            tempImages.value.splice(index, 1);
-        };
-
-
 
         const saveProduct = async () => {
             try {
@@ -308,9 +425,6 @@ export default defineComponent({
                             withCredentials: true,
                         }
                     );
-
-                    console.log(imageResponse);
-
 
                     if (imageResponse.data.status === "success") {
                         data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
@@ -331,8 +445,6 @@ export default defineComponent({
                     { withCredentials: true }
                 );
 
-                console.log(productResponse);
-
 
                 if (productResponse.data.status !== "success") {
                     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
@@ -350,6 +462,11 @@ export default defineComponent({
         };
 
 
+
+        onMounted(() => {
+            fetchProduct();
+        });
+
         return {
             data,
             product_headers,
@@ -362,10 +479,18 @@ export default defineComponent({
             addSize,
             tempImages,
             previewImage,
-            deleteTempImg,
             triggerFileInput,
             fileInput,
-            saveProduct
+            saveProduct,
+            show_image,
+            show_message,
+            show_image_path,
+            showImage,
+            galleryImages,
+            showImageNext,
+            showImagePrev,
+            options_e,
+            selected_options
         };
     }
 });
@@ -525,6 +650,7 @@ export default defineComponent({
                     width: 90px;
                     height: 90px;
                     position: relative;
+                    cursor: pointer;
 
                     .item-pic {
                         border-radius: 5px;

@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import { ref, defineComponent, inject } from 'vue';
+import { ref, defineComponent, inject, watch } from 'vue';
 import axios from 'axios';
 
 export default defineComponent({
@@ -108,6 +108,14 @@ export default defineComponent({
         const closeModal = () => {
             emit('update:closeFlag', false);
         };
+
+        watch(() => props.closeFlag, (newValue) => {
+            if (newValue) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        });
 
         function clear() {
             email.value = '';

@@ -20,7 +20,7 @@
         <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'商品変更'">
-            <EditProduct :product_id="product_id" @productUpdate="fetchProducts" />
+            <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" />
         </CustomModal>
     </div>
 </template>
@@ -171,6 +171,34 @@ export default defineComponent({
         };
 
 
+        const options = ref({}); // Хранение опций
+
+
+        const fetchAllOptions = async () => {
+            try {
+                console.log(sortOrder.value);
+
+
+                let url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_options&splitByType=true&itemsPerPage=1000';
+                const response = await axios.get(url, {
+                    withCredentials: true
+                });
+
+                // console.log(response);
+
+                // Убедимся, что товары приходят в поле `products`
+                if (response.data.status == 'success') {
+                    // Преобразуем данные (например, конвертируем цену в число)
+                    options.value = response.data.options;
+                } else {
+                    console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                }
+            } catch (error) {
+                console.error("Ошибка при получении товаров:", error);
+            }
+        };
+
+
         // Сортировка
         const sortTable = (index) => {
             if (sortOrder.value.index === index) {
@@ -195,6 +223,7 @@ export default defineComponent({
         // Загружаем товары при монтировании компонента
         onMounted(() => {
             fetchProducts();
+            fetchAllOptions();
         });
 
         return {
@@ -212,7 +241,8 @@ export default defineComponent({
             product_id,
             editItem,
             fetchProducts,
-            switchAction
+            switchAction,
+            options
         };
     },
 });

@@ -14,7 +14,7 @@
     </div>
 </template>
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, watch } from 'vue';
 
 export default defineComponent({
     name: "CustomModal",
@@ -35,6 +35,16 @@ export default defineComponent({
         const closeModal = () => {
             emit('update:modelValue', false);
         };
+
+
+        // Следим за изменениями modelValue
+        watch(() => props.modelValue, (newValue) => {
+            if (newValue) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        });
 
         return {
             closeModal
