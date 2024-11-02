@@ -79,11 +79,11 @@ if (!empty($productType)) {
 }
 
 // SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
-$sql = "SELECT p.*, MIN(i.price) as min_price, MAX(im.image_path) as image_path
+$sql = "SELECT p.*, MIN(i.price) as min_price, COALESCE(MIN(im.image_path), NULL) AS image_path
         FROM products p
         JOIN sizes i ON p.id = i.product_id
-        JOIN product_images im ON p.id = im.product_id
-        WHERE 1=1 $searchCondition $popularCondition $productTypeCondition
+        LEFT JOIN product_images im ON p.id = im.product_id
+        WHERE p.active=1 $searchCondition $popularCondition $productTypeCondition
         GROUP BY p.id
         ORDER BY $orderBy
         LIMIT $offset, $itemsPerPage";

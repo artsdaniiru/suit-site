@@ -277,7 +277,11 @@ switch ($action) {
         $sql = "INSERT INTO products (type, name, name_eng, description, active, popular) 
                 VALUES ('$type', '$name', '$name_eng', '$description', '$active', '$popular')";
         if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
+
+            // Получаем ID новой записи
+            $newProductId = $conn->insert_id;
+
+            echo json_encode(['status' => 'success', 'id' => $newProductId]);
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }

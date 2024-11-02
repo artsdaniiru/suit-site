@@ -7,7 +7,6 @@
   </main>
 </template>
 
-<!-- eslint-disable -->
 <script>
 import { defineComponent, provide, ref, onBeforeMount, computed } from 'vue';
 import axios from 'axios';

@@ -24,7 +24,6 @@
     </header>
     <LoginForm :closeFlag="closeLogin" @update:closeFlag="closeLogin = false"></LoginForm>
 </template>
-<!-- eslint-disable -->
 <script>
 
 import { defineComponent, inject, ref } from 'vue';

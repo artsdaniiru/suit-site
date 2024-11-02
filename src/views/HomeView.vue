@@ -93,12 +93,11 @@
         </div>
     </div>
 </template>
-<!-- eslint-disable -->
 <script>
 import { defineComponent, ref } from 'vue';
 
 
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
+import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import 'vue3-carousel/dist/carousel.css'
 
 //ref https://ismail9k.github.io/vue3-carousel/
@@ -108,7 +107,6 @@ export default defineComponent({
     components: {
         Carousel,
         Slide,
-        Pagination,
         Navigation,
     },
     setup() {
