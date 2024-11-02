@@ -2,16 +2,17 @@
 
   <div class="product">
     <div class="main">
-      <div class="product-img">
-        <img :src="image" :alt="name" class="product-image" />
+      <div class="product-img" :class="{ loading: is_loading }">
+        <img v-if="!is_loading" :src="data.product_images[0] == undefined ? '/Image.png' : data.product_images[0].image_path" :alt="data.product.name" class="product-image" />
       </div>
 
       <div class="product-setting">
         <div class="product-info">
           <div class="product-title">
-            <h3 class="product-title">{{ name }}</h3>
-            <h3 class="product-title">{{ englishName }}</h3>
-            <span class="price">{{ formattedPrice }}</span>
+
+            <h3 class="product-title" :class="{ loading: is_loading }">{{ data.product.name }}</h3>
+            <h3 class="product-title" :class="{ loading: is_loading }">{{ data.product.name_eng }}</h3>
+            <span class="price" :class="{ loading: is_loading }">{{ formattedPrice }}</span>
             <div class="setting-inf">
               <span> 3つのサイズから基本スーツの価格が決定されます。</span>
             </div>
@@ -47,7 +48,7 @@
                   <input v-model="inputValue" id="textInput" type="text" placeholder="ウェストサイズcm" />
                 </div> -->
               </div>
-              
+
               <div class="size-cont">
                 <div class="size-box">
                   <CustomSelect :values="['コットン (綿)', 'コットン (綿)2', 'コットン (綿)3', 'コットン (綿)4']" v-model="selectedSize" :labelText="'生地の種類'" />
@@ -131,41 +132,82 @@
 </template>
 
 <script>
-import { defineComponent, computed } from "vue";
+import axios from "axios";
+import { defineComponent, computed, ref, onBeforeMount } from "vue";
+import { useRoute } from 'vue-router';
 
 export default defineComponent({
   name: "ProductCard",
-  props: {
-    name: {
-      type: String,
-      default: "クラシックネイビー",
-    },
-    englishName: {
-      type: String,
-      default: "Classic Navy",
-    },
-    price: {
-      type: Number,
-      default: 28000,
-    },
-    image: {
-      type: String,
-      default: "images/suit.webp",
-    },
-    width: {
-      type: String,
-      default: "-webkit-fill-available",
-    },
-  },
-  setup(props) {
+  setup() {
+    const is_loading = ref(true);
+
+    const route = useRoute();
+    const uid = route.params.uid;
+
+    const data = ref({
+      product: {
+        name: '商品名',
+        type: 'suit',
+        name_eng: 'Product name',
+        price: 28000,
+      },
+      sizes: [],
+      options: [],
+      product_images: [],
+
+    });
+
     // Вычисляемое свойство для форматирования цены
     const formattedPrice = computed(
-      () => `¥${props.price.toLocaleString("ja-JP")}〜`
+      () => {
+        let price = 10000;
+        if (data.value.sizes[0] != undefined) {
+          price = data.value.sizes[0].price;
+
+          data.value.sizes.forEach(val => {
+            if (Number(val.price) < price) {
+              price = val.price;
+            }
+          })
+        }
+
+        return `¥${Number(price).toLocaleString('ja-JP')}` + (data.value.product.type == 'suit' ? '〜' : '');
+      }
     );
+
+    // Метод для получения товара
+    const fetchProduct = async () => {
+      is_loading.value = true;
+      try {
+        const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/product.php?product_id=' + uid, {
+          withCredentials: true
+        });
+
+        console.log(response);
+
+
+        if (response.data.status == "success") {
+
+          data.value = response.data.data;
+          is_loading.value = false;
+        } else {
+          console.error("Ошибка при получении товара:", response.data.status);
+        }
+
+      } catch (error) {
+        console.error("Ошибка при получении товара:", error);
+      }
+    };
+
+    onBeforeMount(() => {
+      fetchProduct();
+    });
 
 
     return {
       formattedPrice,
+      data,
+      is_loading,
     };
   },
 });
@@ -185,12 +227,16 @@ export default defineComponent({
 
     .product-img {
       width: 50%;
+      border-radius: 8px;
+      overflow: hidden;
 
       .product-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
+
+
     }
 
     .product-setting {
@@ -320,25 +366,26 @@ export default defineComponent({
   }
 }
 
-.size-cont.grid{
+.size-cont.grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr;
 
-  .size-box{
+  .size-box {
     width: 100%;
 
-    input{
+    input {
       width: 100%;
     }
   }
 }
+
 // чтобы инпуты не разьебывало которые нужно вводить текст
-.size-cont input{
+.size-cont input {
   width: auto;
   min-width: none;
 }
 
-.add-content{
+.add-content {
   border: 1px solid #d9d9d9;
   border-radius: 12px;
   padding: 40px 20px 40px 10px;
@@ -348,7 +395,7 @@ export default defineComponent({
 
 
 
-  &::before{
+  &::before {
     content: url(../assets/icons/plus.svg);
     display: block;
     position: absolute;
@@ -358,7 +405,8 @@ export default defineComponent({
     background-color: #fff;
 
   }
-  .img-box{
+
+  .img-box {
     width: 170px;
     height: 170px;
     border-radius: 50%;
@@ -367,30 +415,34 @@ export default defineComponent({
 
 
   }
-  .add-card{
+
+  .add-card {
     text-align: center;
     width: max-content;
     position: relative;
 
-    .card-box{
+    .card-box {
 
-      p{
-      font-weight: 600;
-      font-size: 24px;
-      margin: 10px;
+      p {
+        font-weight: 600;
+        font-size: 24px;
+        margin: 10px;
 
       }
     }
-    .form-check{
+
+    .form-check {
       position: absolute;
       top: -25px;
       right: 0;
     }
-    .card-icq{
-        position: absolute;
-        top: calc(50% - 16px);
-        left: -50px;
-      &::before{
+
+    .card-icq {
+      position: absolute;
+      top: calc(50% - 16px);
+      left: -50px;
+
+      &::before {
         content: url(../assets/icons/plus.svg);
         display: block;
         position: absolute;
@@ -398,35 +450,50 @@ export default defineComponent({
         left: -16px;
       }
     }
-    .opacity{
+
+    .opacity {
       opacity: 50%;
     }
 
 
   }
-  .buy{
-    
+
+  .buy {
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 15px;
 
-    .price{
+    .price {
       font-weight: 700;
       font-size: 48px;
     }
-    .button{
+
+    .button {
       width: 100%;
-    }    
+    }
   }
 
 
 
-  
+
 }
 
+.loading {
+  background: #eee;
+  background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+  background-size: 200% 100%;
+  color: transparent;
+  width: fit-content;
+  animation: 1.5s shine linear infinite;
+  border-radius: 8px;
+}
 
-
-
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
+}
 </style>

@@ -24,6 +24,7 @@ export default defineComponent({
             required: false,
             default: () => ({
                 name: '商品名',
+                type: 'suit',
                 name_eng: 'Product name',
                 min_price: 28000,
                 image_path: '/Image.png',
@@ -43,7 +44,7 @@ export default defineComponent({
         const product = ref(props.item);
 
         // Вычисляемое свойство для форматирования цены
-        const formattedPrice = computed(() => `¥${product.value.min_price.toLocaleString('ja-JP')}` + (product.value.type == 'suit' ? '〜' : ''));
+        const formattedPrice = computed(() => `¥${Number(product.value.min_price).toLocaleString('ja-JP')}` + (product.value.type == 'suit' ? '〜' : ''));
 
         function goToProduct() {
             router.push('/product/' + product.value.id);

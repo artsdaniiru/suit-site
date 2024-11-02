@@ -29,7 +29,7 @@
                     <div class="gallery">
                         <div class="img-elem" v-for="(img, index) in galleryImages" :key="index" @click="showImage(img, index)">
                             <div class="delete">
-                                <img src="../../../assets/icons/delete.svg" alt="delete" @click.stop="deleteImg(img)">
+                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
                             </div>
                             <img :src="img.image_path" alt="product" class="item-pic" />
                         </div>
@@ -60,7 +60,7 @@
                         <div class="elem" v-for="(size, key)  in data.sizes" :key="size" :class="{ active: key == active_size }" @click="active_size = key">
                             <span>{{ size.name }}</span>
                             <div class="delete">
-                                <img src="../../../assets/icons/delete.svg" alt="delete" @click.stop="deleteSize(key)">
+                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
                             </div>
                         </div>
                         <div class="elem" @click="addSize">
