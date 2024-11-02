@@ -19,8 +19,23 @@
 
           <div class="size-form">
             <form @submit.prevent="submitForm">
-              <div class="size-cont">
-                <div class="size-box">
+
+              <div class="size-cont grid">
+
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+                <div class="size-box1">
+
+                  <input v-model="inputValue" id="textInput" type="text" placeholder="肩幅cm" />
+                </div>
+
+                <!-- <div class="size-box">
                   <CustomInput style="width: 152px;;" v-model="inputValue" :labelText="'身長'" placeholderText="身長cm" />
                 </div>
                 <div class="size-box">
@@ -30,8 +45,9 @@
                 <div class="size-box">
                   <label for="textInput">ウェストサイズ</label>
                   <input v-model="inputValue" id="textInput" type="text" placeholder="ウェストサイズcm" />
-                </div>
+                </div> -->
               </div>
+              
               <div class="size-cont">
                 <div class="size-box">
                   <CustomSelect :values="['コットン (綿)', 'コットン (綿)2', 'コットン (綿)3', 'コットン (綿)4']" v-model="selectedSize" :labelText="'生地の種類'" />
@@ -60,16 +76,56 @@
     <div class="add-product">
       <h2>追加の商品</h2>
 
-      <div class="add-content">
+      <form class="add-content">
+
+        <div class="add-card">
+          <div class="card-box">
+            <div class="img-box"></div>
+            <p>シャツ</p>
+            <p>¥5000</p>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
+          </div>
+        </div>
+
+        <div class="add-card">
+          <div class="card-box">
+            <div class="img-box"></div>
+            <p>靴下</p>
+            <p>¥1000</p>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
+          </div>
+          <span class="card-icq"></span>
+        </div>
+
+        <div class="add-card">
+          <div class="card-box opacity">
+            <div class="img-box"></div>
+            <p>シューズ</p>
+            <p>¥7000</p>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
+          </div>
+          <span class="card-icq"></span>
+        </div>
+
+        <div class="add-card buy">
+          <span class="price">{{ formattedPrice }}</span>
+          <button class="button">カートに追加</button>
+
+        </div>
+
+      </form>
 
 
-      </div>
 
-
-
-      <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
-      </div>
     </div>
   </div>
 </template>
@@ -263,4 +319,114 @@ export default defineComponent({
     // box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 }
+
+.size-cont.grid{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+
+  .size-box{
+    width: 100%;
+
+    input{
+      width: 100%;
+    }
+  }
+}
+// чтобы инпуты не разьебывало которые нужно вводить текст
+.size-cont input{
+  width: auto;
+  min-width: none;
+}
+
+.add-content{
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  padding: 40px 20px 40px 10px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+
+
+
+  &::before{
+    content: url(../assets/icons/plus.svg);
+    display: block;
+    position: absolute;
+    top: -16px;
+    left: calc(50% - 16px);
+    padding: 0 8px;
+    background-color: #fff;
+
+  }
+  .img-box{
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: url(../assets/images/main.webp);
+    border: 1px solid black;
+
+
+  }
+  .add-card{
+    text-align: center;
+    width: max-content;
+    position: relative;
+
+    .card-box{
+
+      p{
+      font-weight: 600;
+      font-size: 24px;
+      margin: 10px;
+
+      }
+    }
+    .form-check{
+      position: absolute;
+      top: -25px;
+      right: 0;
+    }
+    .card-icq{
+        position: absolute;
+        top: calc(50% - 16px);
+        left: -50px;
+      &::before{
+        content: url(../assets/icons/plus.svg);
+        display: block;
+        position: absolute;
+        top: calc(50% - 16px);
+        left: -16px;
+      }
+    }
+    .opacity{
+      opacity: 50%;
+    }
+
+
+  }
+  .buy{
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+
+    .price{
+      font-weight: 700;
+      font-size: 48px;
+    }
+    .button{
+      width: 100%;
+    }    
+  }
+
+
+
+  
+}
+
+
+
+
 </style>
