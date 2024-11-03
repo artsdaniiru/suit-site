@@ -3,7 +3,7 @@
     <div class="actions">
         <SearchInput v-model="searchQuery" />
         <div class="filters">
-            <button class="button" @click="closeFlagAdd = true">新商品作成</button>
+            <button class="button" @click="closeFlagAdd = true">新追加オプション作成</button>
             <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
             <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
         </div>
@@ -15,11 +15,11 @@
     <!-- Пагинация -->
     <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
-    <CustomModal v-model="closeFlag" :title="'商品変更'">
-        <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" />
+    <CustomModal v-model="closeFlag" :title="'追加オプション変更'">
+        <!-- <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" /> -->
     </CustomModal>
-    <CustomModal v-model="closeFlagAdd" :title="'新商品作成'">
-        <AddProduct :options="options" />
+    <CustomModal v-model="closeFlagAdd" :title="'新追加オプション作成'">
+        <!-- <AddProduct :options="options" /> -->
     </CustomModal>
 
 </template>
@@ -27,14 +27,14 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './ItemsTable.vue';
-import EditProduct from './EditProduct.vue';
-import AddProduct from './AddProduct.vue';
+// import EditProduct from './EditProduct.vue';
+// import AddProduct from './AddProduct.vue';
 
 export default defineComponent({
     name: "CatalogView", components: {
         ItemsTable,
-        EditProduct,
-        AddProduct,
+        // EditProduct,
+        // AddProduct,
     },
     setup() {
 

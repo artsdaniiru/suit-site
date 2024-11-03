@@ -4,6 +4,8 @@ import {
 } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CatalogView from '../views/admin/CatalogView.vue'
+import ClientsView from '../views/admin/ClientsView.vue'
+import OrdersView from '../views/admin/OrdersView.vue'
 import LoginView from '../views/admin/LoginView.vue'
 import NotFound from '../views/NotFound.vue'
 import checkAdminAuth from './checkAdminAuth';
@@ -54,6 +56,18 @@ const routes = [
     path: '/admin/catalog',
     name: 'CatalogView',
     component: CatalogView,
+    meta: { requiresAdmin: true }  // Защищённый маршрут
+  },
+  {
+    path: '/admin/clients',
+    name: 'ClientsView',
+    component: ClientsView,
+    meta: { requiresAdmin: true }  // Защищённый маршрут
+  },
+  {
+    path: '/admin/orders',
+    name: 'OrdersView',
+    component: OrdersView,
     meta: { requiresAdmin: true }  // Защищённый маршрут
   },
   {

@@ -10,7 +10,7 @@
                         <input type="text" v-model="url" placeholder="test.php?action=login" required />
                     </div>
                 </div>
-
+                <CustomSwitch v-model="save_data" :labelText="'Save inputs value'" labelPosition="side" />
                 <div>
                     <label for="method">HTTP Method:</label>
                     <select v-model="method" required>
@@ -51,10 +51,13 @@ import Cookies from 'js-cookie';
 
 import JsonEditorVue from 'json-editor-vue'
 
+import CustomSwitch from './admin/components/CustomSwitch.vue';
+
 export default defineComponent({
     name: "TestApiView",
     components: {
-        JsonEditorVue
+        JsonEditorVue,
+        CustomSwitch
     },
     setup() {
         const url = ref('');
@@ -64,6 +67,8 @@ export default defineComponent({
         const formattedJson = ref('');
         const highlightedJson = ref('');
         const highlightEnabled = ref(true);
+
+        const save_data = ref('1');
 
         const back_url = ref(process.env.VUE_APP_BACKEND_URL);
         // Функция для раскраски JSON
@@ -130,13 +135,18 @@ export default defineComponent({
 
         // Восстановление значений из куки при загрузке
         onMounted(() => {
-            // const savedUrl = Cookies.get('test_api_url');
-            // const savedMethod = Cookies.get('test_api_method');
-            // const savedBody = Cookies.get('test_api_body');
+            const save_toggle = Cookies.get('save_toggle');
+            save_data.value = save_toggle;
+            if (save_data.value == '1') {
+                const savedUrl = Cookies.get('test_api_url');
+                const savedMethod = Cookies.get('test_api_method');
+                const savedBody = Cookies.get('test_api_body');
 
-            // if (savedUrl) url.value = savedUrl;
-            // if (savedMethod) method.value = savedMethod;
-            // if (savedBody) body.value = savedBody;
+                if (savedUrl) url.value = savedUrl;
+                if (savedMethod) method.value = savedMethod;
+                if (savedBody) body.value = savedBody;
+            }
+
         });
 
         // Сохранение значений в куки при изменении
@@ -144,6 +154,9 @@ export default defineComponent({
             Cookies.set('test_api_url', url.value);
             Cookies.set('test_api_method', method.value);
             Cookies.set('test_api_body', body.value);
+        });
+        watch(save_data, () => {
+            Cookies.set('save_toggle', save_data.value);
         });
 
         return {
@@ -156,7 +169,8 @@ export default defineComponent({
             sendRequest,
             toggleHighlight,
             highlightEnabled,
-            back_url
+            back_url,
+            save_data
         };
     }
 });
@@ -183,6 +197,7 @@ export default defineComponent({
         flex-direction: column;
         width: 100%;
         margin: 0 60px;
+        gap: 10px;
     }
 
     label {
