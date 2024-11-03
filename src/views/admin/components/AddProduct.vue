@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <div v-if="show_image" class="modal in-modal" @click="show_image = false">
+    <div v-if="show_image" class="modal images-full" @click="show_image = false">
         <img class="close" src="../../../assets/icons/close-white.svg" alt="close">
         <img class="prev" src="../../../assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
         <img class="image" @click.stop="showImageNext" :src="show_image_path" alt="">
@@ -699,6 +699,37 @@ export default defineComponent({
             display: flex;
             gap: 12px;
         }
+    }
+}
+
+.modal.images-full {
+    z-index: 110;
+    cursor: pointer;
+
+    .close {
+        position: absolute;
+        top: 5%;
+        right: 5%;
+    }
+
+    .prev,
+    .next {
+        position: absolute;
+        top: 50%;
+    }
+
+    .prev {
+        left: 5%;
+    }
+
+    .next {
+        right: 5%;
+    }
+
+    .image {
+        margin: auto;
+        max-height: 80%;
+        max-width: 80%;
     }
 }
 </style>
