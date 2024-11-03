@@ -125,6 +125,8 @@ export default defineComponent({
         font-size: 16px;
         line-height: 140%;
         color: #1e1e1e;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .header {
@@ -143,8 +145,7 @@ export default defineComponent({
         border-radius: 8px;
         height: 65px;
         align-items: center;
-        padding-left: 7px;
-        padding-right: 7px;
+
         cursor: pointer;
 
         img {
