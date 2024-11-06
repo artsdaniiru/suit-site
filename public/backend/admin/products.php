@@ -266,20 +266,66 @@ switch ($action) {
         ]);
         break;
     case 'add_product':
-        $type = $request['type'];
-        $name = $request['name'];
-        $name_eng = $request['name_eng'];
-        $description = $request['description'];
-        $active =  isset($request['acive']) ? $request['acive'] : '';
-        $popular = isset($request['popular']) ? $request['popular'] : '';
+        // Получаем данные из JSON-запроса
+        $data = $request['data'];
+
+        $product = $data['product'];
+        $type =  $product['type'];
+        $name = $conn->real_escape_string($product['name']);
+        $name_eng = $conn->real_escape_string($product['name_eng']);
+        $description = $conn->real_escape_string($product['description']);
+        $popular = isset($product['popular']) ?  $product['popular'] : '';
 
 
-        $sql = "INSERT INTO products (type, name, name_eng, description, active, popular) 
-                VALUES ('$type', '$name', '$name_eng', '$description', '$active', '$popular')";
+        // Вставка основного продукта
+        $sql = "INSERT INTO products (type, name, name_eng, description, popular) 
+            VALUES ('$type', '$name', '$name_eng', '$description', '$popular')";
         if ($conn->query($sql) === TRUE) {
-
-            // Получаем ID новой записи
             $newProductId = $conn->insert_id;
+
+            // Добавление размеров, если они есть
+            if (!empty($data['sizes'])) {
+                foreach ($data['sizes'] as $size) {
+                    $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, 
+                        shoulder_width_max, waist_size_min, waist_size_max, stock)
+                        VALUES ('$newProductId', '" . $conn->real_escape_string($size['name']) . "',
+                        '" . $conn->real_escape_string($size['price']) . "', '" . $conn->real_escape_string($size['height_min']) . "',
+                        '" . $conn->real_escape_string($size['height_max']) . "', '" . $conn->real_escape_string($size['shoulder_width_min']) . "',
+                        '" . $conn->real_escape_string($size['shoulder_width_max']) . "', '" . $conn->real_escape_string($size['waist_size_min']) . "',
+                        '" . $conn->real_escape_string($size['waist_size_max']) . "', '" . $conn->real_escape_string($size['stock']) . "')";
+
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления размеров: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            }
+
+            // // Добавление изображений
+            // if (!empty($data['product_images'])) {
+            //     foreach ($data['product_images'] as $image) {
+            //         $sql = "INSERT INTO product_images (product_id, image_path)
+            //             VALUES ('$newProductId', '" . $conn->real_escape_string($image['image_path']) . "')";
+
+            //         if ($conn->query($sql) === FALSE) {
+            //             echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
+            //             exit;
+            //         }
+            //     }
+            // }
+
+            // Добавление опций
+            if (!empty($data['options']) && isset($data['options'])) {
+                foreach ($data['options'] as $option) {
+                    $sql = "INSERT INTO options_indexes (product_id, option_id)
+                        VALUES ('$newProductId', '" . intval($option['id']) . "')";
+
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления опции: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            }
 
             echo json_encode(['status' => 'success', 'id' => $newProductId]);
         } else {
