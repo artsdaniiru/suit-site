@@ -265,6 +265,86 @@ switch ($action) {
             ]
         ]);
         break;
+    case 'get_option':
+        // Проверяем, был ли передан id в запросе
+        if (!isset($_GET['option_id']) || empty($_GET['option_id'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Option ID is missing']);
+            exit;
+        }
+
+        $option_id = $_GET['option_id'];
+
+        // Выполняем запрос к базе данных для получения данных об опции
+        $sql = "SELECT * FROM options WHERE id = '$option_id'";
+        $result = $conn->query($sql);
+
+        // Проверяем, найден ли результат
+        if ($result && $result->num_rows > 0) {
+            // Получаем данные об опции
+            $optionData = $result->fetch_assoc();
+
+            // Выполняем запрос для получения связанных product_id из таблицы options_indexes
+            $productIds = [];
+            $sqlProducts = "SELECT product_id FROM options_indexes WHERE option_id = '$option_id'";
+            $resultProducts = $conn->query($sqlProducts);
+
+            if ($resultProducts && $resultProducts->num_rows > 0) {
+                while ($row = $resultProducts->fetch_assoc()) {
+                    $productIds[] = $row['product_id'];
+                }
+            }
+
+            // Получаем информацию о продуктах, если они найдены
+            $productsData = [];
+            if (!empty($productIds)) {
+                $productIdsString = implode(",", $productIds);
+                $sqlProductsData = "SELECT * FROM products WHERE id IN ($productIdsString)";
+                $resultProductsData = $conn->query($sqlProductsData);
+
+                if ($resultProductsData && $resultProductsData->num_rows > 0) {
+                    while ($product = $resultProductsData->fetch_assoc()) {
+                        $productsData[] = $product;
+                    }
+                }
+            }
+
+            // Формируем итоговый ответ
+            echo json_encode(['status' => 'success', 'option' => $optionData, 'products' => $productsData]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Option not found']);
+        }
+        break;
+    case 'edit_option':
+        // Проверка наличия оригинальных и обновленных данных
+        if (!isset($request['data_original']) || !isset($request['data'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing original or updated data']);
+            exit;
+        }
+
+        $originalData = $request['data_original'];
+        $updatedData = $request['data'];
+
+        // Получаем ID опции из оригинальных данных
+        $optionId = intval($originalData['id']);
+
+        // Проверяем, изменились ли данные, и если да, обновляем их
+        if ($originalData !== $updatedData) {
+            $sql = "UPDATE options SET
+                        name = '" . $conn->real_escape_string($updatedData['name']) . "',
+                        type = '" . $conn->real_escape_string($updatedData['type']) . "',
+                        price = '" . $conn->real_escape_string($updatedData['price']) . "',
+                        stock = '" . $conn->real_escape_string($updatedData['stock']) . "',
+                        date_of_change = '" . date("Y-m-d H:i:s") . "'
+                        WHERE id = '$optionId'";
+
+            if ($conn->query($sql) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления опции: ' . $conn->error]);
+                exit;
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'message' => 'Опция успешно обновлена']);
+        break;
     case 'add_product':
         // Получаем данные из JSON-запроса
         $data = $request['data'];
