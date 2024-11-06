@@ -16,56 +16,8 @@
                         <CustomInput v-else v-model="data.product[key]" :labelText="item" :placeholderText="item" />
                     </template>
                 </div>
-                <div class="product-images">
-                    <label>画像</label>
-                    <div class="gallery">
-                        <div class="img-elem" v-for="(img, index) in galleryImages" :key="index" @click="showImage(img, index)">
-                            <div class="delete">
-                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
-                            </div>
-                            <img :src="img.image_path" alt="product" class="item-pic" />
-                        </div>
-
-                        <div class="add-file" @click="triggerFileInput">
-                            <input type="file" @change="previewImage" style="display: none" ref="fileInput" multiple accept="image/*" />
-                            <img class="close" src="@/assets/icons/plus-white.svg" alt="add">
-                            <span>画像追加</span>
-                        </div>
-                    </div>
-
-                </div>
             </div>
 
-            <div class="side">
-                <div v-if="data.product.type == 'suit'" class="product-options">
-                    <label>追加オプション</label>
-                    <div class="types">
-                        <CustomMultiSelect :values="options_e.cloth" v-model="selected_options.cloth" :labelText="'生地の種類'" />
-                        <CustomMultiSelect :values="options_e.color" v-model="selected_options.color" :labelText="'生地の色'" />
-                        <CustomMultiSelect :values="options_e.lining" v-model="selected_options.lining" :labelText="'裏地の種類'" />
-                        <CustomMultiSelect :values="options_e.button" v-model="selected_options.button" :labelText="'ボタンの種類'" />
-                    </div>
-                </div>
-                <div class="product-sizes">
-                    <label>サイズ</label>
-                    <div class="headers">
-                        <div class="elem" v-for="(size, key)  in data.sizes" :key="size" :class="{ active: key == active_size }" @click="active_size = key">
-                            <span>{{ size.name }}</span>
-                            <div class="delete">
-                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
-                            </div>
-                        </div>
-                        <div class="elem" @click="addSize">
-                            <span>+</span>
-                        </div>
-                    </div>
-                    <div class="size-details">
-                        <template v-for="(size, key) in size_headers" :key="size">
-                            <CustomInput v-if="hasSizeKey(active_size, key)" v-model="data.sizes[active_size][key]" :labelText="size" :placeholderText="size" />
-                        </template>
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="actions">
             <div class="dates">
@@ -87,7 +39,7 @@
 
 </template>
 <script>
-import axios from "axios";
+// import axios from "axios";
 import { defineComponent, ref, watch, computed } from "vue";
 import CustomSwitch from '../CustomSwitch.vue';
 
@@ -348,80 +300,61 @@ export default defineComponent({
 
 
         const saveProduct = async () => {
-
-            if (data.value.product.name != '') {
-
-                try {
+            try {
 
 
-                    console.log('send data', data.value);
+                console.log(data.value);
 
 
-                    const productResponse = await axios.post(
-                        process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=add_product',
-                        {
-                            data: data.value,
-                        },
-                        { withCredentials: true }
-                    );
+                // const productResponse = await axios.post(
+                //     process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=add_product',
+                //     {
+                //         data: data.value,
+                //     },
+                //     { withCredentials: true }
+                // );
 
 
-                    console.log('response', productResponse);
+                // if (productResponse.data.status !== "success") {
+                //     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                //     return;
+                // } else {
 
-                    if (productResponse.data.status !== "success") {
-                        console.error("Ошибка при сохранении продукта:", productResponse.data.message);
-                        return;
-                    } else {
+                //     // Затем загружаем изображения
+                //     for (const img of tempImages.value) {
+                //         const formData = new FormData();
+                //         formData.append("image", img.file);
+                //         formData.append("product_id", data.value.product.id);
 
-                        // Затем загружаем изображения
-                        for (const img of tempImages.value) {
-                            const formData = new FormData();
-                            formData.append("image", img.file);
-                            formData.append("product_id", productResponse.data.id);
+                //         const imageResponse = await axios.post(
+                //             process.env.VUE_APP_BACKEND_URL + '/backend/admin/upload_image.php?product_id=' + data.value.product.id,
+                //             formData,
+                //             {
+                //                 headers: { "Content-Type": "multipart/form-data" },
+                //                 withCredentials: true,
+                //             }
+                //         );
 
-                            const imageResponse = await axios.post(
-                                process.env.VUE_APP_BACKEND_URL + '/backend/admin/upload_image.php?product_id=' + productResponse.data.id,
-                                formData,
-                                {
-                                    headers: { "Content-Type": "multipart/form-data" },
-                                    withCredentials: true,
-                                }
-                            );
+                //         if (imageResponse.data.status === "success") {
+                //             data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
+                //         } else {
+                //             console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
+                //         }
+                //     }
 
-                            if (imageResponse.data.status === "success") {
-                                data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
-                            } else {
-                                console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
-                            }
-                        }
+                //     // Очищаем временные изображения после успешного сохранения
+                //     tempImages.value = [];
 
-                        // Очищаем временные изображения после успешного сохранения
-                        tempImages.value = [];
+                //     setTimeout(() => {
+                //         emit("productAdd");
 
-                        data.value = {
-                            product:
-                            {
-                                type: 'suit',
-                                name: '',
-                                name_eng: '',
-                                description: '',
-                                active: 0,
-                                popular: 0
+                //     }, 200);
 
-                            }, sizes: [], product_images: [], options: []
-                        };
+                // }
 
-                        setTimeout(() => {
-                            emit("productAdd");
-
-                        }, 200);
-
-                    }
-
-                    emit("productAdd");
-                } catch (error) {
-                    console.error("Ошибка при сохранении продукта:", error);
-                }
+                emit("productAdd");
+            } catch (error) {
+                console.error("Ошибка при сохранении продукта:", error);
             }
         };
 

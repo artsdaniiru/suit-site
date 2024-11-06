@@ -88,7 +88,7 @@
 
             </div>
             <div class="buttons">
-                <button class="button danger">削除</button>
+                <button class="button danger" @click="deleteModalFlag = true">削除</button>
                 <button class="button" :disabled="areDataEqual" @click="saveProduct">保存</button>
             </div>
 
@@ -101,6 +101,13 @@
         <img class="image" @click.stop="showImageNext" :src="show_image_path" alt="">
         <img class="next" src="@/assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
     </div>
+
+    <CustomModal class="delete" v-model="deleteModalFlag" :title="'商品削除'" :in_modal="true">
+        <div class="delete-container">
+            <button class="button danger" @click="deleteProduct">削除</button>
+            <button class="button" @click="deleteModalFlag = false;">戻る</button>
+        </div>
+    </CustomModal>
 
 </template>
 <script>
@@ -385,6 +392,30 @@ export default defineComponent({
             active_size.value = data.value.sizes.length - 1;
         }
 
+        const deleteModalFlag = ref(false);
+
+        // Следим за изменениями modelValue
+        watch(() => deleteModalFlag.value, () => {
+            document.body.classList.add('no-scroll');
+        });
+
+        // Метод для удаления товара
+        const deleteProduct = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&product_id=' + data.value.product.id, {
+                    withCredentials: true
+                });
+
+                if (response.data.status == "success") {
+                    emit("productDelete");
+                } else {
+                    console.error("Ошибка при удалении товара:", response.data.status);
+                }
+
+            } catch (error) {
+                console.error("Ошибка при удалении товара:", error);
+            }
+        };
 
         // Метод для получения товара
         const fetchProduct = async () => {
@@ -490,7 +521,9 @@ export default defineComponent({
             showImageNext,
             showImagePrev,
             options_e,
-            selected_options
+            selected_options,
+            deleteProduct,
+            deleteModalFlag
         };
     }
 });
@@ -789,6 +822,17 @@ export default defineComponent({
         margin: auto;
         max-height: 80%;
         max-width: 80%;
+    }
+}
+
+.modal.delete {
+    z-index: 110;
+
+    .delete-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 12px;
     }
 }
 </style>

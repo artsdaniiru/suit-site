@@ -27,6 +27,11 @@ export default defineComponent({
             type: String,
             required: false,
             default: ''
+        },
+        in_modal: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['update:modelValue'],
@@ -39,10 +44,12 @@ export default defineComponent({
 
         // Следим за изменениями modelValue
         watch(() => props.modelValue, (newValue) => {
-            if (newValue) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
+            if (!props.in_modal) {
+                if (newValue) {
+                    document.body.classList.add('no-scroll');
+                } else {
+                    document.body.classList.remove('no-scroll');
+                }
             }
         });
 

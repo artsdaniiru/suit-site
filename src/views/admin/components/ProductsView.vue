@@ -16,10 +16,10 @@
     <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
     <CustomModal v-model="closeFlag" :title="'商品変更'">
-        <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" />
+        <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" @productDelete="closeFlag = false; fetchProducts()" />
     </CustomModal>
     <CustomModal v-model="closeFlagAdd" :title="'新商品作成'">
-        <AddProduct :options="options" />
+        <AddProduct :options="options" @productAdd="fetchProducts" />
     </CustomModal>
 
 </template>

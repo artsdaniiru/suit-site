@@ -121,7 +121,7 @@ switch ($action) {
         // SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
         $sql = "SELECT p.*, MIN(i.price) as min_price, COALESCE(MIN(im.image_path), NULL) AS image_path
         FROM products p
-        JOIN sizes i ON p.id = i.product_id
+        LEFT JOIN sizes i ON p.id = i.product_id
         LEFT JOIN product_images im ON p.id = im.product_id
         $where
         GROUP BY p.id
@@ -366,13 +366,21 @@ switch ($action) {
             // Добавление размеров, если они есть
             if (!empty($data['sizes'])) {
                 foreach ($data['sizes'] as $size) {
-                    $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, 
-                        shoulder_width_max, waist_size_min, waist_size_max, stock)
-                        VALUES ('$newProductId', '" . $conn->real_escape_string($size['name']) . "',
-                        '" . $conn->real_escape_string($size['price']) . "', '" . $conn->real_escape_string($size['height_min']) . "',
+
+                    $size_details_h = "";
+                    $size_details = "";
+                    if (isset($size['height_min'])) {
+                        $size_details_h = "height_min, height_max, shoulder_width_min, 
+                        shoulder_width_max, waist_size_min, waist_size_max,";
+                        $size_details = $conn->real_escape_string($size['height_min']) . "',
                         '" . $conn->real_escape_string($size['height_max']) . "', '" . $conn->real_escape_string($size['shoulder_width_min']) . "',
                         '" . $conn->real_escape_string($size['shoulder_width_max']) . "', '" . $conn->real_escape_string($size['waist_size_min']) . "',
-                        '" . $conn->real_escape_string($size['waist_size_max']) . "', '" . $conn->real_escape_string($size['stock']) . "')";
+                        '" . $conn->real_escape_string($size['waist_size_max']) . "', '";
+                    }
+
+                    $sql = "INSERT INTO sizes (product_id, name, price, $size_details_h stock)
+                        VALUES ('$newProductId', '" . $conn->real_escape_string($size['name']) . "',
+                        '" . $conn->real_escape_string($size['price']) . "', '" . $size_details  . $conn->real_escape_string($size['stock']) . "')";
 
                     if ($conn->query($sql) === FALSE) {
                         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления размеров: ' . $conn->error]);
@@ -628,6 +636,21 @@ switch ($action) {
         if ($product_id <= 0) {
             echo json_encode(['status' => 'error', 'message' => 'Некорректный ID продукта']);
             exit;
+        }
+
+        $sqlImagesList = "SELECT * FROM `product_images` WHERE `product_id`=$product_id";
+        $resultImagesList = $conn->query($sqlImagesList);
+        // Сохранение результатов в массив
+        if ($resultImagesList->num_rows > 0) {
+            while ($row = $resultImagesList->fetch_assoc()) {
+                $imagePath = $row['image_path'];
+                $fullPath = __DIR__ . '/../..' . $imagePath;
+
+                // Удаление файла, если он существует
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+            }
         }
 
         // Начало транзакции
