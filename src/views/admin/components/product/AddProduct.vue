@@ -21,14 +21,14 @@
                     <div class="gallery">
                         <div class="img-elem" v-for="(img, index) in galleryImages" :key="index" @click="showImage(img, index)">
                             <div class="delete">
-                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
+                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
                             </div>
                             <img :src="img.image_path" alt="product" class="item-pic" />
                         </div>
 
                         <div class="add-file" @click="triggerFileInput">
                             <input type="file" @change="previewImage" style="display: none" ref="fileInput" multiple accept="image/*" />
-                            <img class="close" src="../../../assets/icons/plus-white.svg" alt="add">
+                            <img class="close" src="@/assets/icons/plus-white.svg" alt="add">
                             <span>画像追加</span>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                         <div class="elem" v-for="(size, key)  in data.sizes" :key="size" :class="{ active: key == active_size }" @click="active_size = key">
                             <span>{{ size.name }}</span>
                             <div class="delete">
-                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
+                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
                             </div>
                         </div>
                         <div class="elem" @click="addSize">
@@ -79,17 +79,17 @@
     </div>
 
     <div v-if="show_image" class="modal images-full" @click="show_image = false">
-        <img class="close" src="../../../assets/icons/close-white.svg" alt="close">
-        <img class="prev" src="../../../assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
+        <img class="close" src="@/assets/icons/close-white.svg" alt="close">
+        <img class="prev" src="@/assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
         <img class="image" @click.stop="showImageNext" :src="show_image_path" alt="">
-        <img class="next" src="../../../assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
+        <img class="next" src="@/assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
     </div>
 
 </template>
 <script>
 // import axios from "axios";
 import { defineComponent, ref, watch, computed } from "vue";
-import CustomSwitch from './CustomSwitch.vue';
+import CustomSwitch from '../CustomSwitch.vue';
 
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
