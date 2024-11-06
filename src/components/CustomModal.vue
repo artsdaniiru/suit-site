@@ -1,5 +1,5 @@
 <template>
-    <div v-if="modelValue" class="modal" @click="closeModal">
+    <div v-if="modelValue" class="modal" @mousedown="handleBackdropMouseDown" @mouseup="closeModalOutside">
         <div @click.stop="" class="modal-window">
             <div class="head">
                 <h3 v-if="title != ''">{{ title }}</h3>
@@ -37,6 +37,18 @@ export default defineComponent({
     emits: ['update:modelValue'],
     setup(props, { emit }) {
 
+        let isMouseDownOutside = false;
+        const handleBackdropMouseDown = (event) => {
+            isMouseDownOutside = event.target.classList.contains("modal");
+        };
+
+        const closeModalOutside = () => {
+            if (isMouseDownOutside) {
+                emit("update:modelValue", false);
+            }
+            isMouseDownOutside = false;
+        };
+
         const closeModal = () => {
             emit('update:modelValue', false);
         };
@@ -54,7 +66,9 @@ export default defineComponent({
         });
 
         return {
-            closeModal
+            closeModal,
+            handleBackdropMouseDown,
+            closeModalOutside
         };
     }
 });
