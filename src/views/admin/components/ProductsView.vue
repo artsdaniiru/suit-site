@@ -27,8 +27,8 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './ItemsTable.vue';
-import EditProduct from './EditProduct.vue';
-import AddProduct from './AddProduct.vue';
+import EditProduct from './product/EditProduct.vue';
+import AddProduct from './product/AddProduct.vue';
 
 export default defineComponent({
     name: "CatalogView", components: {
