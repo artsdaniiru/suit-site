@@ -13,8 +13,8 @@
         <!-- Пагинация -->
         <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
-        <CustomModal v-model="closeFlag" :title="'顧客情報変更'">
-            {{ client_id }}
+        <CustomModal v-model="closeFlag" :title="'注文内容変更'">
+            <EditOrder :order_id="order_id" />
         </CustomModal>
     </div>
 </template>
@@ -22,10 +22,12 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './components/ItemsTable.vue';
+import EditOrder from "./components/EditOrder.vue";
 
 export default defineComponent({
     name: "OrdersView", components: {
         ItemsTable,
+        EditOrder
     },
     setup() {
 
@@ -50,10 +52,10 @@ export default defineComponent({
 
         const sortOrder = ref({ index: null, ascending: true });
 
-        const client_id = ref(null);
+        const order_id = ref(null);
 
         const editItem = (index) => {
-            client_id.value = index;
+            order_id.value = index;
             closeFlag.value = true;
         }
 
@@ -175,7 +177,7 @@ export default defineComponent({
             items,
             filter,
             closeFlag,
-            client_id,
+            order_id,
             editItem,
             fetchProducts,
         };

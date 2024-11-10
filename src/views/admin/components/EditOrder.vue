@@ -4,55 +4,44 @@
 
         <div class="grid-selection">
             <div class="side">
-
+                <span class="label">個人情報</span>
                 <div class="client">
-                    <span class="label">個人情報</span>
-                    <div class="elems">
-                        <template v-for="(item, key) in client_headers" :key="item">
-                            <CustomInput v-model="data.client[key]" :labelText="item" :placeholderText="item" />
-                        </template>
-                    </div>
 
-                </div>
-                <div class="addresses">
-                    <span class="label">配達</span>
-                    <div class="address" v-for="item in data.client_addresses" :key="item">
-                        <img class="delete" src="@/assets/icons/delete-admin.svg" alt="close">
-                        <span class="name">{{ item.name }}</span>
-                        <span class="address-full">{{ item.address }}</span>
-                        <span class="phone"><strong>電話番号：</strong> {{ item.phone }}</span>
-                        <img class="edit" src="@/assets/icons/pencil.svg" alt="edit">
+                    <span class="name">{{ data.order.client_name }}</span>
+                    <span><strong>メールアドレス：</strong>{{ data.order.email }}</span>
+                    <span><strong>身長：</strong>{{ data.order.height }}cm</span>
+                    <span><strong>肩幅：</strong>{{ data.order.shoulder_width }}cm</span>
+                    <span><strong>ウェストサイズ：</strong>{{ data.order.waist_size }}cm</span>
+                    <div class="payment-method">
+                        <img class="card" src="@/assets/icons/card.svg" alt="card">
+                        <span class="number">{{ data.order.card_number }}</span>
                     </div>
                 </div>
+
+
+
             </div>
 
             <div class="side">
-                <div class="payment-methods" v-if="data.client_payment_methods.length != 0">
-                    <span class="label">お支払方法</span>
-                    <div class="payment-method" v-for="item in data.client_payment_methods" :key="item">
-                        <img class="card" src="@/assets/icons/card.svg" alt="card">
-                        <span class="number">{{ item.card_number }}</span>
-                        <img class="delete" src="@/assets/icons/delete-admin.svg" alt="delete">
-                    </div>
+                <span class="label">配達</span>
+                <div class="address">
+                    <img class="delete" src="@/assets/icons/delete-admin.svg" alt="close">
+                    <span class="address-full">{{ data.order.address }}</span>
+                    <span class="phone"><strong>電話番号：</strong> {{ data.order.phone }}</span>
+                    <img class="edit" src="@/assets/icons/pencil.svg" alt="edit">
                 </div>
-
-                <div class="orders" v-if="data.client_orders.length != 0">
-                    <span class="label">注文</span>
-                    <div class="order" v-for="item in data.client_orders" :key="item" @click="openOrder(item.id)">
-                        <span class="name">{{ "#" + item.id.toString().padStart(5, '0') }}</span>
-                        <span class="address-full">{{ item.client_address }}</span>
-                        <span class="phone">電話番号: {{ item.client_phone }}</span>
-                    </div>
-                </div>
-
             </div>
+        </div>
+        <div class="order">
+            <span class="label">注文内容</span>
+
         </div>
         <div class="actions">
             <div class="dates">
-                <div class="date">
+                <!-- <div class="date">
                     <span>登録日：</span>
                     <span>{{ data.client.date_of_registration }}</span>
-                </div>
+                </div> -->
 
             </div>
             <div class="buttons">
@@ -70,31 +59,23 @@
         </div>
     </CustomModal>
 
-    <CustomModal v-model="closeFlagOrder" :title="'注文内容変更'" :in_modal="true">
-        <EditOrder :order_id="order_id" />
-    </CustomModal>
 </template>
 <script>
 import axios from "axios";
 import { defineComponent, ref, onMounted, watch } from "vue";
 
-import EditOrder from "./EditOrder.vue";
-
 export default defineComponent({
-    name: "EditClient",
-    components: {
-        EditOrder
-    },
+    name: "EditOrder",
     props: {
-        client_id: {
+        order_id: {
             type: Number,
             required: true
         }
     },
     setup(props, { emit }) {
         //main data
-        const data_original = ref({ client: [], client_addresses: [], client_payment_methods: [], client_orders: [] });
-        const data = ref({ client: [], client_addresses: [], client_payment_methods: [], client_orders: [] });
+        const data_original = ref({ order: [], products: [] });
+        const data = ref({ order: [], products: [] });
 
         // Функция для глубокого сравнения двух объектов или массивов
         const deepEqual = (obj1, obj2) => {
@@ -123,25 +104,16 @@ export default defineComponent({
 
 
         const deleteModalFlag = ref(false);
-        const closeFlagOrder = ref(false);
-        const order_id = ref(null);
 
         // Следим за изменениями modelValue
-        watch([deleteModalFlag.value, closeFlagOrder.value], () => {
+        watch(() => deleteModalFlag.value, () => {
             document.body.classList.add('no-scroll');
         });
-
-
-        function openOrder(id) {
-            order_id.value = id;
-            closeFlagOrder.value = true;
-        }
-
 
         // Метод для удаления товара
         const deleteAction = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&client_id=' + data.value.product.id, {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&order_id=' + data.value.product.id, {
                     withCredentials: true
                 });
 
@@ -159,7 +131,7 @@ export default defineComponent({
         // Метод для получения товара
         const fetchAction = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/clients.php?action=get_client&client_id=' + props.client_id, {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=get_order&order_id=' + props.order_id, {
                     withCredentials: true
                 });
                 console.log(response.data);
@@ -185,7 +157,7 @@ export default defineComponent({
 
 
                 const productResponse = await axios.post(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&client_id=' + data.value.product.id,
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&order_id=' + data.value.product.id,
                     {
                         data: data.value,
                         data_original: data_original.value
@@ -221,10 +193,7 @@ export default defineComponent({
             areDataEqual,
             saveAction,
             deleteAction,
-            deleteModalFlag,
-            closeFlagOrder,
-            order_id,
-            openOrder
+            deleteModalFlag
         };
     }
 });
@@ -241,6 +210,12 @@ export default defineComponent({
         font-size: 18px;
         line-height: 120%;
         letter-spacing: -0.02em;
+    }
+
+    .order {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 24px;
     }
 
     .grid-selection {
@@ -263,141 +238,78 @@ export default defineComponent({
 
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 4px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
 
-            .elems {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
+            .name {
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 120%;
             }
-        }
-
-        .addresses {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-
-            .address {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                border: 1px solid #d9d9d9;
-                border-radius: 8px;
-                padding: 12px;
-                position: relative;
-                font-weight: 400;
-                font-size: 12px;
-                line-height: 140%;
-
-                .name {
-                    font-weight: 600;
-                    font-size: 16px;
-                    line-height: 120%;
-                }
-
-
-                .delete {
-                    position: absolute;
-                    top: 12px;
-                    right: 12px;
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                }
-
-                .edit {
-                    position: absolute;
-                    bottom: 12px;
-                    right: 12px;
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                }
-            }
-        }
-
-        .payment-methods {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
 
             .payment-method {
                 display: flex;
                 gap: 8px;
-                border: 1px solid #d9d9d9;
-                border-radius: 8px;
-                padding: 12px;
                 position: relative;
                 font-weight: 400;
-                font-size: 16px;
-                line-height: 140%;
                 align-items: center;
 
                 .card {
                     width: 16px;
                 }
-
-                .delete {
-                    margin-left: auto;
-                }
-
-                .delete {
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                }
             }
         }
 
-        .orders {
+
+
+        .address {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 4px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
 
-            .order {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                border: 1px solid #d9d9d9;
-                border-radius: 8px;
-                padding: 12px;
-                position: relative;
-                font-weight: 400;
-                font-size: 12px;
-                line-height: 140%;
+            .name {
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 120%;
+            }
+
+
+            .delete {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                width: 16px;
+                height: 16px;
                 cursor: pointer;
-                transition: background 0.3s ease;
+            }
 
-                &:hover {
-                    background: #f5f5f5;
-                }
-
-                .name {
-                    font-weight: 600;
-                    font-size: 16px;
-                    line-height: 120%;
-                }
-
-
-                .delete {
-                    position: absolute;
-                    top: 12px;
-                    right: 12px;
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                }
-
-                .edit {
-                    position: absolute;
-                    bottom: 12px;
-                    right: 12px;
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                }
+            .edit {
+                position: absolute;
+                bottom: 12px;
+                right: 12px;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
             }
         }
+
+
+
+
+
 
 
     }
