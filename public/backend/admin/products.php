@@ -175,6 +175,7 @@ switch ($action) {
         $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Число опций на одной странице
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
         $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+        $type = isset($_GET['type']) ? "AND type='" . $_GET['type'] . "'" : '';
 
         // Определение сортировки в зависимости от параметра $sort
         switch ($sort) {
@@ -215,7 +216,7 @@ switch ($action) {
         // SQL-запрос для получения списка опций
         $sql = "SELECT o.* 
                     FROM options o
-                    WHERE 1=1 $searchCondition
+                    WHERE 1=1 $searchCondition $type
                     ORDER BY $orderBy
                     $limit";
 
@@ -242,7 +243,7 @@ switch ($action) {
         // Получение общего количества записей для вычисления количества страниц
         $totalCountResult = $conn->query("SELECT COUNT(*) as count 
                                               FROM options o 
-                                              WHERE 1=1 $searchCondition");
+                                              WHERE 1=1 $searchCondition $type");
 
         if (!$totalCountResult) {
             echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества опций: ' . $conn->error]);
@@ -250,7 +251,7 @@ switch ($action) {
         }
 
         $totalCountRow = $totalCountResult->fetch_assoc();
-        $totalItems = $totalCountRow['count'];
+        $totalItems = intval($totalCountRow['count']);
         $totalPages = ceil($totalItems / $itemsPerPage);
 
         // Вывод результата (ответ с информацией об опциях и пагинации) в формате JSON

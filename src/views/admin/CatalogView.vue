@@ -1,15 +1,16 @@
 <template>
     <div class="admin-page">
         <div class="tabs">
-            <span class="tab" :class="{ active: tab == 'products' }" @click="tab = 'products'">商品</span>
-            <span class="tab" :class="{ active: tab == 'options' }" @click="tab = 'options'">追加オプション</span>
+            <span class="tab" :class="{ active: tab == 'products' }" @click="switchTab('products')">商品</span>
+            <span class="tab" :class="{ active: tab == 'options' }" @click="switchTab('options')">追加オプション</span>
         </div>
         <ProductsView v-if="tab == 'products'" />
         <OptionsView v-if="tab == 'options'" />
     </div>
 </template>
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import ProductsView from './components/ProductsView.vue';
 import OptionsView from './components/OptionsView.vue';
 
@@ -18,12 +19,30 @@ export default defineComponent({
         ProductsView,
         OptionsView
     },
-    setup() {
+    props: {
+        defaultTab: String
+    },
+    setup(props) {
+        const route = useRoute();
+        const router = useRouter();
 
-        const tab = ref('products');
+        // Set initial tab based on route or defaultTab prop
+        const tab = ref(props.defaultTab || 'products');
+
+        // Watch for route changes and update the tab
+        watch(route, (newRoute) => {
+            tab.value = newRoute.path.includes('/products') ? 'products' : 'options';
+        });
+
+        // Method to switch tabs and navigate
+        const switchTab = (selectedTab) => {
+            tab.value = selectedTab;
+            router.push(`/admin/catalog/${selectedTab}`);
+        };
 
         return {
-            tab
+            tab,
+            switchTab
         };
     },
 });

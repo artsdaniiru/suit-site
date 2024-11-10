@@ -54,8 +54,19 @@ const routes = [
   },
   {
     path: '/admin/catalog',
-    name: 'CatalogView',
+    redirect: '/admin/catalog/products',
+    meta: { requiresAdmin: true }  // Защищённый маршрут
+  },
+  {
+    path: '/admin/catalog/products',
     component: CatalogView,
+    props: { defaultTab: 'products' },
+    meta: { requiresAdmin: true }  // Защищённый маршрут
+  },
+  {
+    path: '/admin/catalog/options',
+    component: CatalogView,
+    props: { defaultTab: 'options' },
     meta: { requiresAdmin: true }  // Защищённый маршрут
   },
   {

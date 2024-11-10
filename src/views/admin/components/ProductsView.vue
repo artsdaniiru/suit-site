@@ -80,12 +80,9 @@ export default defineComponent({
                 } else {
                     url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=active_product&product_id=' + data.id;
                 }
-                const response = await axios.get(url, {
+                await axios.get(url, {
                     withCredentials: true
                 });
-
-                console.log(response);
-
             }
         }
 
@@ -96,7 +93,6 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                console.log(sortOrder.value);
 
                 let sort = '';
 
@@ -152,7 +148,6 @@ export default defineComponent({
                     withCredentials: true
                 });
 
-                // console.log(response);
 
                 // Убедимся, что товары приходят в поле `products`
                 if (Array.isArray(response.data.products)) {
@@ -178,7 +173,6 @@ export default defineComponent({
 
         const fetchAllOptions = async () => {
             try {
-                console.log(sortOrder.value);
 
 
                 let url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_options&splitByType=true&itemsPerPage=1000';
@@ -186,7 +180,6 @@ export default defineComponent({
                     withCredentials: true
                 });
 
-                // console.log(response);
 
                 // Убедимся, что товары приходят в поле `products`
                 if (response.data.status == 'success') {
