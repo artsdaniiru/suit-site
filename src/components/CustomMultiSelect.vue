@@ -1,10 +1,10 @@
 <template>
-  <div :class="['custom-select-container', labelPositionClass]" v-click-out-side="() => isOpen = false">
+  <div :class="['custom-select-container', labelPositionClass]">
     <!-- Отображаем лейбл, если передан -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
 
     <!-- Основной блок селекта -->
-    <div ref="selectBox" class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown">
+    <div ref="selectBox" class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown" v-click-out-side="() => isOpen = false">
       <!-- Отображаем выбранные значения -->
       <div class="selected-value" v-if="selectedValue.length">
         <span v-for="key in visibleSelectedValues" :key="key">{{ values[key] }}</span>
