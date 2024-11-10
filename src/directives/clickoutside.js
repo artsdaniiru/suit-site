@@ -1,16 +1,14 @@
-export const clickOutSide = {
-    mounted: function (el, binding) {
-        el.clickOutsideEvent = function (event) {
-            if (!(el == event.target || el.contains(event.target) || event.target.getAttribute("stop-click-outside") == 'true')) {
-
-                binding.value(event, el)
+export default {
+    beforeMount(el, binding) {
+        el.clickOutsideEvent = (event) => {
+            // Проверяем, что клик был за пределами элемента
+            if (!(el === event.target || el.contains(event.target))) {
+                binding.value(event); // вызываем функцию-обработчик из директивы
             }
-        }
-        document.addEventListener("click", el.clickOutsideEvent)
+        };
+        document.addEventListener("mousedown", el.clickOutsideEvent); // прослушиваем mousedown
     },
-    unmounted: function (el) {
-        document.removeEventListener("click", el.clickOutsideEvent)
+    unmounted(el) {
+        document.removeEventListener("mousedown", el.clickOutsideEvent);
     },
-}
-
-export default clickOutSide
+};

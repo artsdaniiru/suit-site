@@ -1,5 +1,5 @@
 <template>
-    <div v-if="modelValue" class="modal" @mousedown="handleBackdropMouseDown" @mouseup="closeModalOutside">
+    <div v-if="modelValue" :class="['modal', randomClass]" @mousedown="handleBackdropMouseDown" @mouseup="closeModalOutside">
         <div @click.stop="" class="modal-window">
             <div class="head">
                 <h3 v-if="title != ''">{{ title }}</h3>
@@ -14,7 +14,7 @@
     </div>
 </template>
 <script>
-import { defineComponent, watch } from 'vue';
+import { defineComponent, watch, ref, onMounted } from 'vue';
 
 export default defineComponent({
     name: "CustomModal",
@@ -37,9 +37,16 @@ export default defineComponent({
     emits: ['update:modelValue'],
     setup(props, { emit }) {
 
+        const randomClass = ref('');
+
+        // Генерация случайного имени класса при монтировании компонента
+        onMounted(() => {
+            randomClass.value = `modal-${Math.random().toString(36).substring(2, 8)}`;
+        });
+
         let isMouseDownOutside = false;
         const handleBackdropMouseDown = (event) => {
-            isMouseDownOutside = event.target.classList.contains("modal");
+            isMouseDownOutside = event.target.classList.contains(randomClass.value);
         };
 
         const closeModalOutside = () => {
@@ -68,7 +75,8 @@ export default defineComponent({
         return {
             closeModal,
             handleBackdropMouseDown,
-            closeModalOutside
+            closeModalOutside,
+            randomClass
         };
     }
 });
