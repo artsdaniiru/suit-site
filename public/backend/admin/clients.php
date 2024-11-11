@@ -209,8 +209,10 @@ switch ($action) {
             $client_orders = [];
             // Сохранение результатов в массив
             if ($result->num_rows > 0) {
+                // print($result->num_rows);
                 while ($row = $result->fetch_assoc()) {
                     $id = $row['id'];
+
                     //SQL-запрос для формирования cart пользователя
                     $sql = "SELECT 
                     coi.price AS order_price,
@@ -224,16 +226,16 @@ switch ($action) {
                     JOIN products p ON coi.product_id = p.id
                     JOIN sizes s ON coi.size_id = s.id
                     WHERE client_order_id = $id";
-                    $result = $conn->query($sql);
+                    $result_cart = $conn->query($sql);
 
                     $cart = [];
                     // Сохранение результатов в массив
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            unset($row['id']);
-                            $row['id'] = $row['oi_id'];
-                            unset($row['oi_id']);
-                            $cart[] = $row;
+                    if ($result_cart->num_rows > 0) {
+                        while ($row_cart = $result_cart->fetch_assoc()) {
+                            unset($row_cart['id']);
+                            $row_cart['id'] = $row_cart['oi_id'];
+                            unset($row_cart['oi_id']);
+                            $cart[] = $row_cart;
                         }
                     }
 
