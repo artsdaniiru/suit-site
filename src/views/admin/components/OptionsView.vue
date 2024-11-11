@@ -42,7 +42,7 @@ export default defineComponent({
 
         const headers = ref([
 
-            { name: "名前", field: "name" },
+            { name: "名前", field: "name", sortable: true },
             { name: "タイプ", field: "type", sortable: true },
             { name: "値段", field: "price", sortable: true }
         ]);
@@ -92,11 +92,11 @@ export default defineComponent({
                         case 'name':
                             sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
                             break;
-                        case 'name_eng':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+                        case 'type':
+                            sortOrder.value.ascending == true ? sort = '&sort=type_asc' : sort = '&sort=type_desc'
                             break;
-                        case 'min_price':
-                            sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+                        case 'price':
+                            sortOrder.value.ascending == true ? sort = '&sort=price_low' : sort = '&sort=price_high'
                             break;
                         case 'active':
                             sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
