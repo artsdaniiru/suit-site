@@ -17,15 +17,13 @@
                         <span class="number">{{ data.order.card_number }}</span>
                     </div>
                 </div>
-
-
-
             </div>
 
             <div class="side">
                 <span class="label">配達</span>
                 <div class="address">
                     <img class="delete" src="@/assets/icons/delete-admin.svg" alt="close">
+                    <span class="name">{{ data.order.client_name }}</span>
                     <span class="address-full">{{ data.order.address }}</span>
                     <span class="phone"><strong>電話番号：</strong> {{ data.order.phone }}</span>
                     <img class="edit" src="@/assets/icons/pencil.svg" alt="edit">

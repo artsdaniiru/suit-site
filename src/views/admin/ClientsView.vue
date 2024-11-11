@@ -121,7 +121,7 @@ export default defineComponent({
                     items.value = response.data.clients.map(client => ({
                         ...client
                     }));
-                    // totalPages.value = response.data.pagination.totalPages
+                    totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
