@@ -112,7 +112,7 @@ switch ($action) {
         }
 
         // Обновление статуса заказа
-        $sqlUpdateOrder = "UPDATE client_orders SET status = '$status' WHERE id = $order_id";
+        $sqlUpdateOrder = "UPDATE client_orders SET status = '$status', date_of_change = '" . date("Y-m-d H:i:s") . "' WHERE id = $order_id";
         if ($conn->query($sqlUpdateOrder) === TRUE) {
             echo json_encode(['status' => 'success', 'message' => 'Заказ успешно обновлен']);
         } else {
