@@ -77,7 +77,7 @@ $searchCondition = '';
 if (!empty($query)) {
     // Экранируем значение поиска для безопасности
     $query = $conn->real_escape_string($query);
-    $searchCondition .= "AND (p.name LIKE '%$query%' OR p.name_eng LIKE '%$query%' OR p.description LIKE '%$query%')";
+    $searchCondition .= "AND (`name` LIKE '%$query%' OR `email` LIKE '%$query%' OR `login` LIKE '%$query%')";
 }
 
 $client_id = isset($_GET['client_id']) ? $_GET['client_id'] : '';
@@ -85,10 +85,7 @@ $client_id = isset($_GET['client_id']) ? $_GET['client_id'] : '';
 switch ($action) {
     case 'list_all_clients':
         // Условия фильтрации (например, для поиска или сортировки клиентов)
-        $where = "";
-        if ($searchCondition != "") {
-            $where .= "WHERE name LIKE '%$searchCondition%' OR email LIKE '%$searchCondition%'";
-        }
+
 
         // Параметры сортировки, пагинации и лимитов
         $orderBy = isset($orderBy) ? $orderBy : "name ASC";
@@ -97,7 +94,7 @@ switch ($action) {
 
         // Запрос с учетом условий, сортировки и пагинации
         $sql = "SELECT * FROM clients 
-                $where
+                WHERE 1=1 $searchCondition
                 ORDER BY $orderBy
                 LIMIT $offset, $itemsPerPage";
 
@@ -115,7 +112,7 @@ switch ($action) {
         }
 
         // Получение общего количества записей для пагинации
-        $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM clients $where");
+        $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM clients WHERE 1=1 $searchCondition");
         if (!$totalCountResult) {
             echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества клиентов: ' . $conn->error]);
             exit;

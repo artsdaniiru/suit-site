@@ -3,8 +3,8 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
             <div class="filters">
-                <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
-                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="{ confirmed: '確定済', processing: '処理中', shipped: '発送済', in_transit: '配送中', delivered: '配達済' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" :notSelect="true" />
             </div>
         </div>
         <!-- Отображение товаров -->

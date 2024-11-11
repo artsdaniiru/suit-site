@@ -5,7 +5,7 @@
         <div class="filters">
             <button class="button" @click="closeFlagAdd = true">新追加オプション作成</button>
             <CustomSelect :values="options_types" v-model="filter" :labelText="'タイプ'" :labelPosition="'side'" width="130px" />
-            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
+            <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" :notSelect="true" />
         </div>
 
     </div>
