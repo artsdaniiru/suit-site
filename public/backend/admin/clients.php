@@ -25,13 +25,6 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Обработка запросов
-$method = $_SERVER['REQUEST_METHOD'];
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-$request = json_decode(file_get_contents('php://input'), true);
-
-
-
 // Проверка сессии
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     echo json_encode([
@@ -41,19 +34,107 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     exit;
 }
 
+// Обработка запросов
+$method = $_SERVER['REQUEST_METHOD'];
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+$request = json_decode(file_get_contents('php://input'), true);
+
+// Получение параметров из GET-запроса
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name'; // Тип сортировки по умолчанию - по имени
+$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Число клиентов на одной странице
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
+$query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+
+// Определение сортировки в зависимости от параметра $sort
+switch ($sort) {
+    case 'date_desc':
+        $orderBy = 'clients.date_of_registration DESC'; // Сначала новые клиенты
+        break;
+    case 'date_asc':
+        $orderBy = 'clients.date_of_registration ASC'; // Сначала старые клиенты
+        break;
+    case 'name_desc':
+        $orderBy = 'clients.name DESC'; // Сортировка по имени desc
+        break;
+    case 'name_asc':
+        $orderBy = 'clients.name ASC'; // Сортировка по имени asc
+        break;
+    case 'email_desc':
+        $orderBy = 'clients.email DESC'; // Сортировка по email desc
+        break;
+    case 'email_asc':
+        $orderBy = 'clients.email ASC'; // Сортировка по email asc
+        break;
+    default:
+        $orderBy = 'clients.name DESC'; // По умолчанию сортировка по имени
+}
+
+// Вычисление смещения для пагинации
+$offset = ($page - 1) * $itemsPerPage;
+
+// Подготовка условия для строки поиска
+$searchCondition = '';
+if (!empty($query)) {
+    // Экранируем значение поиска для безопасности
+    $query = $conn->real_escape_string($query);
+    $searchCondition .= "AND (p.name LIKE '%$query%' OR p.name_eng LIKE '%$query%' OR p.description LIKE '%$query%')";
+}
+
 $client_id = isset($_GET['client_id']) ? $_GET['client_id'] : '';
 
 switch ($action) {
     case 'list_all_clients':
-        $sql = "SELECT * FROM clients";
+        // Условия фильтрации (например, для поиска или сортировки клиентов)
+        $where = "";
+        if ($searchCondition != "") {
+            $where .= "WHERE name LIKE '%$searchCondition%' OR email LIKE '%$searchCondition%'";
+        }
+
+        // Параметры сортировки, пагинации и лимитов
+        $orderBy = isset($orderBy) ? $orderBy : "name ASC";
+        $offset = isset($offset) ? $offset : 0;
+        $itemsPerPage = isset($itemsPerPage) ? $itemsPerPage : 10;
+
+        // Запрос с учетом условий, сортировки и пагинации
+        $sql = "SELECT * FROM clients 
+                $where
+                ORDER BY $orderBy
+                LIMIT $offset, $itemsPerPage";
+
         $result = $conn->query($sql);
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+            exit;
+        }
+
         $clients = [];
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 $clients[] = $row;
             }
         }
-        echo json_encode(['status' => 'success', 'users' => $clients]);
+
+        // Получение общего количества записей для пагинации
+        $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM clients $where");
+        if (!$totalCountResult) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества клиентов: ' . $conn->error]);
+            exit;
+        }
+        $totalCountRow = $totalCountResult->fetch_assoc();
+        $totalItems = intval($totalCountRow['count']);
+        $totalPages = ceil($totalItems / $itemsPerPage);
+
+        // Вывод результата с информацией о клиентах и пагинации
+        echo json_encode([
+            'status' => 'success',
+            'clients' => $clients,
+            'pagination' => [
+                'currentPage' => $page,
+                'itemsPerPage' => $itemsPerPage,
+                'totalPages' => $totalPages,
+                'totalItems' => $totalItems
+            ]
+        ]);
         break;
     case 'delete_user':
         // Получение ID клиента из запроса
