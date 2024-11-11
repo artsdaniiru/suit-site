@@ -14,7 +14,7 @@
         <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'顧客情報変更'">
-            {{ client_id }}
+            <EditClient :client_id="client_id" />
         </CustomModal>
     </div>
 </template>
@@ -23,9 +23,12 @@ import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './components/ItemsTable.vue';
 
+import EditClient from './components/EditClient.vue';
+
 export default defineComponent({
     name: "ClientsView", components: {
         ItemsTable,
+        EditClient
     },
     setup() {
 

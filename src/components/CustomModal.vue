@@ -1,5 +1,5 @@
 <template>
-    <div v-if="modelValue" class="modal" @click="closeModal">
+    <div v-if="modelValue" :class="['modal', randomClass]" @mousedown="handleBackdropMouseDown" @mouseup="closeModalOutside">
         <div @click.stop="" class="modal-window">
             <div class="head">
                 <h3 v-if="title != ''">{{ title }}</h3>
@@ -14,7 +14,7 @@
     </div>
 </template>
 <script>
-import { defineComponent, watch } from 'vue';
+import { defineComponent, watch, ref, onMounted } from 'vue';
 
 export default defineComponent({
     name: "CustomModal",
@@ -27,10 +27,34 @@ export default defineComponent({
             type: String,
             required: false,
             default: ''
+        },
+        in_modal: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['update:modelValue'],
     setup(props, { emit }) {
+
+        const randomClass = ref('');
+
+        // Генерация случайного имени класса при монтировании компонента
+        onMounted(() => {
+            randomClass.value = `modal-${Math.random().toString(36).substring(2, 8)}`;
+        });
+
+        let isMouseDownOutside = false;
+        const handleBackdropMouseDown = (event) => {
+            isMouseDownOutside = event.target.classList.contains(randomClass.value);
+        };
+
+        const closeModalOutside = () => {
+            if (isMouseDownOutside) {
+                emit("update:modelValue", false);
+            }
+            isMouseDownOutside = false;
+        };
 
         const closeModal = () => {
             emit('update:modelValue', false);
@@ -39,15 +63,20 @@ export default defineComponent({
 
         // Следим за изменениями modelValue
         watch(() => props.modelValue, (newValue) => {
-            if (newValue) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
+            if (!props.in_modal) {
+                if (newValue) {
+                    document.body.classList.add('no-scroll');
+                } else {
+                    document.body.classList.remove('no-scroll');
+                }
             }
         });
 
         return {
-            closeModal
+            closeModal,
+            handleBackdropMouseDown,
+            closeModalOutside,
+            randomClass
         };
     }
 });

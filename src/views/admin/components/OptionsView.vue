@@ -4,22 +4,22 @@
         <SearchInput v-model="searchQuery" />
         <div class="filters">
             <button class="button" @click="closeFlagAdd = true">新追加オプション作成</button>
-            <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
+            <CustomSelect :values="options_types" v-model="filter" :labelText="'タイプ'" :labelPosition="'side'" width="130px" />
             <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
         </div>
 
     </div>
     <!-- Отображение товаров -->
     <ItemsTable v-if="is_loading" :headers="headers" :itemsPerPage="itemsPerPage" :isLoader="true" />
-    <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="items" @sorted="sortTable" @clickOnItem="editItem" @switchChange="switchAction" />
+    <ItemsTable v-else :headers="headers" :sortOrder="sortOrder" v-model="items" @sorted="sortTable" @clickOnItem="editItem" />
     <!-- Пагинация -->
     <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
     <CustomModal v-model="closeFlag" :title="'追加オプション変更'">
-        <!-- <EditProduct :product_id="product_id" :options="options" @productUpdate="fetchProducts" /> -->
+        <EditOption :option_id="option_id" :types="options_types" @optionUpdate="fetchProducts" />
     </CustomModal>
     <CustomModal v-model="closeFlagAdd" :title="'新追加オプション作成'">
-        <!-- <AddProduct :options="options" /> -->
+        <AddOption :types="options_types" @optionAdd="fetchProducts" />
     </CustomModal>
 
 </template>
@@ -27,14 +27,14 @@
 import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './ItemsTable.vue';
-// import EditProduct from './EditProduct.vue';
-// import AddProduct from './AddProduct.vue';
+import AddOption from './options/AddOption.vue';
+import EditOption from './options/EditOption.vue';
 
 export default defineComponent({
     name: "CatalogView", components: {
         ItemsTable,
-        // EditProduct,
-        // AddProduct,
+        AddOption,
+        EditOption,
     },
     setup() {
 
@@ -46,6 +46,13 @@ export default defineComponent({
             { name: "タイプ", field: "type", sortable: true },
             { name: "値段", field: "price", sortable: true }
         ]);
+
+        const options_types = ref({
+            cloth: '生地',
+            color: '生地の色',
+            lining: '裏地',
+            button: 'ボタン',
+        });
 
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
@@ -61,32 +68,14 @@ export default defineComponent({
 
         const sortOrder = ref({ index: null, ascending: true });
 
-        const product_id = ref(null);
+        const option_id = ref(null);
 
 
         const editItem = (index) => {
-            product_id.value = index;
+            option_id.value = index;
             closeFlag.value = true;
         }
 
-
-        const switchAction = async (data) => {
-            if (data.type == 'active') {
-                let url = '';
-
-                if (data.val == '0') {
-                    url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=deactive_product&product_id=' + data.id;
-                } else {
-                    url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=active_product&product_id=' + data.id;
-                }
-                const response = await axios.get(url, {
-                    withCredentials: true
-                });
-
-                console.log(response);
-
-            }
-        }
 
 
 
@@ -95,7 +84,6 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                console.log(sortOrder.value);
 
                 let sort = '';
 
@@ -120,22 +108,8 @@ export default defineComponent({
                 }
 
                 let q_filter = '';
-                switch (filter.value) {
-                    case 'active':
-                        q_filter = '&active=1';
-                        break;
-                    case 'popular':
-                        q_filter = '&popular=1';
-                        break;
-                    case 'suit':
-                        q_filter = '&productType=suit';
-                        break;
-                    case 'not_suit':
-                        q_filter = '&productType=not_suit';
-                        break;
-
-                    default:
-                        break;
+                if (filter.value != '') {
+                    q_filter = '&type=' + filter.value;
                 }
 
                 let query = '';
@@ -151,17 +125,12 @@ export default defineComponent({
                     withCredentials: true
                 });
 
-                // console.log(response);
+
 
                 // Убедимся, что товары приходят в поле `products`
                 if (Array.isArray(response.data.options)) {
 
-                    let types = {
-                        cloth: '生地',
-                        color: '生地の色',
-                        lining: '裏地',
-                        button: 'ボタン',
-                    }
+                    let types = options_types.value
                     // Преобразуем данные (например, конвертируем цену в число)
                     items.value = response.data.options.map(option => ({
                         ...option,
@@ -170,34 +139,6 @@ export default defineComponent({
                     }));
                     totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
-                } else {
-                    console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
-                }
-            } catch (error) {
-                console.error("Ошибка при получении товаров:", error);
-            }
-        };
-
-
-        const options = ref({}); // Хранение опций
-
-
-        const fetchAllOptions = async () => {
-            try {
-                console.log(sortOrder.value);
-
-
-                let url = process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=list_all_options&splitByType=true&itemsPerPage=1000';
-                const response = await axios.get(url, {
-                    withCredentials: true
-                });
-
-                // console.log(response);
-
-                // Убедимся, что товары приходят в поле `products`
-                if (response.data.status == 'success') {
-                    // Преобразуем данные (например, конвертируем цену в число)
-                    options.value = response.data.options;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
                 }
@@ -231,7 +172,6 @@ export default defineComponent({
         // Загружаем товары при монтировании компонента
         onMounted(() => {
             fetchProducts();
-            fetchAllOptions();
         });
 
         return {
@@ -247,11 +187,10 @@ export default defineComponent({
             filter,
             closeFlag,
             closeFlagAdd,
-            product_id,
+            option_id,
             editItem,
             fetchProducts,
-            switchAction,
-            options
+            options_types
         };
     },
 });

@@ -29,14 +29,14 @@
                     <div class="gallery">
                         <div class="img-elem" v-for="(img, index) in galleryImages" :key="index" @click="showImage(img, index)">
                             <div class="delete">
-                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
+                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteImg(img)">
                             </div>
                             <img :src="img.image_path" alt="product" class="item-pic" />
                         </div>
 
                         <div class="add-file" @click="triggerFileInput">
                             <input type="file" @change="previewImage" style="display: none" ref="fileInput" multiple accept="image/*" />
-                            <img class="close" src="../../../assets/icons/plus-white.svg" alt="add">
+                            <img class="close" src="@/assets/icons/plus-white.svg" alt="add">
                             <span>画像追加</span>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
                         <div class="elem" v-for="(size, key)  in data.sizes" :key="size" :class="{ active: key == active_size }" @click="active_size = key">
                             <span>{{ size.name }}</span>
                             <div class="delete">
-                                <img src="../../../assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
+                                <img src="@/assets/icons/delete-admin.svg" alt="delete" @click.stop="deleteSize(key)">
                             </div>
                         </div>
                         <div class="elem" @click="addSize">
@@ -88,7 +88,7 @@
 
             </div>
             <div class="buttons">
-                <button class="button danger">削除</button>
+                <button class="button danger" @click="deleteModalFlag = true">削除</button>
                 <button class="button" :disabled="areDataEqual" @click="saveProduct">保存</button>
             </div>
 
@@ -96,17 +96,24 @@
     </div>
 
     <div v-if="show_image" class="modal images-full" @click="show_image = false">
-        <img class="close" src="../../../assets/icons/close-white.svg" alt="close">
-        <img class="prev" src="../../../assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
+        <img class="close" src="@/assets/icons/close-white.svg" alt="close">
+        <img class="prev" src="@/assets/icons/prev-white.svg" alt="prev" @click.stop="showImagePrev">
         <img class="image" @click.stop="showImageNext" :src="show_image_path" alt="">
-        <img class="next" src="../../../assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
+        <img class="next" src="@/assets/icons/next-white.svg" alt="next" @click.stop="showImageNext">
     </div>
+
+    <CustomModal class="delete" v-model="deleteModalFlag" :title="'商品削除'" :in_modal="true">
+        <div class="delete-container">
+            <button class="button danger" @click="deleteProduct">削除</button>
+            <button class="button" @click="deleteModalFlag = false;">戻る</button>
+        </div>
+    </CustomModal>
 
 </template>
 <script>
 import axios from "axios";
 import { defineComponent, ref, onMounted, watch, computed } from "vue";
-import CustomSwitch from './CustomSwitch.vue';
+import CustomSwitch from '../CustomSwitch.vue';
 
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -385,6 +392,30 @@ export default defineComponent({
             active_size.value = data.value.sizes.length - 1;
         }
 
+        const deleteModalFlag = ref(false);
+
+        // Следим за изменениями modelValue
+        watch(() => deleteModalFlag.value, () => {
+            document.body.classList.add('no-scroll');
+        });
+
+        // Метод для удаления товара
+        const deleteProduct = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&product_id=' + data.value.product.id, {
+                    withCredentials: true
+                });
+
+                if (response.data.status == "success") {
+                    emit("productDelete");
+                } else {
+                    console.error("Ошибка при удалении товара:", response.data.status);
+                }
+
+            } catch (error) {
+                console.error("Ошибка при удалении товара:", error);
+            }
+        };
 
         // Метод для получения товара
         const fetchProduct = async () => {
@@ -490,7 +521,9 @@ export default defineComponent({
             showImageNext,
             showImagePrev,
             options_e,
-            selected_options
+            selected_options,
+            deleteProduct,
+            deleteModalFlag
         };
     }
 });
@@ -789,6 +822,17 @@ export default defineComponent({
         margin: auto;
         max-height: 80%;
         max-width: 80%;
+    }
+}
+
+.modal.delete {
+    z-index: 110;
+
+    .delete-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 12px;
     }
 }
 </style>

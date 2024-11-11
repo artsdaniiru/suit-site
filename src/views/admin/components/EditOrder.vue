@@ -1,0 +1,354 @@
+<template>
+
+    <div class="edit-form">
+
+        <div class="grid-selection">
+            <div class="side">
+                <span class="label">個人情報</span>
+                <div class="client">
+
+                    <span class="name">{{ data.order.client_name }}</span>
+                    <span><strong>メールアドレス：</strong>{{ data.order.email }}</span>
+                    <span><strong>身長：</strong>{{ data.order.height }}cm</span>
+                    <span><strong>肩幅：</strong>{{ data.order.shoulder_width }}cm</span>
+                    <span><strong>ウェストサイズ：</strong>{{ data.order.waist_size }}cm</span>
+                    <div class="payment-method">
+                        <img class="card" src="@/assets/icons/card.svg" alt="card">
+                        <span class="number">{{ data.order.card_number }}</span>
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <div class="side">
+                <span class="label">配達</span>
+                <div class="address">
+                    <img class="delete" src="@/assets/icons/delete-admin.svg" alt="close">
+                    <span class="address-full">{{ data.order.address }}</span>
+                    <span class="phone"><strong>電話番号：</strong> {{ data.order.phone }}</span>
+                    <img class="edit" src="@/assets/icons/pencil.svg" alt="edit">
+                </div>
+            </div>
+        </div>
+        <div class="order">
+            <span class="label">注文内容</span>
+
+        </div>
+        <div class="actions">
+            <div class="dates">
+                <!-- <div class="date">
+                    <span>登録日：</span>
+                    <span>{{ data.client.date_of_registration }}</span>
+                </div> -->
+
+            </div>
+            <div class="buttons">
+                <button class="button danger" @click="deleteModalFlag = true">削除</button>
+                <button class="button" :disabled="areDataEqual" @click="saveAction">保存</button>
+            </div>
+
+        </div>
+    </div>
+
+    <CustomModal class="delete" v-model="deleteModalFlag" :title="'商品削除'" :in_modal="true">
+        <div class="delete-container">
+            <button class="button danger" @click="deleteAction">削除</button>
+            <button class="button" @click="deleteModalFlag = false;">戻る</button>
+        </div>
+    </CustomModal>
+
+</template>
+<script>
+import axios from "axios";
+import { defineComponent, ref, onMounted, watch } from "vue";
+
+export default defineComponent({
+    name: "EditOrder",
+    props: {
+        order_id: {
+            type: Number,
+            required: true
+        }
+    },
+    setup(props, { emit }) {
+        //main data
+        const data_original = ref({ order: [], products: [] });
+        const data = ref({ order: [], products: [] });
+
+        // Функция для глубокого сравнения двух объектов или массивов
+        const deepEqual = (obj1, obj2) => {
+            return JSON.stringify(obj1) === JSON.stringify(obj2);
+        };
+
+        // computed для сравнения data и data_original
+        const areDataEqual = ref(true);
+
+        // Watch для глубокого отслеживания изменений
+        watch(data, () => {
+            areDataEqual.value = deepEqual(data.value, data_original.value);
+        }, { deep: true });
+
+
+
+        const client_headers = ref({
+            name: '名前',
+            login: "ログイン",
+            email: "メールアドレス",
+            height: "身長",
+            shoulder_width: "肩幅",
+            waist_size: "ウェストサイズ",
+        });
+
+
+
+        const deleteModalFlag = ref(false);
+
+        // Следим за изменениями modelValue
+        watch(() => deleteModalFlag.value, () => {
+            document.body.classList.add('no-scroll');
+        });
+
+        // Метод для удаления товара
+        const deleteAction = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&order_id=' + data.value.product.id, {
+                    withCredentials: true
+                });
+
+                if (response.data.status == "success") {
+                    emit("productDelete");
+                } else {
+                    console.error("Ошибка при удалении товара:", response.data.status);
+                }
+
+            } catch (error) {
+                console.error("Ошибка при удалении товара:", error);
+            }
+        };
+
+        // Метод для получения товара
+        const fetchAction = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=get_order&order_id=' + props.order_id, {
+                    withCredentials: true
+                });
+                console.log(response.data);
+
+                if (response.data.status == "success") {
+
+                    let raw_data = response.data.data;
+
+                    data.value = raw_data;
+                    data_original.value = JSON.parse(JSON.stringify(raw_data));
+
+                } else {
+                    console.error("Ошибка при получении товара:", response.data.status);
+                }
+
+            } catch (error) {
+                console.error("Ошибка при получении товара:", error);
+            }
+        };
+
+        const saveAction = async () => {
+            try {
+
+
+                const productResponse = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&order_id=' + data.value.product.id,
+                    {
+                        data: data.value,
+                        data_original: data_original.value
+                    },
+                    { withCredentials: true }
+                );
+
+
+                if (productResponse.data.status !== "success") {
+                    console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                    return;
+                } else {
+                    setTimeout(() => {
+                        emit("productUpdate");
+                        fetchAction();
+                    }, 200);
+
+                }
+            } catch (error) {
+                console.error("Ошибка при сохранении продукта:", error);
+            }
+        };
+
+
+
+        onMounted(() => {
+            fetchAction();
+        });
+
+        return {
+            data,
+            client_headers,
+            areDataEqual,
+            saveAction,
+            deleteAction,
+            deleteModalFlag
+        };
+    }
+});
+</script>
+
+<style lang="scss" scoped>
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    .label {
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 120%;
+        letter-spacing: -0.02em;
+    }
+
+    .order {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 24px;
+    }
+
+    .grid-selection {
+
+        padding-left: 10px;
+        padding-right: 10px;
+        width: 1100px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+
+        .side {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+
+        .client {
+
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
+
+            .name {
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 120%;
+            }
+
+            .payment-method {
+                display: flex;
+                gap: 8px;
+                position: relative;
+                font-weight: 400;
+                align-items: center;
+
+                .card {
+                    width: 16px;
+                }
+            }
+        }
+
+
+
+        .address {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
+
+            .name {
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 120%;
+            }
+
+
+            .delete {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+
+            .edit {
+                position: absolute;
+                bottom: 12px;
+                right: 12px;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+        }
+
+
+
+
+
+
+
+    }
+
+    .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        width: 100%;
+
+        .dates {
+            display: flex;
+            flex-direction: column;
+            color: #ccc;
+            font-size: 14px;
+
+            .date {
+                align-items: center;
+                display: flex;
+                gap: 8px;
+            }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+        }
+    }
+}
+
+
+.modal.delete {
+    z-index: 110;
+
+    .delete-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 12px;
+    }
+}
+</style>

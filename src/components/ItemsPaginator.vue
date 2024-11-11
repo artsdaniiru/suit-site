@@ -61,16 +61,19 @@ export default defineComponent({
         const nextPage = () => {
             if (currentPage.value < totalPages.value) currentPage.value++;
             emit("update:modelValue", currentPage.value);
+            scrollToTop();
         };
 
         const prevPage = () => {
             if (currentPage.value > 1) currentPage.value--;
             emit("update:modelValue", currentPage.value);
+            scrollToTop();
         };
 
         const setPage = (page) => {
             if (page >= 1 && page <= totalPages.value) currentPage.value = page;
             emit("update:modelValue", currentPage.value);
+            scrollToTop();
         };
 
         const visiblePages = computed(() => {
@@ -84,6 +87,13 @@ export default defineComponent({
             }
             return pages;
         });
+
+        const scrollToTop = () => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth" // добавляет плавную анимацию прокрутки
+            });
+        };
 
 
         return {

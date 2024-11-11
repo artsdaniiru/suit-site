@@ -1,8 +1,8 @@
 <template>
-  <div :class="['custom-select-container', labelPositionClass]" v-click-out-side="() => isOpen = false">
+  <div :class="['custom-select-container', labelPositionClass]">
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
-    <div class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown">
+    <div class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown" v-click-out-side="() => isOpen = false">
       <!-- Отображаем выбранное значение, либо скрываем текст "選択して下さい" при notSelect -->
       <div class="selected-value" v-if="selectedValue !== '' && values[selectedValue]">{{ values[selectedValue] }}</div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
@@ -91,8 +91,13 @@ export default defineComponent({
     };
 
     const selectOption = (value) => {
-      selectedValue.value = value;
-      emit("update:modelValue", value);
+      if (value == selectedValue.value && !props.notSelect) {
+        selectedValue.value = "";
+      } else {
+        selectedValue.value = value;
+      }
+
+      emit("update:modelValue", selectedValue.value);
       isOpen.value = false; // Закрываем после выбора
     };
 

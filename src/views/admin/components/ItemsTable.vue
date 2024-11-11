@@ -145,6 +145,7 @@ export default defineComponent({
         border-radius: 8px;
         height: 65px;
         align-items: center;
+        transition: background 0.3s ease;
 
         cursor: pointer;
 
