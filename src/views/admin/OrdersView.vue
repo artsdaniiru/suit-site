@@ -3,7 +3,7 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
             <div class="filters">
-                <CustomSelect :values="{ confirmed: '確定済', processing: '処理中', shipped: '発送済', in_transit: '配送中', delivered: '配達済' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="status_field_names" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
                 <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" :notSelect="true" />
             </div>
         </div>
@@ -40,6 +40,14 @@ export default defineComponent({
             { name: "電話番号", field: "phone", sortable: true },
             { name: "作成日", field: "date_of_creation", sortable: true },
         ]);
+
+        const status_field_names = ref({
+            confirmed: '確定済(confirmed)',
+            processing: '処理中(processing)',
+            shipped: '発送済(shipped)',
+            in_transit: '配送中(in_transit)',
+            delivered: '配達済(delivered)'
+        });
 
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
@@ -117,7 +125,9 @@ export default defineComponent({
                     // Преобразуем данные (например, конвертируем цену в число)
                     items.value = response.data.orders.map(order => ({
                         ...order,
-                        order_id: "#" + order.id.toString().padStart(5, '0')
+                        order_id: "#" + order.id.toString().padStart(5, '0'),
+                        status: status_field_names.value[order.status],
+                        date_of_creation: new Date(order.date_of_creation).toLocaleDateString('ja-JP')
                     }));
                     // totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
@@ -169,6 +179,7 @@ export default defineComponent({
             order_id,
             editItem,
             fetchProducts,
+            status_field_names
         };
     },
 });
