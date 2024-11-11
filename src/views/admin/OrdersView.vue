@@ -37,7 +37,8 @@ export default defineComponent({
             { name: "顧客名前", field: "client_name", sortable: true },
             { name: "状態", field: "status", sortable: true },
             { name: "メールアドレス", field: "email", sortable: true },
-            { name: "電話番号", field: "phone" }
+            { name: "電話番号", field: "phone", sortable: true },
+            { name: "作成日", field: "date_of_creation", sortable: true },
         ]);
 
         const items = ref([]); // Хранение товаров
@@ -65,48 +66,37 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                console.log(sortOrder.value);
 
                 let sort = '';
 
                 if (sortOrder.value.index != null) {
                     switch (headers.value[sortOrder.value.index].field) {
-                        case 'name':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
+                        case 'order_id':
+                            sortOrder.value.ascending ? sort = '&sort=id_asc' : sort = '&sort=id_desc';
                             break;
-                        case 'name_eng':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+                        case 'client_name':
+                            sortOrder.value.ascending ? sort = '&sort=name_asc' : sort = '&sort=name_desc';
                             break;
-                        case 'min_price':
-                            sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+                        case 'status':
+                            sortOrder.value.ascending ? sort = '&sort=status_asc' : sort = '&sort=status_desc';
                             break;
-                        case 'active':
-                            sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
+                        case 'email':
+                            sortOrder.value.ascending ? sort = '&sort=email_asc' : sort = '&sort=email_desc';
                             break;
-
+                        case 'phone':
+                            sortOrder.value.ascending ? sort = '&sort=phone_asc' : sort = '&sort=phone_desc';
+                            break;
+                        case 'date_of_creation':
+                            sortOrder.value.ascending ? sort = '&sort=date_asc' : sort = '&sort=date_desc';
+                            break;
                         default:
+                            sort = '&sort=id_desc';
                             break;
                     }
+
                 }
 
-                let q_filter = '';
-                switch (filter.value) {
-                    case 'active':
-                        q_filter = '&active=1';
-                        break;
-                    case 'popular':
-                        q_filter = '&popular=1';
-                        break;
-                    case 'suit':
-                        q_filter = '&productType=suit';
-                        break;
-                    case 'not_suit':
-                        q_filter = '&productType=not_suit';
-                        break;
-
-                    default:
-                        break;
-                }
+                let q_filter = filter.value ? `&status=${filter.value}` : '';
 
                 let query = '';
 
@@ -121,7 +111,6 @@ export default defineComponent({
                     withCredentials: true
                 });
 
-                console.log(response);
 
                 // Убедимся, что товары приходят в поле `products`
                 if (Array.isArray(response.data.orders)) {

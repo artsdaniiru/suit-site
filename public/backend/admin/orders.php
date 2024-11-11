@@ -96,7 +96,7 @@ $searchCondition = '';
 if (!empty($query)) {
     // Экранируем значение поиска для безопасности
     $query = $conn->real_escape_string($query);
-    $searchCondition .= "AND (`co.id` LIKE '%$query%' OR `ca.name` LIKE '%$query%' OR `co.status` LIKE '%$query%' OR `cl.email` LIKE '%$query%')";
+    $searchCondition .= "AND (co.id LIKE '%$query%' OR ca.name LIKE '%$query%' OR co.status LIKE '%$query%' OR cl.email LIKE '%$query%')";
 }
 
 $order_id = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
@@ -107,6 +107,11 @@ switch ($action) {
     case 'list_all_orders':
         // Условия фильтрации (например, для поиска или сортировки заказов)
         $searchCondition = isset($searchCondition) ? $searchCondition : "";
+
+        $filter = "";
+        if ($status != "") {
+            $filter .= " AND co.status = '$status'";
+        }
 
         // Параметры сортировки, пагинации и лимитов
         $orderBy = isset($orderBy) ? $orderBy : "co.id DESC";
@@ -122,10 +127,10 @@ switch ($action) {
                     JOIN clients cl ON co.client_id = cl.id
                     JOIN client_addresses ca ON co.address_id = ca.id
                     JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
-                    WHERE 1=1 $searchCondition
+                    WHERE 1=1 $searchCondition $filter
                     ORDER BY $orderBy
                     LIMIT $offset, $itemsPerPage";
-
+        // print_r($sql);
         $result = $conn->query($sql);
         if (!$result) {
             echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
@@ -140,7 +145,11 @@ switch ($action) {
         }
 
         // Получение общего количества записей для пагинации
-        $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM client_orders co WHERE 1=1 $searchCondition");
+        $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM client_orders co
+                    JOIN clients cl ON co.client_id = cl.id
+                    JOIN client_addresses ca ON co.address_id = ca.id
+                    JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
+                    WHERE 1=1 $searchCondition $filter $searchCondition $filter");
         if (!$totalCountResult) {
             echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества заказов: ' . $conn->error]);
             exit;
