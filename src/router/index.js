@@ -53,6 +53,16 @@ const routes = [
     component: () => import('../views/CheckOutView.vue')
   },
   {
+    path: '/account',
+    name: 'account',
+    component: () => import('../views/AccountView.vue')
+  },
+  // {
+  //   path: '/contact',
+  //   name: 'contact',
+  //   component: () => import('../views/ContactView.vue')
+  // },
+  {
     path: '/admin/login',
     name: 'LoginView',
     component: LoginView
