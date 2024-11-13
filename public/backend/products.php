@@ -46,7 +46,7 @@ switch ($sort) {
     case 'lowest_price':
         $orderBy = 'min_price ASC'; // Товары с наименьшей минимальной ценой
         break;
-    case 'recomended':
+    case 'recommended':
         $orderBy = 'popular DESC'; // Рекомендованные товары
         break;
     default:
