@@ -296,7 +296,7 @@ export default defineComponent({
     );
 
     const selectedSizeId = ref(null);
-    const body_sizes = ref({ height: 175, shoulder_width: 40, waist_size: 70 });
+    const body_sizes = ref({ height: "", shoulder_width: "", waist_size: "" });
 
 
 
