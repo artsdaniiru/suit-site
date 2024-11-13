@@ -13,7 +13,7 @@
         <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'顧客情報変更'">
-            <EditClient :client_id="client_id" />
+            <EditClient :client_id="client_id" @clientUpdate="fetchProducts" @clientDelete="fetchProducts" />
         </CustomModal>
     </div>
 </template>

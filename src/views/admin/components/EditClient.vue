@@ -172,17 +172,17 @@ export default defineComponent({
         const deleteAction = async () => {
             try {
                 const response = await axios.get(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&client_id=' + data.value.product.id,
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/clients.php?action=delete_client&client_id=' + props.client_id,
                     { withCredentials: true }
                 );
 
                 if (response.data.status == "success") {
-                    emit("productDelete");
+                    emit("clientDelete");
                 } else {
-                    console.error("Ошибка при удалении товара:", response.data.status);
+                    console.error("Ошибка при удалении клиента:", response.data.status);
                 }
             } catch (error) {
-                console.error("Ошибка при удалении товара:", error);
+                console.error("Ошибка при удалении клиента:", error);
             }
         };
 
@@ -198,17 +198,17 @@ export default defineComponent({
                     data.value = raw_data;
                     data_original.value = JSON.parse(JSON.stringify(raw_data));
                 } else {
-                    console.error("Ошибка при получении товара:", response.data.status);
+                    console.error("Ошибка при получении клиента:", response.data.status);
                 }
             } catch (error) {
-                console.error("Ошибка при получении товара:", error);
+                console.error("Ошибка при получении клиента:", error);
             }
         };
 
         const saveAction = async () => {
             try {
-                const productResponse = await axios.post(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&client_id=' + data.value.product.id,
+                const response = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/clients.php?action=edit_client',
                     {
                         data: data.value,
                         data_original: data_original.value
@@ -216,17 +216,17 @@ export default defineComponent({
                     { withCredentials: true }
                 );
 
-                if (productResponse.data.status !== "success") {
-                    console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                if (response.data.status !== "success") {
+                    console.error("Ошибка при сохранении клиента:", response.data.message);
                     return;
                 } else {
                     setTimeout(() => {
-                        emit("productUpdate");
+                        emit("clientUpdate");
                         fetchAction();
                     }, 200);
                 }
             } catch (error) {
-                console.error("Ошибка при сохранении продукта:", error);
+                console.error("Ошибка при сохранении клиента:", error);
             }
         };
 

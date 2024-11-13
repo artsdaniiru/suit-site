@@ -213,25 +213,25 @@ export default defineComponent({
             document.body.classList.add('no-scroll');
         });
 
-        // Метод для удаления товара
+        // Метод для удаления заказа
         const deleteAction = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&order_id=' + data.value.product.id, {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=delete_order&order_id=' + props.order_id, {
                     withCredentials: true
                 });
 
                 if (response.data.status == "success") {
-                    emit("productDelete");
+                    emit("orderDelete");
                 } else {
-                    console.error("Ошибка при удалении товара:", response.data.status);
+                    console.error("Ошибка при удалении заказа:", response.data.status);
                 }
 
             } catch (error) {
-                console.error("Ошибка при удалении товара:", error);
+                console.error("Ошибка при удалении заказа:", error);
             }
         };
 
-        // Метод для получения товара
+        // Метод для получения заказа
         const fetchAction = async () => {
             try {
                 const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=get_order&order_id=' + props.order_id, {
@@ -247,11 +247,11 @@ export default defineComponent({
                     data_original.value = JSON.parse(JSON.stringify(raw_data));
 
                 } else {
-                    console.error("Ошибка при получении товара:", response.data.status);
+                    console.error("Ошибка при получении заказа:", response.data.status);
                 }
 
             } catch (error) {
-                console.error("Ошибка при получении товара:", error);
+                console.error("Ошибка при получении заказа:", error);
             }
         };
 
@@ -259,8 +259,8 @@ export default defineComponent({
             try {
 
 
-                const productResponse = await axios.post(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&order_id=' + data.value.product.id,
+                const response = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=edit_order&order_id=' + props.order_id,
                     {
                         data: data.value,
                         data_original: data_original.value
@@ -269,18 +269,18 @@ export default defineComponent({
                 );
 
 
-                if (productResponse.data.status !== "success") {
-                    console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                if (response.data.status !== "success") {
+                    console.error("Ошибка при сохранении заказа:", response.data.message);
                     return;
                 } else {
                     setTimeout(() => {
-                        emit("productUpdate");
+                        emit("orderUpdate");
                         fetchAction();
                     }, 200);
 
                 }
             } catch (error) {
-                console.error("Ошибка при сохранении продукта:", error);
+                console.error("Ошибка при сохранении заказа:", error);
             }
         };
 

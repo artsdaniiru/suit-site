@@ -106,7 +106,7 @@ if ($result->num_rows > 0) {
 $totalCountResult = $conn->query("SELECT COUNT(DISTINCT p.id) as count 
                                   FROM products p 
                                   JOIN sizes i ON p.id = i.product_id
-                                  WHERE 1=1 $searchCondition $popularCondition $productTypeCondition");
+                                  WHERE p.active=1 $searchCondition $popularCondition $productTypeCondition");
 
 if (!$totalCountResult) {
     echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества товаров: ' . $conn->error]);

@@ -189,7 +189,6 @@ switch ($action) {
 
         break;
     case 'edit_client':
-    case 'edit_client':
         // Проверка наличия исходных и обновленных данных клиента
         if (!isset($request['data_original']) || !isset($request['data'])) {
             echo json_encode(['status' => 'error', 'message' => 'Missing original or updated client data']);
