@@ -57,9 +57,23 @@
           クレジットカードまたはデビットカードを追加する
         </a>
       </div>
+      <div class="card-wrap">
+        <p>その他</p>
+        <div class="paychoise-wrap">
+          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
+          <label for="Visa 末尾 9696">現金</label>
+        </div>
+        <div class="paychoise-wrap">
+          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
+          <label for="Visa 末尾 9696">コンビニ払い</label>
+        </div>
 
+      </div>
 
     </div>
+
+    <button style="width: 100%;" class="button">注文を確定する</button>
+
   </div>
 
 
@@ -165,6 +179,17 @@
  .order-wrap{
 
 
+  .paychoise-wrap{
+
+    display: flex;
+    align-items: baseline;
+    .radioBtn{
+      position: relative;
+      display: block;
+      height: min-content;
+      margin-bottom: 24px;
+    }
+  }
   .cardchoise-wrap{
     display: flex;
     align-items: baseline;
