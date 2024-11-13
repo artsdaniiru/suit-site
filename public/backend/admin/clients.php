@@ -133,7 +133,7 @@ switch ($action) {
             ]
         ]);
         break;
-    case 'delete_user':
+    case 'delete_client':
         // Получение ID клиента из запроса
         $client_id = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
 
@@ -188,35 +188,125 @@ switch ($action) {
         }
 
         break;
-    case 'edit_user':
-        $updateFields = [];
-
-        // Используем функцию для добавления полей
-        addFieldToUpdate($updateFields, $request, 'login');
-        addFieldToUpdate($updateFields, $request, 'name');
-        addFieldToUpdate($updateFields, $request, 'email');
-        addFieldToUpdate($updateFields, $request, 'height');
-        addFieldToUpdate($updateFields, $request, 'shoulder_width');
-        addFieldToUpdate($updateFields, $request, 'waist_size');
-
-        // Проверяем, если есть поля для обновления
-        if (!empty($updateFields)) {
-            // Формируем строку с обновляемыми полями
-            $setClause = implode(', ', $updateFields);
-
-            // Создаем SQL-запрос
-            $sql = "UPDATE clients SET $setClause WHERE id = $client_id";
-
-            // Выполняем запрос
-            if ($conn->query($sql) === TRUE) {
-                echo json_encode(['status' => 'success']);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => $conn->error]);
-            }
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+    case 'edit_client':
+    case 'edit_client':
+        // Проверка наличия исходных и обновленных данных клиента
+        if (!isset($request['data_original']) || !isset($request['data'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing original or updated client data']);
+            exit;
         }
+
+        $originalData = $request['data_original'];
+        $updatedData = $request['data'];
+
+        $client_id = intval($originalData['client']['id']);
+
+        // --- Обновление данных клиента ---
+        if ($originalData['client'] !== $updatedData['client']) {
+            $sql = "UPDATE clients SET
+                        login = '" . $conn->real_escape_string($updatedData['client']['login']) . "',
+                        name = '" . $conn->real_escape_string($updatedData['client']['name']) . "',
+                        email = '" . $conn->real_escape_string($updatedData['client']['email']) . "',
+                        height = '" . $conn->real_escape_string($updatedData['client']['height']) . "',
+                        shoulder_width = '" . $conn->real_escape_string($updatedData['client']['shoulder_width']) . "',
+                        waist_size = '" . $conn->real_escape_string($updatedData['client']['waist_size']) . "'
+                        WHERE id = '$client_id'";
+
+            if ($conn->query($sql) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Error updating client: ' . $conn->error]);
+                exit;
+            }
+        }
+
+        // --- Обработка изменения, добавления и деактивации адресов ---
+        if (isset($updatedData['client_addresses'])) {
+            $addressDataOriginal = array_column($originalData['client_addresses'], null, 'id');
+            $addressDataUpdated = array_column($updatedData['client_addresses'], null, 'id');
+
+            // Обновление и добавление адресов
+            foreach ($addressDataUpdated as $addressId => $updatedAddress) {
+                if (isset($addressDataOriginal[$addressId])) {
+                    // Обновление существующего адреса, если он изменился
+                    if ($addressDataOriginal[$addressId] !== $updatedAddress) {
+                        $sql = "UPDATE client_addresses SET
+                                    name = '" . $conn->real_escape_string($updatedAddress['name']) . "',
+                                    address = '" . $conn->real_escape_string($updatedAddress['address']) . "',
+                                    phone = '" . $conn->real_escape_string($updatedAddress['phone']) . "',
+                                    active = 1
+                                    WHERE client_id = $client_id AND id = $addressId";
+
+                        if ($conn->query($sql) === FALSE) {
+                            echo json_encode(['status' => 'error', 'message' => 'Error updating address: ' . $conn->error]);
+                            exit;
+                        }
+                    }
+                } else {
+                    // Добавление нового адреса
+                    $sql = "INSERT INTO client_addresses (client_id, name, address, phone, active) VALUES (
+                                $client_id,
+                                '" . $conn->real_escape_string($updatedAddress['name']) . "',
+                                '" . $conn->real_escape_string($updatedAddress['address']) . "',
+                                '" . $conn->real_escape_string($updatedAddress['phone']) . "',
+                                1
+                        )";
+
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Error adding new address: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            }
+
+            // Деактивация адресов, отсутствующих в обновлённых данных
+            foreach ($addressDataOriginal as $addressId => $originalAddress) {
+                if (!isset($addressDataUpdated[$addressId])) {
+                    $sql = "UPDATE client_addresses SET active = 0 WHERE client_id = $client_id AND id = $addressId";
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Error deactivating address: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            }
+        }
+
+        // --- Обработка изменения и деактивации платёжных данных ---
+        if (isset($updatedData['client_payment_methods'])) {
+            $paymentDataOriginal = array_column($originalData['client_payment_methods'], null, 'id');
+            $paymentDataUpdated = array_column($updatedData['client_payment_methods'], null, 'id');
+
+            // Обновление существующих платёжных методов
+            foreach ($paymentDataUpdated as $paymentId => $updatedPayment) {
+                if (isset($paymentDataOriginal[$paymentId])) {
+                    // Обновление платёжного метода, если он изменился
+                    if ($paymentDataOriginal[$paymentId] !== $updatedPayment) {
+                        $sql = "UPDATE client_payment_methods SET
+                                    card_number = '" . $conn->real_escape_string($updatedPayment['card_number']) . "',
+                                    active = 1
+                                    WHERE client_id = $client_id AND id = $paymentId";
+
+                        if ($conn->query($sql) === FALSE) {
+                            echo json_encode(['status' => 'error', 'message' => 'Error updating payment method: ' . $conn->error]);
+                            exit;
+                        }
+                    }
+                }
+            }
+
+            // Деактивация платёжных методов, отсутствующих в обновлённых данных
+            foreach ($paymentDataOriginal as $paymentId => $originalPayment) {
+                if (!isset($paymentDataUpdated[$paymentId])) {
+                    $sql = "UPDATE client_payment_methods SET active = 0 WHERE client_id = $client_id AND id = $paymentId";
+                    if ($conn->query($sql) === FALSE) {
+                        echo json_encode(['status' => 'error', 'message' => 'Error deactivating payment method: ' . $conn->error]);
+                        exit;
+                    }
+                }
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'message' => 'Client and related data updated successfully']);
         break;
+
     case 'get_client':
         // Получаем данные о конретном клиенте
         $data = [];
