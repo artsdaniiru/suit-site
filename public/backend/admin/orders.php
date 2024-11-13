@@ -257,7 +257,7 @@ switch ($action) {
         }
 
         // Получение информации о продуктах в заказе
-        $sqlProducts = "SELECT coi.price AS order_price, coi.options AS order_options,  coi.size_id AS size_id,
+        $sqlProducts = "SELECT coi.price AS price, coi.options AS order_options,  coi.size_id AS size_id,
                             p.*, COALESCE(MIN(im.image_path), NULL) AS image_path
                             FROM client_order_indexes coi
                             JOIN products p ON coi.product_id = p.id
@@ -272,6 +272,7 @@ switch ($action) {
                 $product_data['product'] = array_filter($row, function ($value) {
                     return !is_null($value);
                 });
+                $product_data['product']['price'] = intval($product_data['product']['price']);
 
                 $s_id = $row['size_id'];
                 $sqlSize = "SELECT s.* FROM sizes s WHERE s.id=$s_id";
@@ -282,6 +283,7 @@ switch ($action) {
                     $product_data['size'] = array_filter($sizeData, function ($value) {
                         return !is_null($value);
                     });
+                    $product_data['size']['price'] = intval($product_data['size']['price']);
                 }
 
                 if ($row['order_options'] != null) {
