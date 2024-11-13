@@ -238,34 +238,69 @@ switch ($action) {
 
         // Получение информации о заказе, клиенте, адресе и методе оплаты
         $sqlOrder = "SELECT co.*, cl.name AS client_name, cl.email, cl.height, cl.shoulder_width, cl.waist_size,
-                     ca.name AS address_name, ca.address, ca.phone, cpm.card_number
-                     FROM client_orders co
-                     JOIN clients cl ON co.client_id = cl.id
-                     JOIN client_addresses ca ON co.address_id = ca.id
-                     JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
-                     WHERE co.id = $order_id";
+                         ca.name AS address_name, ca.address, ca.phone, cpm.card_number
+                         FROM client_orders co
+                         JOIN clients cl ON co.client_id = cl.id
+                         JOIN client_addresses ca ON co.address_id = ca.id
+                         JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
+                         WHERE co.id = $order_id";
         $resultOrder = $conn->query($sqlOrder);
 
         if ($resultOrder->num_rows > 0) {
-            $data['order'] = $resultOrder->fetch_assoc();
+            $orderData = $resultOrder->fetch_assoc();
+            $data['order'] = array_filter($orderData, function ($value) {
+                return !is_null($value);
+            });
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Заказ не найден']);
             exit;
         }
 
         // Получение информации о продуктах в заказе
-        $sqlProducts = "SELECT coi.price AS order_price, coi.options AS order_options,
-                        p.*, s.*
-                        FROM client_order_indexes coi
-                        JOIN products p ON coi.product_id = p.id
-                        JOIN sizes s ON coi.size_id = s.id
-                        WHERE coi.client_order_id = $order_id";
+        $sqlProducts = "SELECT coi.price AS order_price, coi.options AS order_options,  coi.size_id AS size_id,
+                            p.*, COALESCE(MIN(im.image_path), NULL) AS image_path
+                            FROM client_order_indexes coi
+                            JOIN products p ON coi.product_id = p.id
+                            LEFT JOIN product_images im ON p.id = im.product_id
+                            WHERE coi.client_order_id = $order_id";
         $resultProducts = $conn->query($sqlProducts);
         $products = [];
 
         if ($resultProducts->num_rows > 0) {
             while ($row = $resultProducts->fetch_assoc()) {
-                $products[] = $row;
+                // Удаляем null поля из product
+                $product_data['product'] = array_filter($row, function ($value) {
+                    return !is_null($value);
+                });
+
+                $s_id = $row['size_id'];
+                $sqlSize = "SELECT s.* FROM sizes s WHERE s.id=$s_id";
+                $resultSize = $conn->query($sqlSize);
+
+                if ($resultSize->num_rows > 0) {
+                    $sizeData = $resultSize->fetch_assoc();
+                    $product_data['size'] = array_filter($sizeData, function ($value) {
+                        return !is_null($value);
+                    });
+                }
+
+                if ($row['order_options'] != null) {
+                    $options = json_decode($row['order_options']);
+                    $options_sql_ids = implode(',', $options);
+                    $sqlOptions = "SELECT * FROM options WHERE id IN ($options_sql_ids)";
+                    $resultOptions = $conn->query($sqlOptions);
+
+                    if ($resultOptions->num_rows > 0) {
+                        $product_data['options'] = [];
+                        while ($row_o = $resultOptions->fetch_assoc()) {
+                            $product_data['options'][] = array_filter($row_o, function ($value) {
+                                return !is_null($value);
+                            });
+                        }
+                    }
+                }
+
+                $products[] = $product_data;
             }
         }
 
@@ -274,6 +309,7 @@ switch ($action) {
         // Возвращаем результат
         echo json_encode(['status' => 'success', 'data' => $data]);
         break;
+
 
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
