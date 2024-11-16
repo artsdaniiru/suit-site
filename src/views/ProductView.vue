@@ -40,7 +40,7 @@
 
           <div class="size-cont">
             <div class="size-box">
-              <CustomSelect :values="options.cloth" v-model="selectedOptions.color" :labelText="'生地の種類'" />
+              <CustomSelect :values="options.cloth" v-model="selectedOptions.cloth" :labelText="'生地の種類'" />
             </div>
             <div class="size-box">
               <CustomSelect :values="options.color" v-model="selectedOptions.color" :labelText="'生地の色'" />
@@ -244,6 +244,7 @@ export default defineComponent({
 
     //options
     const options = ref({});
+    const product_options = ref([]);
 
     const fetchAllOptions = async () => {
       try {
@@ -258,11 +259,13 @@ export default defineComponent({
         // Убедимся, что товары приходят в поле `products`
         if (response.data.status == 'success') {
 
-          let product_options = [];
+          let product_options_d = [];
           Object.keys(data.value.options).forEach(key => {
             let id = data.value.options[key].id;
-            product_options.push(id);
+            product_options_d.push(id);
           })
+
+          product_options.value = product_options_d;
 
 
           let options_edit = {};
@@ -273,7 +276,7 @@ export default defineComponent({
               let id = val.id
 
               let price = val.price;
-              if (product_options.includes(id)) {
+              if (product_options_d.includes(id)) {
                 price = 0;
               }
 
@@ -303,13 +306,27 @@ export default defineComponent({
       }
     );
 
+    function optionsInCart() {
+
+      let options = {};
+      Object.keys(selectedOptions.value).forEach(key => {
+        options[key] = {
+          id: selectedOptions.value[key],
+          free: product_options.value.includes(selectedOptions.value[key]) ? true : false,
+        };
+      })
+      return options;
+    }
+
     function addToCartLocal() {
 
       let cart_item = {
         id: data.value.product.id,
       };
       if (data.value.product.type == 'suit') {
-        cart_item['options'] = selectedOptions.value;
+        cart_item['options'] = optionsInCart();
+
+
         cart_item['body_sizes'] = body_sizes.value;
         cart_item['size'] = priceBasedOnSize.value.id;
         cart_item['price'] = priceBasedOnSize.value.price;

@@ -4,55 +4,54 @@
   <div class="product-list">
 
     <template v-if="!is_loading">
-      <div class="product-cart" v-for="item in cart" :key="item">
+      <div class="product-cart" v-for="item in computedCart" :key="item">
         <div class="product-info">
-          <div class="product-img">
-            <img :src="getItemById(item.id, 'image_path')" :alt="name" class="product-image" />
-          </div>
+
+          <img :src="items[item.id].image_path" :alt="name" class="product-image" />
+
           <div class="price-info">
             <div class="price-title">
-              <h3 class="product-title">{{ getItemById(item.id, 'name') }}</h3>
+              <h3 class="product-title">{{ items[item.id].name }}</h3>
               <p class="product-title">{{ englishName }}</p>
               <div class="price-size">
-                <template v-if="getItemById(item.id, 'type') == 'suit'">
+                <template v-if="items[item.id].type == 'suit'">
                   <div class="size-price">
                     <span class="font-weight">身長</span>
-                    <span>150cm</span>
+                    <span>{{ item.body_sizes.height }}cm</span>
                   </div>
                   <div class="size-price">
                     <span class="font-weight">肩幅</span>
-                    <span>40cm</span>
+                    <span>{{ item.body_sizes.shoulder_width }}cm</span>
                   </div>
                   <div class="size-price">
                     <span class="font-weight">ウェストサイズ</span>
-                    <span>70cm</span>
+                    <span>{{ item.body_sizes.waist_size }}cm</span>
                   </div>
                 </template>
                 <div v-else class="size-price">
                   <span class="font-weight">サイズ</span>
-                  <span>70cm</span>
+                  <span>{{ items[item.id].sizes[item.size].name }}</span>
                 </div>
 
-                <span class="final-price font-weight">30,000￥</span>
+                <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
               </div>
             </div>
-            <div class="option-price" v-if="getItemById(item.id, 'type') == 'suit'">
-              <div class="option-wrap">
+            <div class="option-price" v-if="items[item.id].type == 'suit'">
+              <div class="option-wrap" v-if="item.options.cloth.id != ''">
                 <span class="font-weight">生地の種類</span>
-                <span>コットン (綿) <span class="font-weight">+1000￥</span></span>
+                <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
               </div>
-              <div class="option-wrap">
+              <div class="option-wrap" v-if="item.options.color.id != ''">
                 <span class="font-weight">生地の色</span>
-                <span>赤 (あか) <span class="font-weight">+1000￥</span></span>
+                <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
               </div>
-              <div class="option-wrap">
+              <div class="option-wrap" v-if="item.options.lining.id != ''">
                 <span class="font-weight">裏地の種類</span>
-                <span>サテン裏地 <span class="font-weight">+1000￥</span></span>
+                <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
               </div>
-              <div class="option-wrap">
+              <div class="option-wrap" v-if="item.options.button.id != ''">
                 <span class="font-weight">ボタンの種類</span>
-                <span>プラスチックボタン
-                  <span class="font-weight">+1000￥</span></span>
+                <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
               </div>
             </div>
           </div>
@@ -60,8 +59,8 @@
         <div class="product-final-price">
           <div class="delete-box" @click="deleteFromCart(item.id)"><span class="product-delete">Delete</span></div>
           <div class="final-price">
-            <span>会計</span>
-            <span>100,000￥</span>
+            <span>金額</span>
+            <span>{{ formattedPrice(item.totalPrice) }}</span>
           </div>
         </div>
       </div>
@@ -73,7 +72,7 @@
     <div class="list-pricebox">
       <div class="list-price">
         <span>会計</span>
-        <span>100,000￥</span>
+        <span>{{ formattedPrice(totalPrice) }}</span>
       </div>
       <div class="list-btn">
         <router-link to="/catalog"><span>戻る</span></router-link>
@@ -84,83 +83,135 @@
 </template>
 
 <script>
-import { defineComponent, inject, onBeforeMount, ref } from "vue";
+import { defineComponent, inject, onBeforeMount, ref, computed } from "vue";
 import axios from "axios";
+import { useRouter } from 'vue-router'
+
 
 export default defineComponent({
-  methods: {
-    goToAboutPage() {
-      this.$router.push("../checkout");
-    },
-  },
   name: "CartView",
-
   setup() {
-    // Вычисляемое свойство для форматирования цены
 
-
-    const items = ref([]);
-    const { cart, deleteFromCart } = inject('cart');
-
+    const router = useRouter();
+    const items = ref({});
+    const { cart, deleteFromCart } = inject("cart");
     const is_loading = ref(false);
+    const options = ref({});
 
-    function getItemById(id, field = '') {
-      let item = items.value.find(item => item.id === id);
-
-      console.log(item);
-
-
-      if (field != '') return item[field];
-      return items.value.find(item => item.id === id);
+    // Преобразование размеров
+    function fix_sizes_ids(sizes) {
+      let n_sizes = {};
+      sizes.forEach((val) => {
+        n_sizes[val.id] = val;
+      });
+      return n_sizes;
     }
 
+    // Форматирование цены
+    function formattedPrice(price) {
+      return `¥${Number(price).toLocaleString("ja-JP")}`;
+    }
+
+    // Цена опции
+    function optionPrice(option) {
+      if (option.free) {
+        return 0;
+      } else {
+        if (option.id == "") return 0;
+        return options.value[option.id]?.price || 0;
+      }
+    }
+
+    // Рассчитываем итоговую цену для каждого товара
+    const computedCart = computed(() => {
+      return cart.value.map((item) => {
+        const basePrice = items.value[item.id]?.sizes[item.size]?.price || 0;
+        const optionPriceSum = Object.values(item.options || {}).reduce(
+          (total, option) => Number(total) + Number(optionPrice(option)),
+          0
+        );
+        const totalPrice = Number(basePrice) + Number(optionPriceSum);
+        return {
+          ...item,
+          totalPrice,
+        };
+      });
+    });
+
+    // Рассчитываем общую цену корзины
+    const totalPrice = computed(() => {
+      return computedCart.value.reduce((sum, item) => sum + item.totalPrice, 0);
+    });
+
+    // Получение товаров
     const fetchProducts = async () => {
       is_loading.value = true;
       try {
-        let p_ids = [];
-        cart.value.forEach(val => {
-          p_ids.push(val.id);
-        })
+        const p_ids = cart.value.map((val) => val.id);
+        const url = `${process.env.VUE_APP_BACKEND_URL}/backend/products.php?itemsPerPage=1000&ids=${p_ids.join()}`;
+        const response = await axios.get(url, { withCredentials: true });
 
-        let url = process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=1000&ids=' + p_ids.join();
-
-
-        const response = await axios.get(url, {
-          withCredentials: true
-        });
-
-        console.log(response);
-
-
-        // Убедимся, что товары приходят в поле `products`
         if (Array.isArray(response.data.products)) {
-          // Преобразуем данные (например, конвертируем цену в число)
-          items.value = response.data.products.map(product => ({
-            ...product,
-            min_price: Number(product.min_price), // Преобразуем строку в число
-          }));
-
-          is_loading.value = false;
-
+          let items_obj = {};
+          response.data.products.forEach((product) => {
+            items_obj[product.id] = {
+              id: product.id,
+              ...product,
+              sizes: fix_sizes_ids(product.sizes),
+            };
+          });
+          items.value = items_obj;
         } else {
-          console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+          console.error("Ошибка: ожидался массив товаров");
         }
       } catch (error) {
         console.error("Ошибка при получении товаров:", error);
+      } finally {
+        is_loading.value = false;
       }
     };
 
+    // Получение опций
+    const fetchAllOptions = async () => {
+      try {
+        const url = `${process.env.VUE_APP_BACKEND_URL}/backend/options.php?action=list_all_options&itemsPerPage=1000`;
+        const response = await axios.get(url, { withCredentials: true });
+
+        if (response.data.status === "success") {
+          let options_edit = {};
+          response.data.options.forEach((val) => {
+            options_edit[val.id] = val;
+          });
+          options.value = options_edit;
+        } else {
+          console.error("Ошибка: ожидался массив опций");
+        }
+      } catch (error) {
+        console.error("Ошибка при получении опций:", error);
+      }
+    };
+
+    // Переход на страницу оформления
+    const goToAboutPage = () => {
+      router.push("/checkout");
+    };
 
     onBeforeMount(() => {
+      fetchAllOptions();
       fetchProducts();
-    })
+    });
 
     return {
-      getItemById,
+      items,
       cart,
       deleteFromCart,
       is_loading,
-
+      options,
+      formattedPrice,
+      optionPrice,
+      computedCart,
+      totalPrice,
+      goToAboutPage,
     };
   },
 });
@@ -194,6 +245,17 @@ h3 {
     gap: 24px;
     margin: 24px 0 24px 24px;
 
+
+
+
+    .product-image {
+      width: 160px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+
     .price-title {
       margin-bottom: 16px;
     }
@@ -201,6 +263,7 @@ h3 {
     .price-size {
       display: flex;
       gap: 12px;
+      align-items: baseline;
 
       .size-price {
         width: max-content;
@@ -228,7 +291,7 @@ h3 {
 
       span {
         font-weight: 600;
-        font-size: 24px;
+        font-size: 18px;
       }
     }
 
@@ -293,13 +356,5 @@ h3 {
       }
     }
   }
-}
-
-.product-image {
-  width: 100%;
-}
-
-.product-img {
-  width: 30%;
 }
 </style>
