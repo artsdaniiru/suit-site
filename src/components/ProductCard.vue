@@ -6,14 +6,13 @@
             <span class="english-name">{{ product.name_eng }}</span>
             <span class="price">{{ formattedPrice }}</span>
         </div>
-        <!-- <button class="button" @click="updateCount">内容を見る</button> -->
         <button class="button" @click="goToProduct">内容を見る</button>
 
     </div>
 </template>
 
 <script>
-import { defineComponent, inject, computed, ref } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { useRouter } from 'vue-router'
 
 export default defineComponent({
@@ -39,7 +38,6 @@ export default defineComponent({
     setup(props) {
 
         const router = useRouter();
-        const { cart_count, updateCount } = inject('cart_count');
 
         const product = ref(props.item);
 
@@ -50,8 +48,6 @@ export default defineComponent({
             router.push('/product/' + product.value.id);
         }
         return {
-            cart_count,
-            updateCount,
             formattedPrice, // Возвращаем форматированную цену
             product,
             goToProduct,

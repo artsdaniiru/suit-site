@@ -40,26 +40,26 @@
 
           <div class="size-cont">
             <div class="size-box">
-              <CustomSelect :values="options.cloth" v-model="selectedSize" :labelText="'生地の種類'" />
+              <CustomSelect :values="options.cloth" v-model="selectedOptions.color" :labelText="'生地の種類'" />
             </div>
             <div class="size-box">
-              <CustomSelect :values="options.color" v-model="selectedSize" :labelText="'生地の色'" />
+              <CustomSelect :values="options.color" v-model="selectedOptions.color" :labelText="'生地の色'" />
             </div>
           </div>
           <div class="size-cont">
             <div class="size-box">
 
-              <CustomSelect :values="options.lining" v-model="selectedSize" :labelText="'裏地の種類'" />
+              <CustomSelect :values="options.lining" v-model="selectedOptions.lining" :labelText="'裏地の種類'" />
             </div>
             <div class="size-box">
-              <CustomSelect :values="options.button" v-model="selectedSize" :labelText="'ボタンの種類'" />
+              <CustomSelect :values="options.button" v-model="selectedOptions.button" :labelText="'ボタンの種類'" />
             </div>
           </div>
         </div>
         <div class="size-form" v-else>
           <CustomSelect :values="sizes_o" v-model="selectedSizeId" :labelText="'サイズ'" :notSelect="true" />
         </div>
-        <button class="button">カートに追加</button>
+        <button class="button" @click="addToCartLocal">カートに追加</button>
       </div>
 
     </div>
@@ -135,12 +135,20 @@
 
 <script>
 import axios from "axios";
-import { defineComponent, computed, ref, onBeforeMount, watch } from "vue";
+import { defineComponent, computed, ref, onBeforeMount, watch, inject } from "vue";
 import { useRoute, useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "ProductCard",
   setup() {
+
+    //users thing
+
+    const { user } = inject('auth');
+    const { addToCart } = inject('cart');
+
+
+
     const is_loading = ref(true);
 
     const router = useRouter();
@@ -295,8 +303,39 @@ export default defineComponent({
       }
     );
 
+    function addToCartLocal() {
+
+      let cart_item = {
+        id: data.value.product.id,
+      };
+      if (data.value.product.type == 'suit') {
+        cart_item['options'] = selectedOptions.value;
+        cart_item['body_sizes'] = body_sizes.value;
+        cart_item['size'] = priceBasedOnSize.value.id;
+        cart_item['price'] = priceBasedOnSize.value.price;
+      } else {
+        cart_item['size'] = selectedSizeId.value;
+        cart_item['price'] = data.value.sizes[0].price;
+      }
+
+      addToCart(cart_item);
+
+    }
+
+
+
+    const selectedOptions = ref({
+      cloth: "",
+      color: "",
+      lining: "",
+      button: "",
+    })
     const selectedSizeId = ref(null);
-    const body_sizes = ref({ height: "", shoulder_width: "", waist_size: "" });
+    const body_sizes = ref({
+      height: user.value.height != undefined ? user.value.height : "",
+      shoulder_width: user.value.shoulder_width != undefined ? user.value.shoulder_width : "",
+      waist_size: user.value.waist_size != undefined ? user.value.waist_size : ""
+    });
 
 
 
@@ -402,7 +441,9 @@ export default defineComponent({
       showImagePrev,
       sizes_o,
       body_sizes,
-      selectedSizeId
+      selectedSizeId,
+      selectedOptions,
+      addToCartLocal
     };
   },
 });
