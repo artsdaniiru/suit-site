@@ -36,12 +36,12 @@ $request = json_decode(file_get_contents('php://input'), true);
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
     echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
     exit;
- }
+}
 
- $user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($action) {
-    case 'edit_user':
+    case 'edit_client':
         $updateFields = [];
 
         // Используем функцию для добавления полей
@@ -76,7 +76,7 @@ switch ($action) {
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
-            break;
+        break;
     case 'edit_password':
         $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
         $sql = "UPDATE clients 
@@ -102,7 +102,7 @@ switch ($action) {
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
-    
+
         break;
     case 'edit_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
@@ -143,7 +143,8 @@ switch ($action) {
 
 $conn->close();
 
-function addFieldToUpdate(&$updateFields, $request, $fieldName) {
+function addFieldToUpdate(&$updateFields, $request, $fieldName)
+{
     if (isset($request[$fieldName])) {
         $fieldValue = $request[$fieldName];
         $updateFields[] = "$fieldName='$fieldValue'";
