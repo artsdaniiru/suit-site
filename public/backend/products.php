@@ -34,6 +34,16 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая
 $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
 $popular = isset($_GET['popular']) && $_GET['popular'] == '1'; // Параметр фильтрации рекомендованных товаров
 $productType = isset($_GET['productType']) ? $_GET['productType'] : ''; // Фильтр по типу продукта (suit или not_suit)
+$withSize = isset($_GET['withSize']) ? $_GET['withSize'] : 'false'; // с размерами
+
+$withSize = boolval($withSize);
+
+$ON = '';
+$byIds = isset($_GET['ids']) ? $_GET['ids'] : '';
+
+if ($byIds != '') {
+    $ON = 'AND p.id IN (' . $byIds . ')';
+}
 
 // Определение сортировки в зависимости от параметра $sort
 switch ($sort) {
@@ -46,7 +56,7 @@ switch ($sort) {
     case 'lowest_price':
         $orderBy = 'min_price ASC'; // Товары с наименьшей минимальной ценой
         break;
-    case 'recomended':
+    case 'recommended':
         $orderBy = 'popular DESC'; // Рекомендованные товары
         break;
     default:
@@ -83,7 +93,7 @@ $sql = "SELECT p.*, MIN(i.price) as min_price, COALESCE(MIN(im.image_path), NULL
         FROM products p
         JOIN sizes i ON p.id = i.product_id
         LEFT JOIN product_images im ON p.id = im.product_id
-        WHERE p.active=1 $searchCondition $popularCondition $productTypeCondition
+        WHERE p.active=1 $searchCondition $popularCondition $productTypeCondition $ON
         GROUP BY p.id
         ORDER BY $orderBy
         LIMIT $offset, $itemsPerPage";
@@ -98,6 +108,36 @@ $products = [];
 // Сохранение результатов в массив
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
+
+        if ($withSize) {
+            // SQL-запрос (к sizes)
+            $sql = "SELECT * FROM sizes
+            WHERE product_id={$row['id']}";
+
+            $result_s = $conn->query($sql);
+
+            $sizes = [];
+
+            // Удаляем null поля из массива
+            if ($result_s->num_rows > 0) {
+                while ($row_s = $result_s->fetch_assoc()) {
+                    // Применяем array_filter к каждой строке размеров
+                    $sizes[] = array_filter($row_s, function ($value) {
+                        return !is_null($value);
+                    });
+                }
+            }
+
+            // Сохранение результатов в массив
+            if ($result_s->num_rows > 0) {
+                while ($row_s = $result_s->fetch_assoc()) {
+                    $sizes[] = $row_s;
+                }
+            }
+            $row['sizes'] = $sizes;
+        }
+
+
         $products[] = $row;
     }
 }
@@ -106,7 +146,7 @@ if ($result->num_rows > 0) {
 $totalCountResult = $conn->query("SELECT COUNT(DISTINCT p.id) as count 
                                   FROM products p 
                                   JOIN sizes i ON p.id = i.product_id
-                                  WHERE 1=1 $searchCondition $popularCondition $productTypeCondition");
+                                  WHERE p.active=1 $searchCondition $popularCondition $productTypeCondition $ON");
 
 if (!$totalCountResult) {
     echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества товаров: ' . $conn->error]);

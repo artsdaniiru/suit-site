@@ -2,187 +2,77 @@
   <h2 style="text-align: left">カート</h2>
 
   <div class="product-list">
-    <div class="product-cart">
-      <div class="product-info">
-        <div class="product-img">
-          <img :src="image" :alt="name" class="product-image" />
-        </div>
-        <div class="price-info">
-          <div class="price-title">
-            <h3 class="product-title">{{ name }}</h3>
-            <p class="product-title">{{ englishName }}</p>
-            <div class="price-size">
-              <div class="size-price">
-                <span class="font-weight">身長</span>
-                <span>150cm</span>
+
+    <template v-if="!is_loading">
+      <div class="product-cart" v-for="item in computedCart" :key="item">
+        <div class="product-info">
+
+          <img :src="items[item.id].image_path" :alt="name" class="product-image" />
+
+          <div class="price-info">
+            <div class="price-title">
+              <h3 class="product-title">{{ items[item.id].name }}</h3>
+              <p class="product-title">{{ englishName }}</p>
+              <div class="price-size">
+                <template v-if="items[item.id].type == 'suit'">
+                  <div class="size-price">
+                    <span class="font-weight">身長</span>
+                    <span>{{ item.body_sizes.height }}cm</span>
+                  </div>
+                  <div class="size-price">
+                    <span class="font-weight">肩幅</span>
+                    <span>{{ item.body_sizes.shoulder_width }}cm</span>
+                  </div>
+                  <div class="size-price">
+                    <span class="font-weight">ウェストサイズ</span>
+                    <span>{{ item.body_sizes.waist_size }}cm</span>
+                  </div>
+                </template>
+                <div v-else class="size-price">
+                  <span class="font-weight">サイズ</span>
+                  <span>{{ items[item.id].sizes[item.size].name }}</span>
+                </div>
+
+                <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
               </div>
-              <div class="size-price">
-                <span class="font-weight">肩幅</span>
-                <span>40cm</span>
+            </div>
+            <div class="option-price" v-if="items[item.id].type == 'suit'">
+              <div class="option-wrap" v-if="item.options.cloth.id != ''">
+                <span class="font-weight">生地の種類</span>
+                <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
               </div>
-              <div class="size-price">
-                <span class="font-weight">ウェストサイズ</span>
-                <span>70cm</span>
+              <div class="option-wrap" v-if="item.options.color.id != ''">
+                <span class="font-weight">生地の色</span>
+                <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
               </div>
-              <span class="final-price font-weight">30,000￥</span>
-            </div>
-          </div>
-          <div class="option-price">
-            <div class="option-wrap">
-              <span class="font-weight">生地の種類</span>
-              <span
-                >コットン (綿) <span class="font-weight">+1000￥</span></span
-              >
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">生地の色</span>
-              <span>赤 (あか) <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">裏地の種類</span>
-              <span>サテン裏地 <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">ボタンの種類</span>
-              <span
-                >プラスチックボタン
-                <span class="font-weight">+1000￥</span></span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="product-final-price">
-        <div class="delete-box"><a class="product-delete">Delete</a></div>
-        <div class="final-price">
-          <span>会計</span>
-          <span>100,000￥</span>
-        </div>
-      </div>
-    </div>
-    <div class="product-cart">
-      <div class="product-info">
-        <div class="product-img">
-          <img :src="image" :alt="name" class="product-image" />
-        </div>
-        <div class="price-info">
-          <div class="price-title">
-            <h3 class="product-title">{{ name }}</h3>
-            <p class="product-title">{{ englishName }}</p>
-            <div class="price-size">
-              <div class="size-price">
-                <span class="font-weight">身長</span>
-                <span>150cm</span>
+              <div class="option-wrap" v-if="item.options.lining.id != ''">
+                <span class="font-weight">裏地の種類</span>
+                <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
               </div>
-              <div class="size-price">
-                <span class="font-weight">肩幅</span>
-                <span>40cm</span>
+              <div class="option-wrap" v-if="item.options.button.id != ''">
+                <span class="font-weight">ボタンの種類</span>
+                <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
               </div>
-              <div class="size-price">
-                <span class="font-weight">ウェストサイズ</span>
-                <span>70cm</span>
-              </div>
-              <span class="final-price font-weight">30,000￥</span>
-            </div>
-          </div>
-          <div class="option-price">
-            <div class="option-wrap">
-              <span class="font-weight">生地の種類</span>
-              <span
-                >コットン (綿) <span class="font-weight">+1000￥</span></span
-              >
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">生地の色</span>
-              <span>赤 (あか) <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">裏地の種類</span>
-              <span>サテン裏地 <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">ボタンの種類</span>
-              <span
-                >プラスチックボタン
-                <span class="font-weight">+1000￥</span></span
-              >
             </div>
           </div>
         </div>
-      </div>
-      <div class="product-final-price">
-        <div class="delete-box"><a class="product-delete">Delete</a></div>
-        <div class="final-price">
-          <span>会計</span>
-          <span>100,000￥</span>
-        </div>
-      </div>
-    </div>
-    <div class="product-cart">
-      <div class="product-info">
-        <div class="product-img">
-          <img :src="image" :alt="name" class="product-image" />
-        </div>
-        <div class="price-info">
-          <div class="price-title">
-            <h3 class="product-title">{{ name }}</h3>
-            <p class="product-title">{{ englishName }}</p>
-            <div class="price-size">
-              <div class="size-price">
-                <span class="font-weight">身長</span>
-                <span>150cm</span>
-              </div>
-              <div class="size-price">
-                <span class="font-weight">肩幅</span>
-                <span>40cm</span>
-              </div>
-              <div class="size-price">
-                <span class="font-weight">ウェストサイズ</span>
-                <span>70cm</span>
-              </div>
-              <span class="final-price font-weight">30,000￥</span>
-            </div>
-          </div>
-          <div class="option-price">
-            <div class="option-wrap">
-              <span class="font-weight">生地の種類</span>
-              <span
-                >コットン (綿) <span class="font-weight">+1000￥</span></span
-              >
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">生地の色</span>
-              <span>赤 (あか) <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">裏地の種類</span>
-              <span>サテン裏地 <span class="font-weight">+1000￥</span></span>
-            </div>
-            <div class="option-wrap">
-              <span class="font-weight">ボタンの種類</span>
-              <span
-                >プラスチックボタン
-                <span class="font-weight">+1000￥</span></span
-              >
-            </div>
+        <div class="product-final-price">
+          <div class="delete-box" @click="deleteFromCart(item.id)"><span class="product-delete">Delete</span></div>
+          <div class="final-price">
+            <span>金額</span>
+            <span>{{ formattedPrice(item.totalPrice) }}</span>
           </div>
         </div>
       </div>
-      <div class="product-final-price">
-        <div class="delete-box"><a class="product-delete">Delete</a></div>
-        <div class="final-price">
-          <span>会計</span>
-          <span>100,000￥</span>
-        </div>
-      </div>
-    </div>
+    </template>
+
   </div>
 
   <div class="checkout-box">
     <div class="list-pricebox">
       <div class="list-price">
         <span>会計</span>
-        <span>100,000￥</span>
+        <span>{{ formattedPrice(totalPrice) }}</span>
       </div>
       <div class="list-btn">
         <router-link to="/catalog"><span>戻る</span></router-link>
@@ -193,45 +83,135 @@
 </template>
 
 <script>
-import { defineComponent, computed } from "vue";
+import { defineComponent, inject, onBeforeMount, ref, computed } from "vue";
+import axios from "axios";
+import { useRouter } from 'vue-router'
+
 
 export default defineComponent({
-  methods: {
-    goToAboutPage() {
-      this.$router.push("../checkout");
-    },
-  },
-  name: "ProductCard",
-  props: {
-    name: {
-      type: String,
-      default: "クラシックネイビー",
-    },
-    englishName: {
-      type: String,
-      default: "Classic Navy",
-    },
-    price: {
-      type: Number,
-      default: 28000,
-    },
-    image: {
-      type: String,
-      default: "images/suit.webp",
-    },
-    width: {
-      type: String,
-      default: "-webkit-fill-available",
-    },
-  },
-  setup(props) {
-    // Вычисляемое свойство для форматирования цены
-    const formattedPrice = computed(
-      () => `¥${props.price.toLocaleString("ja-JP")}〜`
-    );
+  name: "CartView",
+  setup() {
+
+    const router = useRouter();
+    const items = ref({});
+    const { cart, deleteFromCart } = inject("cart");
+    const is_loading = ref(false);
+    const options = ref({});
+
+    // Преобразование размеров
+    function fix_sizes_ids(sizes) {
+      let n_sizes = {};
+      sizes.forEach((val) => {
+        n_sizes[val.id] = val;
+      });
+      return n_sizes;
+    }
+
+    // Форматирование цены
+    function formattedPrice(price) {
+      return `¥${Number(price).toLocaleString("ja-JP")}`;
+    }
+
+    // Цена опции
+    function optionPrice(option) {
+      if (option.free) {
+        return 0;
+      } else {
+        if (option.id == "") return 0;
+        return options.value[option.id]?.price || 0;
+      }
+    }
+
+    // Рассчитываем итоговую цену для каждого товара
+    const computedCart = computed(() => {
+      return cart.value.map((item) => {
+        const basePrice = items.value[item.id]?.sizes[item.size]?.price || 0;
+        const optionPriceSum = Object.values(item.options || {}).reduce(
+          (total, option) => Number(total) + Number(optionPrice(option)),
+          0
+        );
+        const totalPrice = Number(basePrice) + Number(optionPriceSum);
+        return {
+          ...item,
+          totalPrice,
+        };
+      });
+    });
+
+    // Рассчитываем общую цену корзины
+    const totalPrice = computed(() => {
+      return computedCart.value.reduce((sum, item) => sum + item.totalPrice, 0);
+    });
+
+    // Получение товаров
+    const fetchProducts = async () => {
+      is_loading.value = true;
+      try {
+        const p_ids = cart.value.map((val) => val.id);
+        const url = `${process.env.VUE_APP_BACKEND_URL}/backend/products.php?itemsPerPage=1000&ids=${p_ids.join()}`;
+        const response = await axios.get(url, { withCredentials: true });
+
+        if (Array.isArray(response.data.products)) {
+          let items_obj = {};
+          response.data.products.forEach((product) => {
+            items_obj[product.id] = {
+              id: product.id,
+              ...product,
+              sizes: fix_sizes_ids(product.sizes),
+            };
+          });
+          items.value = items_obj;
+        } else {
+          console.error("Ошибка: ожидался массив товаров");
+        }
+      } catch (error) {
+        console.error("Ошибка при получении товаров:", error);
+      } finally {
+        is_loading.value = false;
+      }
+    };
+
+    // Получение опций
+    const fetchAllOptions = async () => {
+      try {
+        const url = `${process.env.VUE_APP_BACKEND_URL}/backend/options.php?action=list_all_options&itemsPerPage=1000`;
+        const response = await axios.get(url, { withCredentials: true });
+
+        if (response.data.status === "success") {
+          let options_edit = {};
+          response.data.options.forEach((val) => {
+            options_edit[val.id] = val;
+          });
+          options.value = options_edit;
+        } else {
+          console.error("Ошибка: ожидался массив опций");
+        }
+      } catch (error) {
+        console.error("Ошибка при получении опций:", error);
+      }
+    };
+
+    // Переход на страницу оформления
+    const goToAboutPage = () => {
+      router.push("/checkout");
+    };
+
+    onBeforeMount(() => {
+      fetchAllOptions();
+      fetchProducts();
+    });
 
     return {
+      items,
+      cart,
+      deleteFromCart,
+      is_loading,
+      options,
       formattedPrice,
+      optionPrice,
+      computedCart,
+      totalPrice,
+      goToAboutPage,
     };
   },
 });
@@ -248,6 +228,7 @@ h3 {
   font-size: 24px;
   margin: 0;
 }
+
 .product-title {
   margin: 0;
 }
@@ -264,6 +245,17 @@ h3 {
     gap: 24px;
     margin: 24px 0 24px 24px;
 
+
+
+
+    .product-image {
+      width: 160px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+
     .price-title {
       margin-bottom: 16px;
     }
@@ -271,6 +263,7 @@ h3 {
     .price-size {
       display: flex;
       gap: 12px;
+      align-items: baseline;
 
       .size-price {
         width: max-content;
@@ -279,11 +272,13 @@ h3 {
         align-items: baseline;
       }
     }
+
     .option-wrap {
       display: flex;
       justify-content: space-between;
     }
   }
+
   .product-final-price {
     display: flex;
     flex-direction: column;
@@ -293,21 +288,24 @@ h3 {
       display: flex;
       gap: 16px;
       margin: 10px 24px;
+
       span {
         font-weight: 600;
-        font-size: 24px;
+        font-size: 18px;
       }
     }
 
     .delete-box {
       text-align: right;
       margin: 24px 24px 0 24px;
+      cursor: pointer;
 
       .product-delete {
         width: min-content;
         font-weight: 400;
         color: #ec221f;
         position: relative;
+
         &::before {
           content: url(../assets/icons/delete.svg);
           display: block;
@@ -349,6 +347,7 @@ h3 {
       align-items: center;
       display: flex;
       padding: 10px;
+
       &:hover,
       &.router-link-exact-active {
         background: #f5f5f5;
@@ -357,12 +356,5 @@ h3 {
       }
     }
   }
-}
-
-.product-image {
-  width: 100%;
-}
-.product-img {
-  width: 30%;
 }
 </style>

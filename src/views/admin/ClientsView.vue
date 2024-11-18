@@ -3,8 +3,7 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
             <div class="filters">
-                <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
-                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" :notSelect="true" />
             </div>
         </div>
         <!-- Отображение товаров -->
@@ -14,7 +13,7 @@
         <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
         <CustomModal v-model="closeFlag" :title="'顧客情報変更'">
-            <EditClient :client_id="client_id" />
+            <EditClient :client_id="client_id" @clientUpdate="fetchProducts" @clientDelete="fetchProducts" />
         </CustomModal>
     </div>
 </template>
@@ -35,7 +34,7 @@ export default defineComponent({
         const is_loading = ref(true);
         const headers = ref([
             { name: "名前", field: "name", sortable: true },
-            { name: "ログイン", field: "login", sortable: true },
+            { name: "ログイン", field: "login" },
             { name: "メールアドレス", field: "email", sortable: true },
             { name: "登録日", field: "date_of_registration", sortable: true }
         ]);
@@ -63,7 +62,6 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                console.log(sortOrder.value);
 
                 let sort = '';
 
@@ -72,16 +70,12 @@ export default defineComponent({
                         case 'name':
                             sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
                             break;
-                        case 'name_eng':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+                        case 'date_of_registration':
+                            sortOrder.value.ascending == true ? sort = '&sort=date_asc' : sort = '&sort=date_desc'
                             break;
-                        case 'min_price':
-                            sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+                        case 'email':
+                            sortOrder.value.ascending == true ? sort = '&sort=email_asc' : sort = '&sort=email_desc'
                             break;
-                        case 'active':
-                            sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
-                            break;
-
                         default:
                             break;
                     }
@@ -122,12 +116,12 @@ export default defineComponent({
                 console.log(response);
 
                 // Убедимся, что товары приходят в поле `products`
-                if (Array.isArray(response.data.users)) {
+                if (Array.isArray(response.data.clients)) {
                     // Преобразуем данные (например, конвертируем цену в число)
-                    items.value = response.data.users.map(user => ({
-                        ...user
+                    items.value = response.data.clients.map(client => ({
+                        ...client
                     }));
-                    // totalPages.value = response.data.pagination.totalPages
+                    totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);

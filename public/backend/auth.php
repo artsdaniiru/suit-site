@@ -130,6 +130,10 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         // Удаляем поля 'login' и 'password' из массива
         unset($user['login'], $user['password']);
 
+        $user['height'] = intval($user['height']);
+        $user['shoulder_width'] = intval($user['shoulder_width']);
+        $user['waist_size'] = intval($user['waist_size']);
+
         // Возвращаем оставшиеся данные пользователя
         echo json_encode([
             "status" => "success",
@@ -138,6 +142,28 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode(["status" => "error", "message" => "Invalid token."]);
     }
+} elseif ($action === 'update_cart' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $cart = json_encode($request['cart']);
+
+    // Проверка сессии
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
+        echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
+        exit;
+    }
+    $auth_token = $_SESSION['auth_token'];
+
+
+    $sql = "UPDATE clients SET cart = '$cart' WHERE auth_token = '$auth_token'";
+
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(["status" => "success", "message" => "Cart has been updated"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Error updating record: " . $conn->error]);
+    }
+
+
+    // Получение данных пользователя по токену
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action or request method."]);
 }

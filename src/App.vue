@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { defineComponent, provide, ref, onBeforeMount, computed } from 'vue';
+import { defineComponent, provide, ref, onBeforeMount, computed, watch } from 'vue';
 import axios from 'axios';
 
 import MainHeader from './components/MainHeader.vue';
@@ -29,18 +29,71 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
 
-    const cart_count = ref(0);
+    const cart = ref(localStorage.getItem('cart') === null ? [] : JSON.parse(localStorage.getItem('cart')));
+
+    watch(cart, (newValue) => {
+      localStorage.setItem('cart', JSON.stringify(newValue));
+      if (isUserLoggedIn.value) {
+        updateCartInBackend();
+      }
+    }, { deep: true });
+
+    async function updateCartInBackend() {
+      const auth_token = localStorage.getItem('auth_token');
+      if (!auth_token) {
+        console.log('No auth token found, site is available for guests');
+        return;
+      }
+
+      try {
+        const response = await axios.post(process.env.VUE_APP_BACKEND_URL + '/backend/auth.php?action=update_cart', {
+          cart: cart.value
+        }, {
+          withCredentials: true
+        });
+
+        console.log(response);
 
 
-    // Функция для обновления количества в корзине
-    function updateCount() {
-      cart_count.value++;
+        if (response.data.status === 'success') {
+          console.log('Cart updated successfully');
+        } else {
+          console.error('Error:', response.data.message);
+        }
+      } catch (error) {
+        console.error('An error occurred while updating cart:', error);
+      }
+    }
+
+
+
+    function addToCart(item) {
+      cart.value.push(item);
+    }
+
+    function deleteFromCart(id) {
+      cart.value = cart.value.filter(item => item.id !== id);
+    }
+
+    function updateCartItem(id, updatedItem) {
+      cart.value = cart.value.map(item => {
+        if (item.id === id) {
+          return { ...item, ...updatedItem }; // Обновляем только нужные поля
+        }
+        return item; // Возвращаем неизмененный элемент
+      });
+    }
+    function updateCart(cart) {
+      cart.value = cart;
     }
 
     // Предоставляем контекст для других компонентов
-    provide('cart_count', {
-      cart_count,
-      updateCount,
+    provide('cart', {
+      cart,
+      addToCart,
+      deleteFromCart,
+      updateCartItem,
+      updateCart
     });
 
 
@@ -70,6 +123,11 @@ export default defineComponent({
           user.value = response.data.user; // Сохраняем данные пользователя
           isUserLoggedIn.value = true; // Устанавливаем флаг авторизации
           console.log('User data:', user.value); // Выводим в консоль
+          if (response.data.user.cart != null) {
+            cart.value = JSON.parse(response.data.user.cart);
+            localStorage.setItem('cart', JSON.stringify(cart.value));
+          }
+
         } else {
           console.error('Error:', response.data.message);
           // localStorage.removeItem('auth_token'); // Удаляем токен, если он недействителен
@@ -206,7 +264,6 @@ export default defineComponent({
 
 
     return {
-      cart_count,
       user,
       isUserLoggedIn, // Возвращаем флаг авторизации
       isAdminPage,

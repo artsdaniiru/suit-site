@@ -17,25 +17,48 @@
                         <span class="number">{{ data.order.card_number }}</span>
                     </div>
                 </div>
-
-
-
             </div>
 
             <div class="side">
                 <span class="label">配達</span>
                 <div class="address">
-                    <img class="delete" src="@/assets/icons/delete-admin.svg" alt="close">
+                    <span class="name">{{ data.order.client_name }}</span>
                     <span class="address-full">{{ data.order.address }}</span>
                     <span class="phone"><strong>電話番号：</strong> {{ data.order.phone }}</span>
-                    <img class="edit" src="@/assets/icons/pencil.svg" alt="edit">
+                    <img class="edit" src="@/assets/icons/pencil.svg" alt="edit" @click="openEditAddressModal">
                 </div>
             </div>
         </div>
         <div class="order">
             <span class="label">注文内容</span>
+            <div class="order-item" v-for="(item, key) in data.products" :key="item">
+                <img class="image" src="/Image.png" alt="product">
+                <div class="info">
+                    <span class="name">商品名</span>
+                    <div class="elem">
+                        <span class="name">サイズ</span>
+                        <span class="value">M <strong>10000¥</strong></span>
+                    </div>
+                    <div class="elem">
+                        <span class="name">生地の種類</span>
+                        <span class="value">赤 (あか) <strong>+1000¥</strong></span>
+                    </div>
+                    <!-- Additional options can be added here -->
 
+                    <!-- Product Price under Options -->
+                    <span class="price">{{ item.product.price }}¥</span>
+                </div>
+
+                <!-- Edit and Delete icons -->
+                <img class="edit" src="@/assets/icons/pencil.svg" alt="edit" @click="editProduct(key)">
+                <img class="delete" src="@/assets/icons/delete-admin.svg" alt="delete" @click="deleteProduct(key)">
+            </div>
         </div>
+        <!-- Total Price -->
+        <div class="total-price">
+            <span>合計金額: </span><strong>{{ totalOrderPrice }}¥</strong>
+        </div>
+
         <div class="actions">
             <div class="dates">
                 <!-- <div class="date">
@@ -58,14 +81,58 @@
             <button class="button" @click="deleteModalFlag = false;">戻る</button>
         </div>
     </CustomModal>
+    <CustomModal class="edit-product" v-model="editProductModalFlag" :title="'商品編集'" :in_modal="true">
+        <div class="edit-product-modal">
+            <div class="form">
+                <!-- Product Image -->
+                <div class="product-image">
+                    <img src="/Image.png" alt="product">
+                </div>
+
+                <!-- Product Details Form -->
+                <div class="product-details">
+                    <CustomInput v-model="productEditData.size" labelText="サイズ" placeholderText="Enter size" />
+                    <CustomSelect :values="{ S: 'Small', M: 'Medium', L: 'Large' }" v-model="productEditData.size" :labelText="'サイズ選択'" />
+                    <CustomSelect :values="{ wool: 'Wool', cotton: 'Cotton', silk: 'Silk' }" v-model="productEditData.material" :labelText="'生地の種類'" />
+                    <CustomSelect :values="{ red: 'Red', blue: 'Blue', black: 'Black' }" v-model="productEditData.color" :labelText="'色選択'" />
+                    <CustomSelect :values="{ round: 'Round', square: 'Square', diamond: 'Diamond' }" v-model="productEditData.buttonType" :labelText="'ボタンの種類'" />
+                </div>
+            </div>
+
+
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button class="button" @click="saveProductEdit">保存</button>
+                <button class="button button-plain" @click="editProductModalFlag = false">キャンセル</button>
+            </div>
+        </div>
+    </CustomModal>
+    <CustomModal v-model="editAddressModalFlag" :title="'住所編集'" :in_modal="true">
+        <div class="edit-address-modal">
+            <CustomInput v-model="addressEditData.name" labelText="名前" placeholderText="Enter name" />
+            <CustomInput v-model="addressEditData.address" labelText="住所" placeholderText="Enter address" />
+            <CustomInput v-model="addressEditData.phone" labelText="電話番号" placeholderText="Enter phone number" />
+
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button class="button" @click="saveAddressEdit">保存</button>
+                <button class="button button-plain" @click="editAddressModalFlag = false">キャンセル</button>
+            </div>
+        </div>
+    </CustomModal>
+
 
 </template>
 <script>
+import CustomModal from "@/components/CustomModal.vue";
 import axios from "axios";
-import { defineComponent, ref, onMounted, watch } from "vue";
+import { defineComponent, ref, onMounted, watch, computed } from "vue";
 
 export default defineComponent({
     name: "EditOrder",
+    components: {
+        CustomModal,
+    },
     props: {
         order_id: {
             type: Number,
@@ -102,33 +169,69 @@ export default defineComponent({
         });
 
 
+        const edit_product_id = ref(null);
+
+        const productEditData = ref({
+            size: '',
+            material: '',
+            color: '',
+            buttonType: ''
+        });
+
+        function editProduct(id) {
+            edit_product_id.value = id;
+            editProductModalFlag.value = true;
+            // Load product details here if needed, for now, example defaults are set.
+            productEditData.value = {
+                size: 'M', // Example default value
+                material: 'cotton',
+                color: 'blue',
+                buttonType: 'round'
+            };
+        }
+
+        function saveProductEdit() {
+            // Logic to save the edited product data
+            console.log("Product Edited:", productEditData.value);
+            editProductModalFlag.value = false; // Close modal after saving
+        }
+
+        const deleteProduct = (index) => {
+            data.value.products.splice(index, 1); // Remove the product at the specified index
+        };
+
+        const totalOrderPrice = computed(() => {
+            return data.value.products.reduce((total, item) => total + (item.product.price || 0), 0);
+        });
+
 
         const deleteModalFlag = ref(false);
+        const editProductModalFlag = ref(false);
 
         // Следим за изменениями modelValue
-        watch(() => deleteModalFlag.value, () => {
+        watch([deleteModalFlag.value, editProductModalFlag.value], () => {
             document.body.classList.add('no-scroll');
         });
 
-        // Метод для удаления товара
+        // Метод для удаления заказа
         const deleteAction = async () => {
             try {
-                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_product&order_id=' + data.value.product.id, {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=delete_order&order_id=' + props.order_id, {
                     withCredentials: true
                 });
 
                 if (response.data.status == "success") {
-                    emit("productDelete");
+                    emit("orderDelete");
                 } else {
-                    console.error("Ошибка при удалении товара:", response.data.status);
+                    console.error("Ошибка при удалении заказа:", response.data.status);
                 }
 
             } catch (error) {
-                console.error("Ошибка при удалении товара:", error);
+                console.error("Ошибка при удалении заказа:", error);
             }
         };
 
-        // Метод для получения товара
+        // Метод для получения заказа
         const fetchAction = async () => {
             try {
                 const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=get_order&order_id=' + props.order_id, {
@@ -144,11 +247,11 @@ export default defineComponent({
                     data_original.value = JSON.parse(JSON.stringify(raw_data));
 
                 } else {
-                    console.error("Ошибка при получении товара:", response.data.status);
+                    console.error("Ошибка при получении заказа:", response.data.status);
                 }
 
             } catch (error) {
-                console.error("Ошибка при получении товара:", error);
+                console.error("Ошибка при получении заказа:", error);
             }
         };
 
@@ -156,8 +259,8 @@ export default defineComponent({
             try {
 
 
-                const productResponse = await axios.post(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&order_id=' + data.value.product.id,
+                const response = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/orders.php?action=edit_order&order_id=' + props.order_id,
                     {
                         data: data.value,
                         data_original: data_original.value
@@ -166,21 +269,49 @@ export default defineComponent({
                 );
 
 
-                if (productResponse.data.status !== "success") {
-                    console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                if (response.data.status !== "success") {
+                    console.error("Ошибка при сохранении заказа:", response.data.message);
                     return;
                 } else {
                     setTimeout(() => {
-                        emit("productUpdate");
+                        emit("orderUpdate");
                         fetchAction();
                     }, 200);
 
                 }
             } catch (error) {
-                console.error("Ошибка при сохранении продукта:", error);
+                console.error("Ошибка при сохранении заказа:", error);
             }
         };
 
+
+        const editAddressModalFlag = ref(false); // Controls the visibility of the address edit modal
+        const addressEditData = ref({
+            name: '',
+            address: '',
+            phone: ''
+        });
+
+        // Method to open the address edit modal
+        const openEditAddressModal = () => {
+            // Populate `addressEditData` with the current address information
+            addressEditData.value = {
+                name: data.value.order.client_name,
+                address: data.value.order.address,
+                phone: data.value.order.phone
+            };
+            editAddressModalFlag.value = true;
+        };
+
+        // Method to save the edited address
+        const saveAddressEdit = () => {
+            // Update the address in `data` with the edited values
+            data.value.order.client_name = addressEditData.value.name;
+            data.value.order.address = addressEditData.value.address;
+            data.value.order.phone = addressEditData.value.phone;
+
+            editAddressModalFlag.value = false; // Close the modal
+        };
 
 
         onMounted(() => {
@@ -193,8 +324,21 @@ export default defineComponent({
             areDataEqual,
             saveAction,
             deleteAction,
-            deleteModalFlag
+            deleteModalFlag,
+            editProductModalFlag,
+            editProduct,
+            edit_product_id,
+            productEditData,
+            saveProductEdit,
+            deleteProduct,
+            totalOrderPrice,
+            // Address editing
+            editAddressModalFlag,   // Controls the visibility of the address edit modal
+            openEditAddressModal,   // Opens the address edit modal with current data
+            addressEditData,        // Holds the data for editing the address
+            saveAddressEdit         // Saves the changes made to the address
         };
+
     }
 });
 </script>
@@ -287,6 +431,86 @@ export default defineComponent({
             }
 
 
+            .edit {
+                position: absolute;
+                bottom: 12px;
+                right: 12px;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+        }
+
+
+
+
+
+
+
+    }
+
+    .order {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding-left: 10px;
+        padding-right: 10px;
+
+        .order-item {
+            display: flex;
+            gap: 24px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
+
+            .image {
+                width: 70px;
+                height: 70px;
+                object-fit: cover;
+                border-radius: 5px;
+            }
+
+            .info {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                width: 220px;
+
+                .name {
+                    font-weight: 600;
+                    font-size: 16px;
+                    line-height: 120%;
+                }
+
+                .elem {
+                    display: flex;
+                    justify-content: space-between;
+
+                    .name {
+                        font-weight: 600;
+                        font-size: 12px;
+                        line-height: 140%;
+                    }
+
+                    .value {
+                        font-weight: 400;
+                        font-size: 12px;
+                        line-height: 140%;
+                    }
+                }
+
+                .price {
+                    font-weight: 600;
+                    font-size: 16px;
+                    line-height: 120%;
+                    margin-top: 8px; // Adjust margin to position under options
+                }
+            }
+
             .delete {
                 position: absolute;
                 top: 12px;
@@ -305,13 +529,15 @@ export default defineComponent({
                 cursor: pointer;
             }
         }
+    }
 
-
-
-
-
-
-
+    .total-price {
+        display: flex;
+        justify-content: flex-end;
+        font-size: 18px;
+        font-weight: 600;
+        padding-right: 10px;
+        margin-top: 16px;
     }
 
     .actions {
@@ -339,6 +565,44 @@ export default defineComponent({
         }
     }
 }
+
+.edit-product-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+
+        .product-image {
+            display: flex;
+
+            img {
+                width: 100px;
+                height: 100px;
+                border-radius: 5px;
+                object-fit: cover;
+            }
+        }
+
+        .product-details {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+}
+
 
 
 .modal.delete {

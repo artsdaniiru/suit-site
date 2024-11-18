@@ -13,7 +13,7 @@
         </div>
 
         <!-- Настройки пагинации -->
-        <CustomSelect :values="{ 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" />
+        <CustomSelect :values="{ 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" :notSelect="true" />
 
       </div>
     </div>
@@ -66,25 +66,25 @@ export default defineComponent({
 
         let sort = '';
 
-        // if (sortOrder.value.index != null) {
-        //   switch (headers.value[sortOrder.value.index].field) {
-        //     case 'name':
-        //       sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
-        //       break;
-        //     case 'name_eng':
-        //       sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
-        //       break;
-        //     case 'min_price':
-        //       sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
-        //       break;
-        //     case 'active':
-        //       sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
-        //       break;
 
-        //     default:
-        //       break;
-        //   }
-        // }
+        switch (sortBy.value) {
+          case 'new':
+            sort = '&sort=newest';
+            break;
+          case 'lowToHigh':
+            sort = '&sort=lowest_price'
+            break;
+          case 'highToLow':
+            sort = '&sort=highest_price'
+            break;
+          case 'recommended':
+            sort = '&sort=recommended';
+            break;
+
+          default:
+            break;
+        }
+
 
         let q_filter = '';
         switch (filter.value) {
@@ -140,41 +140,12 @@ export default defineComponent({
 
 
 
-    // // Логика сортировки
-    // const sortedItems = computed(() => {
-
-    //   let to_filter = items;
-    //   to_filter = to_filter.filter((item) =>
-    //     item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    //   );
-
-    //   if (sortBy.value === "highToLow") {
-    //     return to_filter.sort((a, b) => b.price - a.price);
-    //   } else if (sortBy.value === "lowToHigh") {
-    //     return to_filter.sort((a, b) => a.price - b.price);
-    //   }
-    //   return to_filter;
-    // });
-
-    // // Логика пагинации
-    // const paginatedItems = computed(() => {
-    //   const start = (currentPage.value - 1) * itemsPerPage.value;
-    //   const end = start + itemsPerPage.value;
-
-    //   return sortedItems.value.slice(start, end);
-    // });
-
-    // const updateItemsPerPage = (value) => {
-    //   itemsPerPage.value = value;
-    //   currentPage.value = 1;
-    // };
-
     function sortItems(type) {
       sortBy.value = type;
       currentPage.value = 1;
     }
 
-    watch([itemsPerPage, filter, searchQuery], () => {
+    watch([itemsPerPage, filter, searchQuery, sortBy], () => {
       fetchProducts()
       currentPage.value = 1;
     });
@@ -194,8 +165,6 @@ export default defineComponent({
       sortBy,
       itemsPerPage,
       currentPage,
-      // paginatedItems,
-      // updateItemsPerPage,
       totalPages,
       sortItems,
       items

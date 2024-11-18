@@ -3,8 +3,8 @@
         <div class="actions">
             <SearchInput v-model="searchQuery" />
             <div class="filters">
-                <CustomSelect :values="{ active: '表示している', popular: '人気', suit: 'タイプ：スーツ', not_suit: 'タイプ：他' }" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
-                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="status_field_names" v-model="filter" :labelText="'フィルタリング'" :labelPosition="'side'" width="130px" />
+                <CustomSelect :values="{ 2: '2', 4: '4', 8: '8', 16: '16' }" v-model="itemsPerPage" :labelText="'表示件数'" :labelPosition="'side'" width="130px" :notSelect="true" />
             </div>
         </div>
         <!-- Отображение товаров -->
@@ -37,8 +37,17 @@ export default defineComponent({
             { name: "顧客名前", field: "client_name", sortable: true },
             { name: "状態", field: "status", sortable: true },
             { name: "メールアドレス", field: "email", sortable: true },
-            { name: "電話番号", field: "phone" }
+            { name: "電話番号", field: "phone", sortable: true },
+            { name: "作成日", field: "date_of_creation", sortable: true },
         ]);
+
+        const status_field_names = ref({
+            confirmed: '確定済(confirmed)',
+            processing: '処理中(processing)',
+            shipped: '発送済(shipped)',
+            in_transit: '配送中(in_transit)',
+            delivered: '配達済(delivered)'
+        });
 
         const items = ref([]); // Хранение товаров
         const searchQuery = ref("");
@@ -65,48 +74,37 @@ export default defineComponent({
         const fetchProducts = async () => {
             is_loading.value = true;
             try {
-                console.log(sortOrder.value);
 
                 let sort = '';
 
                 if (sortOrder.value.index != null) {
                     switch (headers.value[sortOrder.value.index].field) {
-                        case 'name':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_asc' : sort = '&sort=name_desc'
+                        case 'order_id':
+                            sortOrder.value.ascending ? sort = '&sort=id_asc' : sort = '&sort=id_desc';
                             break;
-                        case 'name_eng':
-                            sortOrder.value.ascending == true ? sort = '&sort=name_eng_asc' : sort = '&sort=name_eng_desc'
+                        case 'client_name':
+                            sortOrder.value.ascending ? sort = '&sort=name_asc' : sort = '&sort=name_desc';
                             break;
-                        case 'min_price':
-                            sortOrder.value.ascending == true ? sort = '&sort=lowest_price' : sort = '&sort=highest_price'
+                        case 'status':
+                            sortOrder.value.ascending ? sort = '&sort=status_asc' : sort = '&sort=status_desc';
                             break;
-                        case 'active':
-                            sortOrder.value.ascending == true ? sort = '&sort=active_asc' : sort = '&sort=active_desc'
+                        case 'email':
+                            sortOrder.value.ascending ? sort = '&sort=email_asc' : sort = '&sort=email_desc';
                             break;
-
+                        case 'phone':
+                            sortOrder.value.ascending ? sort = '&sort=phone_asc' : sort = '&sort=phone_desc';
+                            break;
+                        case 'date_of_creation':
+                            sortOrder.value.ascending ? sort = '&sort=date_asc' : sort = '&sort=date_desc';
+                            break;
                         default:
+                            sort = '&sort=id_desc';
                             break;
                     }
+
                 }
 
-                let q_filter = '';
-                switch (filter.value) {
-                    case 'active':
-                        q_filter = '&active=1';
-                        break;
-                    case 'popular':
-                        q_filter = '&popular=1';
-                        break;
-                    case 'suit':
-                        q_filter = '&productType=suit';
-                        break;
-                    case 'not_suit':
-                        q_filter = '&productType=not_suit';
-                        break;
-
-                    default:
-                        break;
-                }
+                let q_filter = filter.value ? `&status=${filter.value}` : '';
 
                 let query = '';
 
@@ -121,14 +119,15 @@ export default defineComponent({
                     withCredentials: true
                 });
 
-                console.log(response);
 
                 // Убедимся, что товары приходят в поле `products`
                 if (Array.isArray(response.data.orders)) {
                     // Преобразуем данные (например, конвертируем цену в число)
                     items.value = response.data.orders.map(order => ({
                         ...order,
-                        order_id: "#" + order.id.toString().padStart(5, '0')
+                        order_id: "#" + order.id.toString().padStart(5, '0'),
+                        status: status_field_names.value[order.status],
+                        date_of_creation: new Date(order.date_of_creation).toLocaleDateString('ja-JP')
                     }));
                     // totalPages.value = response.data.pagination.totalPages
                     is_loading.value = false;
@@ -180,6 +179,7 @@ export default defineComponent({
             order_id,
             editItem,
             fetchProducts,
+            status_field_names
         };
     },
 });

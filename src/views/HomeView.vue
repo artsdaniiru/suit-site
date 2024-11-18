@@ -46,8 +46,8 @@
             <h3>人気な商品</h3>
             <Carousel :items-to-show="3" :wrap-around="true">
                 <Slide v-for="item in popular" :key="item">
-                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price" :width="'270px'">
-                    </ProductCard>
+                    <ProductCard :item="item" :width="'270px'" />
+
                 </Slide>
                 <template #addons>
                     <Navigation />
@@ -59,8 +59,8 @@
             <h3>新品</h3>
             <Carousel :items-to-show="3" :wrap-around="true">
                 <Slide v-for="item in new_items" :key="item">
-                    <ProductCard :name="item.name" :name_eng="item.name_eng" :price="item.price" :width="'270px'">
-                    </ProductCard>
+                    <ProductCard :item="item" :width="'270px'" />
+
                 </Slide>
                 <template #addons>
                     <Navigation />
@@ -94,8 +94,8 @@
     </div>
 </template>
 <script>
-import { defineComponent, ref } from 'vue';
-
+import { defineComponent, onMounted, ref } from 'vue';
+import axios from "axios";
 
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import 'vue3-carousel/dist/carousel.css'
@@ -111,105 +111,50 @@ export default defineComponent({
     },
     setup() {
 
-        const popular = ref([
-            {
-                "name": "クラシックネイビー",
-                "name_eng": "Classic Navy",
-                "price": 28000
-            },
-            {
-                "name": "ミッドナイトブラック",
-                "name_eng": "Midnight Black",
-                "price": 30000
-            },
-            {
-                "name": "ロイヤルブルー",
-                "name_eng": "Royal Blue",
-                "price": 26500
-            },
-            {
-                "name": "チャコールシャドウ",
-                "name_eng": "Charcoal Shadow",
-                "price": 27500
-            },
-            {
-                "name": "サンセットブラウン",
-                "name_eng": "Sunset Brown",
-                "price": 22000
-            },
-            {
-                "name": "ワインレッド",
-                "name_eng": "Wine Red",
-                "price": 29000
-            },
-            {
-                "name": "フォレストグリーン",
-                "name_eng": "Forest Green",
-                "price": 23500
-            },
-            {
-                "name": "アーバンチャコール",
-                "name_eng": "Urban Charcoal",
-                "price": 31000
-            },
-            {
-                "name": "アイスグレー",
-                "name_eng": "Ice Gray",
-                "price": 24500
+        const popular = ref(null)
+        const new_items = ref(null)
+
+
+        const fetchProducts = async (type) => {
+
+            let filter = type == 'popular' ? '&is_popular=1' : '&is_new=1';
+
+            let url = process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=10' + filter;
+
+
+            const response = await axios.get(url, {
+                withCredentials: true
+            });
+
+            console.log(response);
+
+
+            // Убедимся, что товары приходят в поле `products`
+            if (Array.isArray(response.data.products)) {
+                // Преобразуем данные (например, конвертируем цену в число)
+                if (type == 'popular') {
+                    popular.value = response.data.products.map(product => ({
+                        ...product,
+                        min_price: Number(product.min_price), // Преобразуем строку в число
+                    }));
+                } else {
+                    new_items.value = response.data.products.map(product => ({
+                        ...product,
+                        min_price: Number(product.min_price), // Преобразуем строку в число
+                    }));
+                }
+            } else {
+                console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
             }
-        ])
-        const new_items = ref([
-            {
-                "name": "スカーレットエレガンス",
-                "name_eng": "Scarlet Elegance",
-                "price": 32000
-            },
-            {
-                "name": "ディープオリーブ",
-                "name_eng": "Deep Olive",
-                "price": 22500
-            },
-            {
-                "name": "シルバーストライプ",
-                "name_eng": "Silver Stripe",
-                "price": 28500
-            },
-            {
-                "name": "モカブラウン",
-                "name_eng": "Mocha Brown",
-                "price": 25500
-            },
-            {
-                "name": "プラチナムブルー",
-                "name_eng": "Platinum Blue",
-                "price": 30500
-            },
-            {
-                "name": "ジェットブラック",
-                "name_eng": "Jet Black",
-                "price": 27000
-            },
-            {
-                "name": "ラベンダーパープル",
-                "name_eng": "Lavender Purple",
-                "price": 23000
-            },
-            {
-                "name": "サファイアネイビー",
-                "name_eng": "Sapphire Navy",
-                "price": 29500
-            },
-            {
-                "name": "クリムゾンレッド",
-                "name_eng": "Crimson Red",
-                "price": 26000
-            },
-            {
-                "name": "ダスクグレー",
-                "name_eng": "Dusk Gray",
-                "price": 24000
-            }
-        ])
+
+
+        }
+
+        // Загружаем товары при монтировании компонента
+        onMounted(() => {
+            fetchProducts('popular');
+            fetchProducts();
+        });
 
         return {
             popular,

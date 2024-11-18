@@ -15,12 +15,12 @@
                     <span class="name">{{ user['name'] }}</span>
                     <button @click="logout" class="button danger"><span>ログアウト</span></button>
                 </div>
-                <router-link to="/cart">
-                    <div class="cart">
+
+                <div class="cart" @click="goToCart">
                     <img src="../assets/icons/cart.svg" alt="logo">
-                    <span v-if="cart_count != 0" class="count">{{ cart_count }}</span>
+                    <span v-if="cart.length != 0" class="count">{{ cart.length }}</span>
                 </div>
-                </router-link>
+
 
             </nav>
         </div>
@@ -30,6 +30,7 @@
 <script>
 
 import { defineComponent, inject, ref } from 'vue';
+import { useRouter } from 'vue-router'
 
 import LoginForm from './LoginForm.vue';
 
@@ -39,21 +40,25 @@ export default defineComponent({
         LoginForm
     },
     setup() {
+        const router = useRouter();
 
-        const { cart_count, updateCount } = inject('cart_count')
+        const { cart } = inject('cart')
 
         const { user, isUserLoggedIn, logout } = inject('auth')
 
         const closeLogin = ref(false);
 
+        function goToCart() {
+            router.push('/cart');
+        }
 
         return {
-            cart_count,
-            updateCount,
+            cart,
             user,
             isUserLoggedIn,
             logout,
-            closeLogin
+            closeLogin,
+            goToCart
         };
     }
 });
@@ -142,6 +147,7 @@ header {
                     font-size: 12px;
                     text-align: center;
                     color: #fff;
+                    align-content: center;
                 }
             }
 

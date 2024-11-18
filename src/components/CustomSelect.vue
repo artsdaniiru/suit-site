@@ -4,7 +4,7 @@
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
     <div class="select-box" :class="{ disabled: disabled }" :style="{ width: width }" @click="toggleDropdown" v-click-out-side="() => isOpen = false">
       <!-- Отображаем выбранное значение, либо скрываем текст "選択して下さい" при notSelect -->
-      <div class="selected-value" v-if="selectedValue !== '' && values[selectedValue]">{{ values[selectedValue] }}</div>
+      <div class="selected-value" v-if="selectedValue !== '' && values[selectedValue]" v-html="values[selectedValue]"></div>
       <div class="selected-value not-selected" v-else-if="!notSelect">選択して下さい</div>
       <span class="arrow" :class="{ open: isOpen }">
         <img src="../assets/icons/chevron-dw.svg" alt="chevron">
@@ -13,8 +13,7 @@
       <!-- Добавляем анимацию через <transition> -->
       <transition name="slide">
         <ul :class="['options-list', { open: isOpen }]" v-if="isOpen">
-          <li :class="{ selected: index === selectedValue }" v-for="(value, index) in values" :key="index" class="option-item" @click.stop="selectOption(index)">
-            {{ value }}
+          <li :class="{ selected: index === selectedValue }" v-for="(value, index) in values" :key="index" class="option-item" @click.stop="selectOption(index)" v-html="value">
           </li>
         </ul>
       </transition>
@@ -191,6 +190,12 @@ $focus-border-color: #adadad;
       &.not-selected {
         color: #b3b3b3;
       }
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: -webkit-fill-available;
+      padding-right: 5px;
     }
 
 
@@ -221,6 +226,9 @@ $focus-border-color: #adadad;
         padding: 10px;
         cursor: pointer;
         transition: background-color 0.5s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
         &:hover,
         &.selected {
@@ -244,5 +252,14 @@ $focus-border-color: #adadad;
     opacity: 0;
   }
 
+}
+</style>
+
+<style lang="scss">
+.option-item,
+.selected-value {
+  strong {
+    font-size: 14px !important;
+  }
 }
 </style>

@@ -185,6 +185,12 @@ switch ($action) {
             case 'name_desc':
                 $orderBy = 'o.name DESC'; // Сортировка по имени по убыванию
                 break;
+            case 'type_asc':
+                $orderBy = 'o.type ASC'; // Сортировка по имени по возрастанию
+                break;
+            case 'type_desc':
+                $orderBy = 'o.type DESC'; // Сортировка по имени по убыванию
+                break;
             case 'price_high':
                 $orderBy = 'o.price DESC'; // Сортировка по цене по убыванию
                 break;

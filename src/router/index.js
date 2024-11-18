@@ -97,6 +97,11 @@ const routes = [
     meta: { requiresAdmin: true }  // Защищённый маршрут
   },
   {
+    path: '/404', // Маршрут для любых неизвестных путей
+    name: 'NotFound',
+    component: NotFound
+  },
+  {
     path: '/:catchAll(.*)', // Маршрут для любых неизвестных путей
     name: 'NotFound',
     component: NotFound
