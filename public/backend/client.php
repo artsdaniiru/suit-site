@@ -51,15 +51,10 @@ switch ($action) {
         addFieldToUpdate($updateFields, $request, 'shoulder_width');
         addFieldToUpdate($updateFields, $request, 'waist_size');
 
-        // Проверяем, если есть поля для обновления
         if (!empty($updateFields)) {
-            // Формируем строку с обновляемыми полями
             $setClause = implode(', ', $updateFields);
-
-            // Создаем SQL-запрос
             $sql = "UPDATE clients SET $setClause WHERE id = $user_id";
 
-            // Выполняем запрос
             if ($conn->query($sql) === TRUE) {
                 echo json_encode(['status' => 'success']);
             } else {
@@ -69,19 +64,10 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
-    case 'delete_user':
-        $sql = "DELETE FROM clients WHERE id=$client_id";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-        break;
+
     case 'edit_password':
-        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
-        $sql = "UPDATE clients 
-            SET password='$password'
-            WHERE id = $user_id";
+        $password = password_hash($request['password'], PASSWORD_DEFAULT);
+        $sql = "UPDATE clients SET password='$password' WHERE id = $user_id";
 
         if ($conn->query($sql) === TRUE) {
             echo json_encode(['status' => 'success']);
@@ -89,26 +75,11 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
-    case 'add_address':
-        $address_name = $request['address_name'];
-        $client_id = $user_id;
-        $address = $request['address'];
-        $phone = $request['phone'];
 
-        $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
-                VALUES ('$address_name', '$client_id', '$address', '$phone')";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-
-        break;
     case 'edit_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
         $updateFields = [];
 
-        // Используем функцию для добавления полей
         addFieldToUpdate($updateFields, $request, 'name');
         addFieldToUpdate($updateFields, $request, 'address');
         addFieldToUpdate($updateFields, $request, 'phone');
@@ -126,6 +97,21 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
+
+    case 'edit_payment_method':
+        // TODO: Реализовать логику изменения метода оплаты
+        echo json_encode(['status' => 'error', 'message' => 'Not implemented']);
+        break;
+
+    case 'delete_user':
+        $sql = "DELETE FROM clients WHERE id=$client_id";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+        break;
+
     case 'delete_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
         $client_id = $user_id;
@@ -136,6 +122,32 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
+
+    case 'delete_payment_method':
+        // TODO: Реализовать логику удаления метода оплаты
+        echo json_encode(['status' => 'error', 'message' => 'Not implemented']);
+        break;
+
+    case 'add_address':
+        $address_name = $request['address_name'];
+        $client_id = $user_id;
+        $address = $request['address'];
+        $phone = $request['phone'];
+
+        $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
+                VALUES ('$address_name', '$client_id', '$address', '$phone')";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+        break;
+
+    case 'add_payment_method':
+        // TODO: Реализовать логику добавления метода оплаты
+        echo json_encode(['status' => 'error', 'message' => 'Not implemented']);
+        break;
+
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
