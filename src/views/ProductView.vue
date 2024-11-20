@@ -416,7 +416,7 @@ export default defineComponent({
         let size = user.value[index];
         if (in_cart.value) {
           let cart_item = cart.value.find(item => item.id == uid);
-          if (cart_item.body_sizes[index] != undefined) {
+          if (cart_item.body_sizes != undefined && cart_item.body_sizes[index] != undefined) {
             size = cart_item.body_sizes[index];
           }
         }
@@ -426,7 +426,7 @@ export default defineComponent({
         let size = "";
         if (in_cart.value) {
           let cart_item = cart.value.find(item => item.id == uid);
-          if (cart_item.body_sizes[index] != undefined) {
+          if (cart_item.body_sizes != undefined && cart_item.body_sizes[index] != undefined) {
             size = cart_item.body_sizes[index];
           }
         }
