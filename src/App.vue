@@ -272,4 +272,12 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+/* Переопределение для уведомлений */
+.v-toast {
+  font-family: 'Inter',
+    'Noto Sans JP',
+    'Noto Sans',
+    sans-serif !important;
+}
+</style>

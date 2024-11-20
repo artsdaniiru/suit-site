@@ -18,14 +18,14 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/about',
-    name: 'about',
-    component: () => import( /* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/guide',
+    name: 'guide',
+    component: () => import('../views/GuideView.vue')
   },
   {
     path: '/users',
     name: 'users',
-    component: () => import( /* webpackChunkName: "about" */ '../views/UsersView.vue')
+    component: () => import('../views/UsersView.vue')
   },
   {
     path: '/catalog',
@@ -57,6 +57,7 @@ const routes = [
     name: 'account',
     component: () => import('../views/AccountView.vue')
   },
+
   // {
   //   path: '/contact',
   //   name: 'contact',

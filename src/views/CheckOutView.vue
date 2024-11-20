@@ -1,115 +1,116 @@
 <template>
 
-<div class="checkout-view">
+  <div class="checkout-view">
 
-  <h2>チェックアウト</h2>
+    <h2>チェックアウト</h2>
 
-  <div class="checkout-content">
+    <div class="checkout-content">
 
 
-    <h2>配達</h2>
-    <div class="adress-wrap">
+      <h2>配達</h2>
+      <div class="address-wrap">
 
-      <div class="adress-card">
-        <h2>山田太郎</h2>
-        <p>240-0062, 神奈川県横浜市保土ケ谷区岡沢町, ４０１－６</p>
-        <div class="tel">
-          <span>電話番号: </span>
-          <span>080729709776</span>
+        <div class="address-card" v-for="item in user.addresses" :key="item">
+          <h2>{{ item.name }}</h2>
+          <p>{{ item.address }}</p>
+          <div class="tel">
+            <span>電話番号: </span>
+            <span>{{ item.phone }}</span>
+          </div>
+          <span class="icon-close"></span>
+          <span class="icon-pencil"></span>
         </div>
-        <span class="icon-close"></span>
-        <span class="icon-pencil"></span>
 
-      </div>
-      <div class="adress-card">
-        <h2>山田太郎</h2>
-        <p>240-0062, 神奈川県横浜市保土ケ谷区岡沢町, ４０１－６</p>
-        <div class="tel">
-          <span>電話番号: </span>
-          <span>080729709776</span>
+        <div class="add-card">
+          <span class="icon-plus"></span>
+          <p>新しいお届け先住所を追加する</p>
         </div>
-        <span class="icon-close"></span>
-        <span class="icon-pencil"></span>
 
       </div>
-      
 
-      <div class="add-card">
-        <span class="icon-plus"></span>
-        <p>新しいお届け先住所を追加する</p>
+      <div class="order-wrap">
+        <h2>お支払方法</h2>
+        <div class="card-wrap">
+          <p>クレジットカード</p>
+
+          <div class="card-choice-wrap" v-for="(item, index) in user.payment_methods" :key="item">
+            <input class="radioBtn" type="radio" :id="'payment-' + index" :value="item" v-model="selectedPayment" name="payment-method" />
+            <label :for="'payment-' + index">{{ item.card_number }}</label>
+          </div> <a class="add-card">
+            クレジットカードまたはデビットカードを追加する
+          </a>
+        </div>
+        <div class="card-wrap">
+          <p>その他</p>
+          <div class="pay-choice-wrap">
+            <input class="radioBtn" type="radio" id="cash" value="cash" v-model="paymentMethod" name="other-payment" />
+            <label for="cash">現金</label>
+          </div>
+          <div class="pay-choice-wrap">
+            <input class="radioBtn" type="radio" id="convenience" value="convenience" v-model="paymentMethod" name="other-payment" />
+            <label for="convenience">コンビニ払い</label>
+          </div>
+
+        </div>
+
       </div>
+
+      <button style="width: 100%;" class="button">注文を確定する</button>
 
     </div>
 
-    <div class="order-wrap">
-      <h2>お支払方法</h2>
-      <div class="card-wrap">
-        <p>クレジットカード</p>
-        <div class="cardchoise-wrap">
-          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
-          <label for="Visa 末尾 9696">Visa 末尾 9696</label>
-        </div>
-        <div class="cardchoise-wrap">
-          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
-          <label for="Visa 末尾 9696">Visa 末尾 9696</label>
-        </div>
-        <a class="addcard">
-          クレジットカードまたはデビットカードを追加する
-        </a>
-      </div>
-      <div class="card-wrap">
-        <p>その他</p>
-        <div class="paychoise-wrap">
-          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
-          <label for="Visa 末尾 9696">現金</label>
-        </div>
-        <div class="paychoise-wrap">
-          <input class="radioBtn" type="radio" id="one" value="One" v-model="picked" />
-          <label for="Visa 末尾 9696">コンビニ払い</label>
-        </div>
-
-      </div>
-
-    </div>
-
-    <button style="width: 100%;" class="button">注文を確定する</button>
 
   </div>
 
 
-</div>
-
-
 
 </template>
-  
+<!-- eslint-disable -->
 <script>
+import { defineComponent, inject, onBeforeMount, ref, computed } from "vue";
+import axios from "axios";
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toast-notification';
 
+
+export default defineComponent({
+  name: "CartView",
+  setup() {
+
+    const { user } = inject("auth");
+
+
+
+    return {
+      user
+    };
+  },
+});
 </script>
-  
+
 <style lang="scss" scoped>
- h2{
+h2 {
   font-weight: 600;
   font-size: 24px;
   text-align: left;
- }
+}
 
- .checkout-content{
+.checkout-content {
   border: 1px solid #d9d9d9;
   border-radius: 8px;
   padding: 24px;
- }
+}
 
 
- .adress-wrap{
+.address-wrap {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 
- 
 
 
-  .adress-card{
+
+  .address-card {
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     position: relative;
@@ -119,26 +120,30 @@
 
 
 
-    .icon-close{
+    .icon-close {
       width: min-content;
       position: absolute;
       top: 0;
       right: 0;
       top: 10px;
       right: 10px;
-      &::before{
+      cursor: pointer;
+
+      &::before {
         content: url(../assets/icons/close.svg);
         display: block;
 
       }
     }
 
-    .icon-pencil{
+    .icon-pencil {
       width: min-content;
       position: absolute;
       bottom: 10px;
       right: 10px;
-      &::before{
+      cursor: pointer;
+
+      &::before {
         content: url(../assets/icons/pencil.svg);
         display: block;
 
@@ -147,7 +152,7 @@
   }
 
 
-  .add-card{
+  .add-card {
     position: relative;
     border: 2px dashed #d9d9d9;
     border-radius: 8px;
@@ -158,49 +163,60 @@
     width: 100%;
     padding: 32px;
     box-sizing: border-box;
+    cursor: pointer;
 
 
-    .icon-plus{
+    .icon-plus {
       width: min-content;
       font-weight: 400;
       opacity: 50%;
 
-      &::before{
+      &::before {
         content: url(../assets/icons/plus.svg);
         display: block;
       }
     }
-    p{opacity: 50%;}
+
+    p {
+      opacity: 50%;
+    }
   }
 
 
- }
+}
 
- .order-wrap{
+.order-wrap {
 
 
-  .paychoise-wrap{
+  .pay-choice-wrap {
 
     display: flex;
     align-items: baseline;
-    .radioBtn{
+    cursor: pointer;
+
+    .radioBtn {
       position: relative;
       display: block;
       height: min-content;
       margin-bottom: 24px;
+      cursor: pointer;
     }
   }
-  .cardchoise-wrap{
+
+  .card-choice-wrap {
     display: flex;
     align-items: baseline;
     gap: 50px;
+    cursor: pointer;
 
-    .radioBtn{
+    .radioBtn {
       position: relative;
       display: block;
       height: min-content;
       margin-bottom: 24px;
-      &::before{
+      cursor: pointer;
+
+      &::before {
         content: url(../assets/icons/visa.svg);
         display: block;
         position: absolute;
@@ -210,28 +226,19 @@
       }
     }
   }
-  .addcard{
+
+  .add-card {
     padding-left: 30px;
     position: relative;
-    &::before{
-        content: url(../assets/icons/plus.svg);
-        display: block;
-        position: absolute;
-        transform: scale(0.5); 
-        bottom: -10px;
-      }
+
+    &::before {
+      content: url(../assets/icons/plus.svg);
+      display: block;
+      position: absolute;
+      transform: scale(0.5);
+      bottom: -10px;
+    }
 
   }
- }
-
-  
-
-
-
-
-
-
-
-
+}
 </style>
-  

@@ -429,44 +429,28 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
-    case 'edit_address':
+
+    case 'active_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
-        if ($address_id == "") {
-            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+        $sql = "UPDATE client_addresses
+                SET active = 1
+                WHERE id = $address_id";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
         } else {
-            $updateFields = [];
-
-            // Используем функцию для добавления полей
-            addFieldToUpdate($updateFields, $request, 'name');
-            addFieldToUpdate($updateFields, $request, 'address');
-            addFieldToUpdate($updateFields, $request, 'phone');
-
-            if (!empty($updateFields)) {
-                $setClause = implode(', ', $updateFields);
-                $sql = "UPDATE client_addresses SET $setClause WHERE client_id = $client_id AND id=$address_id";
-
-                if ($conn->query($sql) === TRUE) {
-                    echo json_encode(['status' => 'success']);
-                } else {
-                    echo json_encode(['status' => 'error', 'message' => $conn->error]);
-                }
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
-            }
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
 
-    case 'delete_address':
-        $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
-        if ($address_id == "") {
-            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+    case 'active_payment_method':
+        $payment_method_id = isset($_GET['payment_method_id']) ? $_GET['payment_method_id'] : '';
+        $sql = "UPDATE client_payment_methods
+                    SET active = 1
+                    WHERE id = $payment_method_id";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
         } else {
-            $sql = "DELETE FROM client_addresses WHERE client_id=$client_id AND id=$address_id";
-            if ($conn->query($sql) === TRUE) {
-                echo json_encode(['status' => 'success']);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => $conn->error]);
-            }
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
     default:

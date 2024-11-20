@@ -7,6 +7,7 @@
             </router-link>
             <nav>
                 <router-link to="/catalog"><span>カタログ</span></router-link>
+                <router-link to="/guid"><span>ご利用ガイド</span></router-link>
                 <router-link to="/delivery"><span>配送について</span></router-link>
                 <router-link to="/contact"><span>連絡</span></router-link>
                 <button class="button" v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>

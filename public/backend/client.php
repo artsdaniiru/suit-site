@@ -36,12 +36,12 @@ $request = json_decode(file_get_contents('php://input'), true);
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
     echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
     exit;
- }
+}
 
- $user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
 switch ($action) {
-    case 'edit_user':
+    case 'edit_client':
         $updateFields = [];
 
         // Используем функцию для добавления полей
@@ -51,15 +51,10 @@ switch ($action) {
         addFieldToUpdate($updateFields, $request, 'shoulder_width');
         addFieldToUpdate($updateFields, $request, 'waist_size');
 
-        // Проверяем, если есть поля для обновления
         if (!empty($updateFields)) {
-            // Формируем строку с обновляемыми полями
             $setClause = implode(', ', $updateFields);
-
-            // Создаем SQL-запрос
             $sql = "UPDATE clients SET $setClause WHERE id = $user_id";
 
-            // Выполняем запрос
             if ($conn->query($sql) === TRUE) {
                 echo json_encode(['status' => 'success']);
             } else {
@@ -69,19 +64,10 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
-    case 'delete_user':
-        $sql = "DELETE FROM clients WHERE id=$client_id";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-            break;
+
     case 'edit_password':
-        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
-        $sql = "UPDATE clients 
-            SET password='$password'
-            WHERE id = $user_id";
+        $password = password_hash($request['password'], PASSWORD_DEFAULT);
+        $sql = "UPDATE clients SET password='$password' WHERE id = $user_id";
 
         if ($conn->query($sql) === TRUE) {
             echo json_encode(['status' => 'success']);
@@ -89,26 +75,11 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
-    case 'add_address':
-        $address_name = $request['address_name'];
-        $client_id = $user_id;
-        $address = $request['address'];
-        $phone = $request['phone'];
 
-        $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
-                VALUES ('$address_name', '$client_id', '$address', '$phone')";
-        if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
-        }
-    
-        break;
     case 'edit_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
         $updateFields = [];
 
-        // Используем функцию для добавления полей
         addFieldToUpdate($updateFields, $request, 'name');
         addFieldToUpdate($updateFields, $request, 'address');
         addFieldToUpdate($updateFields, $request, 'phone');
@@ -126,16 +97,112 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
+    case 'delete_client':
+        // Проверка, что ID клиента передан
+        if ($user_id <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID клиента']);
+            exit;
+        }
+
+        // Начало транзакции
+        $conn->begin_transaction();
+
+        try {
+            // Удаление заказов клиента
+            // Сначала удалим связанные элементы корзины в client_order_indexes
+            $sqlDeleteOrderIndexes = "DELETE FROM client_order_indexes WHERE client_order_id IN (SELECT id FROM client_orders WHERE client_id = $user_id)";
+            if ($conn->query($sqlDeleteOrderIndexes) === FALSE) {
+                throw new Exception('Ошибка удаления элементов корзины: ' . $conn->error);
+            }
+
+            // Затем удаляем сами заказы клиента
+            $sqlDeleteOrders = "DELETE FROM client_orders WHERE client_id = $user_id";
+            if ($conn->query($sqlDeleteOrders) === FALSE) {
+                throw new Exception('Ошибка удаления заказов клиента: ' . $conn->error);
+            }
+
+            // Удаление методов оплаты клиента
+            $sqlDeletePaymentMethods = "DELETE FROM client_payment_methods WHERE client_id = $user_id";
+            if ($conn->query($sqlDeletePaymentMethods) === FALSE) {
+                throw new Exception('Ошибка удаления методов оплаты клиента: ' . $conn->error);
+            }
+
+            // Удаление адресов клиента после удаления заказов
+            $sqlDeleteAddresses = "DELETE FROM client_addresses WHERE client_id = $user_id";
+            if ($conn->query($sqlDeleteAddresses) === FALSE) {
+                throw new Exception('Ошибка удаления адресов клиента: ' . $conn->error);
+            }
+
+            // Удаление самого клиента
+            $sqlDeleteClient = "DELETE FROM clients WHERE id = $user_id";
+            if ($conn->query($sqlDeleteClient) === FALSE) {
+                throw new Exception('Ошибка удаления клиента: ' . $conn->error);
+            }
+
+            // Если все прошло успешно, подтверждаем транзакцию
+            $conn->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Клиент и все связанные данные успешно удалены']);
+        } catch (Exception $e) {
+            // В случае ошибки откатываем транзакцию
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+
+        break;
+
     case 'delete_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
-        $client_id = $user_id;
-        $sql = "DELETE FROM client_addresses WHERE client_id=$client_id AND id=$address_id";
+        $sql = "UPDATE client_addresses 
+                    SET active = 0 
+                    WHERE client_id = $user_id AND id = $address_id";
+
         if ($conn->query($sql) === TRUE) {
             echo json_encode(['status' => 'success']);
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
+
+    case 'delete_payment_method':
+        $payment_method_id = isset($_GET['payment_method_id']) ? $_GET['payment_method_id'] : '';
+        $sql = "UPDATE client_payment_methods 
+                    SET active = 0 
+                    WHERE client_id = $user_id AND id = $payment_method_id";
+
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+        break;
+
+    case 'add_address':
+        $address_name = $request['address_name'];
+        $address = $request['address'];
+        $phone = $request['phone'];
+
+        $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
+                VALUES ('$address_name', '$user_id', '$address', '$phone')";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+        break;
+
+    case 'add_payment_method':
+        $card_number = $request['card_number'];
+
+        $sql = "INSERT INTO client_payment_methods (client_id, card_number) 
+                    VALUES ('$user_id', '$card_number')";
+
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        }
+        break;
+
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
@@ -143,7 +210,8 @@ switch ($action) {
 
 $conn->close();
 
-function addFieldToUpdate(&$updateFields, $request, $fieldName) {
+function addFieldToUpdate(&$updateFields, $request, $fieldName)
+{
     if (isset($request[$fieldName])) {
         $fieldValue = $request[$fieldName];
         $updateFields[] = "$fieldName='$fieldValue'";

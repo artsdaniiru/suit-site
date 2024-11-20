@@ -120,21 +120,80 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $auth_token = $_SESSION['auth_token'];
 
-    // Получение данных пользователя
+    // SQL-запрос для получения данных пользователя
     $sql = "SELECT * FROM clients WHERE auth_token = '$auth_token'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        // Удаляем поля 'login' и 'password' из массива
+        // Удаляем конфиденциальные данные
         unset($user['login'], $user['password']);
 
         $user['height'] = intval($user['height']);
         $user['shoulder_width'] = intval($user['shoulder_width']);
         $user['waist_size'] = intval($user['waist_size']);
 
-        // Возвращаем оставшиеся данные пользователя
+        // Получение адресов пользователя
+        $sql_addresses = "SELECT * FROM client_addresses WHERE client_id = " . $user['id'];
+        $result_addresses = $conn->query($sql_addresses);
+        $user_addresses = [];
+
+        if ($result_addresses->num_rows > 0) {
+            while ($row = $result_addresses->fetch_assoc()) {
+                $user_addresses[] = $row;
+            }
+        }
+        $user['addresses'] = $user_addresses;
+
+        // Получение методов оплаты пользователя
+        $sql_payment_methods = "SELECT * FROM client_payment_methods WHERE client_id = " . $user['id'];
+        $result_payment_methods = $conn->query($sql_payment_methods);
+        $user_payment_methods = [];
+
+        if ($result_payment_methods->num_rows > 0) {
+            while ($row = $result_payment_methods->fetch_assoc()) {
+                $user_payment_methods[] = $row;
+            }
+        }
+        $user['payment_methods'] = $user_payment_methods;
+
+        // Получение заказов пользователя
+        $sql_orders = "SELECT co.id, co.status, ca.name AS client_name, ca.address AS client_address, 
+                       cpm.card_number
+                       FROM client_orders co
+                       JOIN client_addresses ca ON co.address_id = ca.id
+                       JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
+                       WHERE co.client_id = " . $user['id'];
+        $result_orders = $conn->query($sql_orders);
+        $user_orders = [];
+
+        if ($result_orders->num_rows > 0) {
+            while ($order = $result_orders->fetch_assoc()) {
+                $order_id = $order['id'];
+
+                // Получение товаров в заказе
+                $sql_cart = "SELECT coi.price AS order_price, coi.options AS order_options, 
+                             p.*, s.*
+                             FROM client_order_indexes coi
+                             JOIN products p ON coi.product_id = p.id
+                             JOIN sizes s ON coi.size_id = s.id
+                             WHERE client_order_id = $order_id";
+                $result_cart = $conn->query($sql_cart);
+                $cart_items = [];
+
+                if ($result_cart->num_rows > 0) {
+                    while ($item = $result_cart->fetch_assoc()) {
+                        $cart_items[] = $item;
+                    }
+                }
+                $order['cart'] = $cart_items;
+                $user_orders[] = $order;
+            }
+        }
+        $user['orders'] = $user_orders;
+
+        // Возвращаем все данные
         echo json_encode([
             "status" => "success",
             "user" => $user
