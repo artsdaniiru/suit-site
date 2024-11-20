@@ -358,6 +358,7 @@ h3 {
         width: min-content;
         font-weight: 400;
         position: relative;
+        color: #ec221f;
 
         &::before {
           content: url(../assets/icons/delete.svg);
@@ -371,7 +372,6 @@ h3 {
     .change-box {
       text-align: right;
       margin: -80px 24px 0 24px;
-      ;
       cursor: pointer;
 
 
