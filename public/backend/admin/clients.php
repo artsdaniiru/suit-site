@@ -429,32 +429,6 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
-    case 'edit_address':
-        $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';
-        if ($address_id == "") {
-            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
-        } else {
-            $updateFields = [];
-
-            // Используем функцию для добавления полей
-            addFieldToUpdate($updateFields, $request, 'name');
-            addFieldToUpdate($updateFields, $request, 'address');
-            addFieldToUpdate($updateFields, $request, 'phone');
-
-            if (!empty($updateFields)) {
-                $setClause = implode(', ', $updateFields);
-                $sql = "UPDATE client_addresses SET $setClause WHERE client_id = $client_id AND id=$address_id";
-
-                if ($conn->query($sql) === TRUE) {
-                    echo json_encode(['status' => 'success']);
-                } else {
-                    echo json_encode(['status' => 'error', 'message' => $conn->error]);
-                }
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
-            }
-        }
-        break;
 
     case 'active_address':
         $address_id = isset($_GET['address_id']) ? $_GET['address_id'] : '';

@@ -396,19 +396,6 @@ switch ($action) {
                 }
             }
 
-            // // Добавление изображений
-            // if (!empty($data['product_images'])) {
-            //     foreach ($data['product_images'] as $image) {
-            //         $sql = "INSERT INTO product_images (product_id, image_path)
-            //             VALUES ('$newProductId', '" . $conn->real_escape_string($image['image_path']) . "')";
-
-            //         if ($conn->query($sql) === FALSE) {
-            //             echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
-            //             exit;
-            //         }
-            //     }
-            // }
-
             // Добавление опций
             if (!empty($data['options']) && isset($data['options'])) {
                 foreach ($data['options'] as $option) {
@@ -578,31 +565,6 @@ switch ($action) {
                 }
             }
         }
-
-        // Обновление или добавление изображений
-        // foreach ($updatedImages as $id => $updatedImage) {
-        //     if (isset($originalImages[$id])) {
-        //         // Если изображение существует, обновляем его
-        //         if ($originalImages[$id] != $updatedImage) {
-        //             $sql = "UPDATE product_images SET
-        //                     image_path = '" . $conn->real_escape_string($updatedImage['image_path']) . "',
-        //                     date_of_change = '" . date("Y-m-d H:i:s") . "'
-        //                     WHERE id = '$id'";
-        //             if ($conn->query($sql) === FALSE) {
-        //                 echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления изображения: ' . $conn->error]);
-        //                 exit;
-        //             }
-        //         }
-        //     } else {
-        //         // Если изображение новое,  добавляем его
-        //         $sql = "INSERT INTO product_images (product_id, image_path)
-        //                     VALUES ('$productId', '" . $conn->real_escape_string($updatedImage['image_path']) . "')";
-        //         if ($conn->query($sql) === FALSE) {
-        //             echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
-        //             exit;
-        //         }
-        //     }
-        // }
 
         if (isset($originalData['options'])) {
             // Работа с опциями и связями в таблице options_indexes
