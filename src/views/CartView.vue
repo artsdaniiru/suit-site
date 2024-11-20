@@ -67,6 +67,7 @@
           </div>
           <div class="product-final-price">
             <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
+            <div class="change-box" @click="deleteFromCart(item.id)"><span class="product-change">Order Change</span></div>
             <div class="final-price">
               <span>金額</span>
               <span>{{ formattedPrice(item.totalPrice) }}</span>
@@ -363,6 +364,29 @@ h3 {
           display: block;
           position: absolute;
           right: 50px;
+        }
+      }
+    }
+
+    .change-box {
+      text-align: right;
+      margin: -80px 24px 0 24px;
+      ;
+      cursor: pointer;
+
+
+      .product-change {
+        width: min-content;
+        font-weight: 400;
+        position: relative;
+
+        &::before {
+          content: url(../assets/icons/refresh.svg);
+          display: block;
+          position: absolute;
+          right: 110px;
+          width: 20px;
+
         }
       }
     }
