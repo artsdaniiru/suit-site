@@ -341,6 +341,7 @@ h3 {
       display: flex;
       gap: 16px;
       margin: 10px 24px;
+      align-items: baseline;
 
       span {
         font-weight: 600;
@@ -356,7 +357,6 @@ h3 {
       .product-delete {
         width: min-content;
         font-weight: 400;
-        color: #ec221f;
         position: relative;
 
         &::before {
