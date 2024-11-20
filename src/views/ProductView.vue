@@ -59,7 +59,13 @@
         <div class="size-form" v-else>
           <CustomSelect :values="sizes_o" v-model="selectedSizeId" :labelText="'サイズ'" :notSelect="true" />
         </div>
-        <button class="button" @click="addToCartLocal">カートに追加</button>
+
+        <button v-if="!in_cart" class="button" @click="addToCartLocal">カートに追加</button>
+        <div class="edit-btn" v-else>
+          <button class="button edit" @click="updateCartLocal">編集</button>
+          <button class="button danger" @click="deleteFromCartLocal">削除</button>
+        </div>
+
       </div>
 
     </div>
@@ -133,21 +139,29 @@
   </div>
 </template>
 
+<CustomNotification v-model="showNotIf" message="Это уведомление!" />
+
 <script>
 import axios from "axios";
 import { defineComponent, computed, ref, onBeforeMount, watch, inject } from "vue";
 import { useRoute, useRouter } from 'vue-router';
+import { useToast } from 'vue-toast-notification';
 
 export default defineComponent({
   name: "ProductCard",
   setup() {
 
+    const toast = useToast();
     //users thing
 
     const { user } = inject('auth');
-    const { addToCart } = inject('cart');
+    const { addToCart, deleteFromCart, updateCartItem, cart } = inject('cart');
+    const in_cart = computed(() => {
+      if (!cart.value) return false;
+      return cart.value.some(item => item.id === uid);
+    });
 
-
+    const showNotIf = ref(false);
 
     const is_loading = ref(true);
 
@@ -285,6 +299,13 @@ export default defineComponent({
           })
           options.value = options_edit;
 
+          selectedOptions.value = {
+            cloth: setOptions('cloth'),
+            color: setOptions('color'),
+            lining: setOptions('lining'),
+            button: setOptions('button'),
+          }
+
         } else {
           console.error("Ожидался массив опций, но получено что-то другое:", response.data);
         }
@@ -318,8 +339,7 @@ export default defineComponent({
       return options;
     }
 
-    function addToCartLocal() {
-
+    function createCartItem() {
       let cart_item = {
         id: data.value.product.id,
       };
@@ -335,23 +355,90 @@ export default defineComponent({
         cart_item['price'] = data.value.sizes[0].price;
       }
 
-      addToCart(cart_item);
+      return cart_item
+    }
+
+    function addToCartLocal() {
+
+      toast.success('商品はカートに追加しました', {
+        position: 'bottom-right', // Можно изменить на 'bottom-left', 'bottom-right', 'top-center', и т.д.
+        duration: 2000, // Время отображения уведомления в миллисекундах
+      });
+
+
+      addToCart(createCartItem());
+
+    }
+    function updateCartLocal() {
+      toast.success('商品はカートに変更しました', {
+        position: 'bottom-right',
+        duration: 2000,
+      });
+      updateCartItem(data.value.product.id, createCartItem());
 
     }
 
+    function deleteFromCartLocal() {
+      toast.error('商品はカートから削除しました', {
+        position: 'bottom-right',
+        duration: 2000,
+      });
+      deleteFromCart(data.value.product.id);
+    }
+
+    function setOptions(index) {
+      if (in_cart.value) {
+        let cart_item = cart.value.find(item => item.id == uid);
+
+        if (cart_item.options != undefined) {
+          console.log(cart_item.options[index].id);
+
+          return cart_item.options[index].id;
+          // return "";
+        }
+      } else {
+        return "";
+      }
+    }
 
 
     const selectedOptions = ref({
-      cloth: "",
-      color: "",
-      lining: "",
-      button: "",
+      cloth: '',
+      color: '',
+      lining: '',
+      button: '',
     })
     const selectedSizeId = ref(null);
+
+
+    function setBodySize(index) {
+      if (user.value[index] != undefined) {
+        let size = user.value[index];
+        if (in_cart.value) {
+          let cart_item = cart.value.find(item => item.id == uid);
+          if (cart_item.body_sizes[index] != undefined) {
+            size = cart_item.body_sizes[index];
+          }
+        }
+
+        return size;
+      } else {
+        let size = "";
+        if (in_cart.value) {
+          let cart_item = cart.value.find(item => item.id == uid);
+          if (cart_item.body_sizes[index] != undefined) {
+            size = cart_item.body_sizes[index];
+          }
+        }
+        return size;
+      }
+
+    }
+
     const body_sizes = ref({
-      height: user.value.height != undefined ? user.value.height : "",
-      shoulder_width: user.value.shoulder_width != undefined ? user.value.shoulder_width : "",
-      waist_size: user.value.waist_size != undefined ? user.value.waist_size : ""
+      height: setBodySize('height'),
+      shoulder_width: setBodySize('shoulder_width'),
+      waist_size: setBodySize('waist_size')
     });
 
 
@@ -460,7 +547,11 @@ export default defineComponent({
       body_sizes,
       selectedSizeId,
       selectedOptions,
-      addToCartLocal
+      addToCartLocal,
+      in_cart,
+      deleteFromCartLocal,
+      updateCartLocal,
+      showNotIf
     };
   },
 });
@@ -573,6 +664,16 @@ export default defineComponent({
             min-width: auto;
             width: 120px;
           }
+        }
+      }
+
+      .edit-btn {
+        display: flex;
+        gap: 24px;
+        width: -webkit-fill-available;
+
+        .button {
+          width: -webkit-fill-available;
         }
       }
     }

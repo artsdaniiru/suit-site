@@ -1,96 +1,109 @@
 <template>
-  <h2 style="text-align: left">カート</h2>
-
-  <div class="product-list">
-
-    <template v-if="!is_loading">
-      <div class="product-cart" v-for="item in computedCart" :key="item">
-        <div class="product-info">
-
-          <img :src="items[item.id].image_path" :alt="name" class="product-image" />
-
-          <div class="price-info">
-            <div class="price-title">
-              <h3 class="product-title">{{ items[item.id].name }}</h3>
-              <p class="product-title">{{ englishName }}</p>
-              <div class="price-size">
-                <template v-if="items[item.id].type == 'suit'">
-                  <div class="size-price">
-                    <span class="font-weight">身長</span>
-                    <span>{{ item.body_sizes.height }}cm</span>
-                  </div>
-                  <div class="size-price">
-                    <span class="font-weight">肩幅</span>
-                    <span>{{ item.body_sizes.shoulder_width }}cm</span>
-                  </div>
-                  <div class="size-price">
-                    <span class="font-weight">ウェストサイズ</span>
-                    <span>{{ item.body_sizes.waist_size }}cm</span>
-                  </div>
-                </template>
-                <div v-else class="size-price">
-                  <span class="font-weight">サイズ</span>
-                  <span>{{ items[item.id].sizes[item.size].name }}</span>
-                </div>
-
-                <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
-              </div>
-            </div>
-            <div class="option-price" v-if="items[item.id].type == 'suit'">
-              <div class="option-wrap" v-if="item.options.cloth.id != ''">
-                <span class="font-weight">生地の種類</span>
-                <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
-              </div>
-              <div class="option-wrap" v-if="item.options.color.id != ''">
-                <span class="font-weight">生地の色</span>
-                <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
-              </div>
-              <div class="option-wrap" v-if="item.options.lining.id != ''">
-                <span class="font-weight">裏地の種類</span>
-                <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
-              </div>
-              <div class="option-wrap" v-if="item.options.button.id != ''">
-                <span class="font-weight">ボタンの種類</span>
-                <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="product-final-price">
-          <div class="delete-box" @click="deleteFromCart(item.id)"><span class="product-delete">Delete</span></div>
-          <div class="final-price">
-            <span>金額</span>
-            <span>{{ formattedPrice(item.totalPrice) }}</span>
-          </div>
-        </div>
-      </div>
-    </template>
-
+  <div class="empty-cart" v-if="computedCart.length == 0">
+    <h1>カートに何もありません</h1>
+    <img src="@/assets/images/sorry.png" alt="">
+    <span>商品はカートに追加してください</span>
+    <router-link to="/catalog"><button class="button">カタログへ</button></router-link>
   </div>
 
-  <div class="checkout-box">
-    <div class="list-pricebox">
-      <div class="list-price">
-        <span>会計</span>
-        <span>{{ formattedPrice(totalPrice) }}</span>
-      </div>
-      <div class="list-btn">
-        <router-link to="/catalog"><span>戻る</span></router-link>
-        <button class="button" @click="goToAboutPage">チェックアウト</button>
+  <template v-else>
+    <h2 style="text-align: left">カート</h2>
+
+
+    <div class="product-list">
+
+      <template v-if="!is_loading">
+        <div class="product-cart" v-for="item in computedCart" :key="item">
+          <div class="product-info">
+
+            <img :src="items[item.id].image_path" :alt="name" class="product-image" @click="goToProductPage(item.id)" />
+
+            <div class="price-info">
+              <div class="price-title">
+                <h3 class="product-title" @click="goToProductPage(item.id)">{{ items[item.id].name }}</h3>
+                <p class="product-title">{{ englishName }}</p>
+                <div class="price-size">
+                  <template v-if="items[item.id].type == 'suit'">
+                    <div class="size-price">
+                      <span class="font-weight">身長</span>
+                      <span>{{ item.body_sizes.height }}cm</span>
+                    </div>
+                    <div class="size-price">
+                      <span class="font-weight">肩幅</span>
+                      <span>{{ item.body_sizes.shoulder_width }}cm</span>
+                    </div>
+                    <div class="size-price">
+                      <span class="font-weight">ウェストサイズ</span>
+                      <span>{{ item.body_sizes.waist_size }}cm</span>
+                    </div>
+                  </template>
+                  <div v-else class="size-price">
+                    <span class="font-weight">サイズ</span>
+                    <span>{{ items[item.id].sizes[item.size].name }}</span>
+                  </div>
+
+                  <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
+                </div>
+              </div>
+              <div class="option-price" v-if="items[item.id].type == 'suit'">
+                <div class="option-wrap" v-if="item.options.cloth.id != ''">
+                  <span class="font-weight">生地の種類</span>
+                  <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
+                </div>
+                <div class="option-wrap" v-if="item.options.color.id != ''">
+                  <span class="font-weight">生地の色</span>
+                  <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
+                </div>
+                <div class="option-wrap" v-if="item.options.lining.id != ''">
+                  <span class="font-weight">裏地の種類</span>
+                  <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
+                </div>
+                <div class="option-wrap" v-if="item.options.button.id != ''">
+                  <span class="font-weight">ボタンの種類</span>
+                  <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="product-final-price">
+            <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
+            <div class="final-price">
+              <span>金額</span>
+              <span>{{ formattedPrice(item.totalPrice) }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+
+    </div>
+
+    <div class="checkout-box">
+      <div class="list-pricebox">
+        <div class="list-price">
+          <span>会計</span>
+          <span>{{ formattedPrice(totalPrice) }}</span>
+        </div>
+        <div class="list-btn">
+          <router-link to="/catalog"><span>戻る</span></router-link>
+          <button class="button" @click="goToAboutPage">チェックアウト</button>
+        </div>
       </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <script>
 import { defineComponent, inject, onBeforeMount, ref, computed } from "vue";
 import axios from "axios";
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toast-notification';
 
 
 export default defineComponent({
   name: "CartView",
   setup() {
+
+    const toast = useToast();
 
     const router = useRouter();
     const items = ref({});
@@ -195,16 +208,27 @@ export default defineComponent({
     const goToAboutPage = () => {
       router.push("/checkout");
     };
+    const goToProductPage = (id) => {
+      router.push("/product/" + id);
+    };
 
     onBeforeMount(() => {
       fetchAllOptions();
       fetchProducts();
     });
 
+
+    function deleteFromCartLocal(id) {
+      deleteFromCart(id);
+      toast.error('商品はカートから削除しました', {
+        position: 'bottom-right',
+        duration: 2000,
+      });
+    }
+
     return {
       items,
       cart,
-      deleteFromCart,
       is_loading,
       options,
       formattedPrice,
@@ -212,12 +236,38 @@ export default defineComponent({
       computedCart,
       totalPrice,
       goToAboutPage,
+      goToProductPage,
+      deleteFromCartLocal
     };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+.empty-cart {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  text-align: center;
+
+  h1 {
+    font-size: 50px;
+  }
+
+  span {
+    font-size: 32px;
+    color: #757575;
+    margin-bottom: 20px;
+  }
+
+  img {
+    width: 270px;
+    margin: 0 auto;
+  }
+
+}
+
+
 .font-weight {
   font-weight: 700;
   font-size: 16px;
@@ -227,6 +277,7 @@ h3 {
   font-weight: 600;
   font-size: 24px;
   margin: 0;
+  cursor: pointer;
 }
 
 .product-title {
@@ -253,6 +304,7 @@ h3 {
       aspect-ratio: 1 / 1;
       object-fit: cover;
       border-radius: 5px;
+      cursor: pointer;
     }
 
 
