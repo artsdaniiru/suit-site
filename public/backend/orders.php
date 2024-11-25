@@ -103,10 +103,8 @@ switch ($action) {
             $options_json = json_encode($options);
 
             // Добавляем запись в client_order_indexes
-            $sql = "INSERT INTO client_order_indexes (client_order_id, product_id, price, size_id, options) 
-                    VALUES ($order_id, $product_id, $final_price, $size_id, '$options_json')";
+            $sql = "INSERT INTO client_order_indexes (client_order_id, product_id, price, size_id, options) VALUES ($order_id, $product_id, $final_price, $size_id, '$options_json')";
 
-            print($sql);
             if (!$conn->query($sql)) {
                 echo json_encode(["status" => "error", "message" => "Failed to add product: " . $conn->error]);
                 exit;

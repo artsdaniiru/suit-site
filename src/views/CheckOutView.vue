@@ -55,7 +55,7 @@
 
       </div>
 
-      <button style="width: 100%;" class="button">注文を確定する</button>
+      <button style="width: 100%;" class="button" @click="saveAction">注文を確定する</button>
 
     </div>
 
@@ -65,12 +65,11 @@
 
 
 </template>
-<!-- eslint-disable -->
 <script>
-import { defineComponent, inject, onBeforeMount, ref, computed } from "vue";
+import { defineComponent, inject/* , onBeforeMount, ref, computed */ } from "vue";
 import axios from "axios";
-import { useRouter } from 'vue-router'
-import { useToast } from 'vue-toast-notification';
+// import { useRouter } from 'vue-router'
+// import { useToast } from 'vue-toast-notification';
 
 
 export default defineComponent({
@@ -78,11 +77,36 @@ export default defineComponent({
   setup() {
 
     const { user } = inject("auth");
+    const { cart } = inject('cart');
 
 
 
+
+    const saveAction = async () => {
+      try {
+        const response = await axios.post(
+          process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
+          {
+            cart: cart.value,
+            address_id: user.value.addresses[0].id,
+            payment_method_id: user.value.payment_methods[0].id
+          },
+          { withCredentials: true }
+        );
+
+        if (response.data.status !== "success") {
+          console.error("Ошибка при сохранении заказа2:", response.data.message);
+          return;
+        } else {
+          console.log(response.data);
+        }
+      } catch (error) {
+        console.error("Ошибка при сохранении заказа1:", error);
+      }
+    };
     return {
-      user
+      user,
+      saveAction
     };
   },
 });
