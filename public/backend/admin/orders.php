@@ -211,23 +211,75 @@ switch ($action) {
             exit;
         }
 
-        $status = isset($request['status']) ? $request['status'] : '';
+        $dataOriginal = $request['data_original'];
+        $dataUpdated = $request['data'];
 
-        if (empty($status)) {
-            echo json_encode(['status' => 'error', 'message' => 'Не указано новое значение статуса']);
+        if (empty($dataOriginal) || empty($dataUpdated)) {
+            echo json_encode(['status' => 'error', 'message' => 'Исходные или обновленные данные отсутствуют']);
             exit;
         }
 
-        // Обновление статуса заказа
-        $sqlUpdateOrder = "UPDATE client_orders SET status = '$status', date_of_change = '" . date("Y-m-d H:i:s") . "' WHERE id = $order_id";
-        if ($conn->query($sqlUpdateOrder) === TRUE) {
-            echo json_encode(['status' => 'success', 'message' => 'Заказ успешно обновлен']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => $conn->error]);
+        // Обновление данных заказа
+        $fieldsToUpdate = [];
+        foreach (['client_id', 'address_id', 'payment_method_id', 'status'] as $field) {
+            if ($dataOriginal['order'][$field] != $dataUpdated['order'][$field]) {
+                $fieldsToUpdate[] = "$field = '" . $conn->real_escape_string($dataUpdated['order'][$field]) . "'";
+            }
         }
-        break;
+        if (!empty($fieldsToUpdate)) {
+            $fieldsToUpdate[] = "date_of_change = '" . date("Y-m-d H:i:s") . "'";
+            $sqlUpdateOrder = "UPDATE client_orders SET " . implode(', ', $fieldsToUpdate) . " WHERE id = $order_id";
+            if ($conn->query($sqlUpdateOrder) === FALSE) {
+                echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления заказа: ' . $conn->error]);
+                exit;
+            }
+        }
 
-        // 4. Получение конкретного заказа
+        // Обработка продуктов
+        $originalProducts = array_column($dataOriginal['products'], null, 'product.id');
+        $updatedProducts = array_column($dataUpdated['products'], null, 'product.id');
+
+        // Удаление продуктов, отсутствующих в обновленных данных
+        foreach ($originalProducts as $productId => $originalProduct) {
+            if (!isset($updatedProducts[$productId])) {
+                $sqlDelete = "DELETE FROM client_order_indexes WHERE client_order_id = $order_id AND product_id = $productId";
+                if ($conn->query($sqlDelete) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления продукта: ' . $conn->error]);
+                    exit;
+                }
+            }
+        }
+
+        // Обновление и добавление продуктов
+        foreach ($updatedProducts as $productId => $updatedProduct) {
+            $price = $conn->real_escape_string($updatedProduct['product']['price']);
+            $sizeId = $conn->real_escape_string($updatedProduct['size']['id']);
+            $optionsJson = $conn->real_escape_string(json_encode(array_map('intval', $updatedProduct['product']['order_options'])));
+
+            if (isset($originalProducts[$productId])) {
+                // Если продукт существует, обновляем его
+                $sqlUpdateProduct = "UPDATE client_order_indexes SET
+                        price = '$price',
+                        size_id = '$sizeId',
+                        options = '$optionsJson'
+                        WHERE client_order_id = $order_id AND product_id = $productId";
+                if ($conn->query($sqlUpdateProduct) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления продукта: ' . $conn->error]);
+                    exit;
+                }
+            } else {
+                // Если продукт новый, добавляем его
+                $sqlInsertProduct = "INSERT INTO client_order_indexes (client_order_id, product_id, price, size_id, options)
+                        VALUES ($order_id, $productId, '$price', '$sizeId', '$optionsJson')";
+                if ($conn->query($sqlInsertProduct) === FALSE) {
+                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления нового продукта: ' . $conn->error]);
+                    exit;
+                }
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'message' => 'Заказ успешно обновлен']);
+        break;
     case 'get_order':
         if ($order_id <= 0) {
             echo json_encode(['status' => 'error', 'message' => 'Некорректный ID заказа']);
