@@ -5,12 +5,11 @@
     <h2>チェックアウト</h2>
 
     <div class="checkout-content">
-
-
       <h2>配達</h2>
       <div class="address-wrap">
 
-        <div class="address-card" v-for="item in user.addresses" :key="item">
+        <div class="address-card" v-for="(item, index) in user.addresses" :key="item" :class="{ selected: selectedAddress === index }" @click="selectAddress(index)">
+          <span class="icon-selected" v-if="selectedAddress === index"></span>
           <h2>{{ item.name }}</h2>
           <p>{{ item.address }}</p>
           <div class="tel">
@@ -33,10 +32,11 @@
         <div class="card-wrap">
           <p>クレジットカード</p>
 
-          <div class="card-choice-wrap" v-for="(item, index) in user.payment_methods" :key="item">
-            <input class="radioBtn" type="radio" :id="'payment-' + index" :value="item" v-model="selectedPayment" name="payment-method" />
+          <div class="card-choice-wrap" v-for="(item, index) in user.payment_methods" :key="item" :class="{ selected: selectedPayment === item }" @click="selectPayment(item)">
+            <input class="radioBtn" type="radio" :id="'payment-' + index" :value="item" :checked="selectedPayment == index" name="payment-method" />
             <label :for="'payment-' + index">{{ item.card_number }}</label>
-          </div> <a class="add-card">
+          </div>
+          <a class="add-card">
             クレジットカードまたはデビットカードを追加する
           </a>
         </div>
@@ -55,41 +55,57 @@
 
       </div>
 
-      <button style="width: 100%;" class="button" @click="saveAction">注文を確定する</button>
+      <button :class="['button', { loading: lock_send_order }]" @click="saveAction" style="width: 100%;" :disabled="lock_send_order">
+        <span v-if="!lock_send_order">注文を確定する</span>
+        <span v-else>送信中...</span>
+      </button>
 
     </div>
-
-
   </div>
 
-
-
 </template>
+<!-- eslint-disable -->
 <script>
-import { defineComponent, inject/* , onBeforeMount, ref, computed */ } from "vue";
+import { defineComponent, inject, onBeforeMount, ref, computed, onMounted } from "vue";
 import axios from "axios";
-// import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 // import { useToast } from 'vue-toast-notification';
 
 
 export default defineComponent({
   name: "CartView",
   setup() {
+    const router = useRouter();
+    const lock_send_order = ref(false);
+    const selectedAddress = ref(0); // Индекс выбранного адреса
+    const selectedPayment = ref(null); // Выбранный метод оплаты
 
     const { user } = inject("auth");
-    const { cart } = inject('cart');
+    const { cart } = inject("cart");
 
+    if (cart.value.length === 0) router.push('/cart');
+
+    const selectAddress = (index) => {
+      selectedAddress.value = index;
+    };
+
+    const selectPayment = (payment) => {
+      selectedPayment.value = payment;
+    };
 
 
 
     const saveAction = async () => {
       try {
+        if (lock_send_order.value) return;
+        lock_send_order.value = true;
+
         const response = await axios.post(
           process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
           {
             cart: cart.value,
-            address_id: user.value.addresses[0].id,
-            payment_method_id: user.value.payment_methods[0].id
+            address_id: user.value.addresses[selectedAddress.value].id,
+            payment_method_id: selectedPayment.value.id,
           },
           { withCredentials: true }
         );
@@ -102,11 +118,28 @@ export default defineComponent({
         }
       } catch (error) {
         console.error("Ошибка при сохранении заказа1:", error);
+      } finally {
+        lock_send_order.value = false;
+        router.push('/accepted');
       }
+
+      onBeforeMount(() => {
+
+
+        selectAddress.value = user.value.addresses[0].id;
+        selectPayment.value = user.value.payment_methods[0].id;
+      });
     };
+
     return {
       user,
-      saveAction
+      cart,
+      saveAction,
+      lock_send_order,
+      selectedAddress,
+      selectedPayment,
+      selectAddress,
+      selectPayment,
     };
   },
 });
@@ -132,8 +165,6 @@ h2 {
   gap: 20px;
 
 
-
-
   .address-card {
     border: 1px solid #d9d9d9;
     border-radius: 8px;
@@ -142,7 +173,35 @@ h2 {
     box-sizing: border-box;
     width: 100%;
 
+    cursor: pointer;
 
+    .icon-selected {
+      width: min-content;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      cursor: pointer;
+
+      &::before {
+        content: url(../assets/icons/check-cycle.svg);
+        display: block;
+
+      }
+    }
+
+    .icon-pencil {
+      width: min-content;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      cursor: pointer;
+
+      &::before {
+        content: url(../assets/icons/pencil.svg);
+        display: block;
+
+      }
+    }
 
     .icon-close {
       width: min-content;
@@ -263,6 +322,44 @@ h2 {
       bottom: -10px;
     }
 
+  }
+}
+
+.button {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &.loading {
+    cursor: not-allowed;
+    background-color: #ccc;
+
+    &:after {
+      content: '';
+      position: absolute;
+      border: 3px solid transparent;
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

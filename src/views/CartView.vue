@@ -1,6 +1,6 @@
 <template>
   <div class="empty-cart" v-if="computedCart.length == 0">
-    <h1>カートに何もありません</h1>
+    <h1>カートには何もございません</h1>
     <img src="@/assets/images/sorry.png" alt="">
     <span>商品はカートに追加してください</span>
     <router-link to="/catalog"><button class="button">カタログへ</button></router-link>
