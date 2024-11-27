@@ -67,7 +67,7 @@
           </div>
           <div class="product-final-price">
             <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
-            <div class="change-box" @click="deleteFromCart(item.id)"><span class="product-change">Order Change</span></div>
+            <div class="change-box" @click="goToProductPage(item.id)"><span class="product-change">Order Change</span></div>
             <div class="final-price">
               <span>金額</span>
               <span>{{ formattedPrice(item.totalPrice) }}</span>
@@ -103,6 +103,8 @@ import { useToast } from 'vue-toast-notification';
 export default defineComponent({
   name: "CartView",
   setup() {
+
+    const { isUserLoggedIn } = inject("auth");
 
     const toast = useToast();
 
@@ -205,8 +207,13 @@ export default defineComponent({
       }
     };
 
+    const { closeLogin } = inject('login')
     // Переход на страницу оформления
     const goToAboutPage = () => {
+      if (!isUserLoggedIn.value) {
+        closeLogin.value = true;
+        return;
+      }
       router.push("/checkout");
     };
     const goToProductPage = (id) => {

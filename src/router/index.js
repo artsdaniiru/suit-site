@@ -53,7 +53,7 @@ const routes = [
     component: () => import('../views/CheckOutView.vue')
   },
   {
-    path: '/accepted',
+    path: '/accepted/:uid',
     name: 'Accepted',
     component: () => import('../views/OrderAccepted.vue')
   },

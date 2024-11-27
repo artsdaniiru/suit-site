@@ -30,7 +30,7 @@
 </template>
 <script>
 
-import { defineComponent, inject, ref } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { useRouter } from 'vue-router'
 
 import LoginForm from './LoginForm.vue';
@@ -47,7 +47,9 @@ export default defineComponent({
 
         const { user, isUserLoggedIn, logout } = inject('auth')
 
-        const closeLogin = ref(false);
+
+        const { closeLogin } = inject('login')
+
 
         function goToCart() {
             router.push('/cart');

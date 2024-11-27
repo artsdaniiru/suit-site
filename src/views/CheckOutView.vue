@@ -8,8 +8,8 @@
       <h2>配達</h2>
       <div class="address-wrap">
 
-        <div class="address-card" v-for="(item, index) in user.addresses" :key="item" :class="{ selected: selectedAddress === index }" @click="selectAddress(index)">
-          <span class="icon-selected" v-if="selectedAddress === index"></span>
+        <div class="address-card" v-for="item in user.addresses" :key="item" :class="{ selected: selectedAddress === item.id }" @click="selectAddress(item.id)">
+          <span class="icon-selected" v-if="selectedAddress === item.id"></span>
           <h2>{{ item.name }}</h2>
           <p>{{ item.address }}</p>
           <div class="tel">
@@ -32,9 +32,10 @@
         <div class="card-wrap">
           <p>クレジットカード</p>
 
-          <div class="card-choice-wrap" v-for="(item, index) in user.payment_methods" :key="item" :class="{ selected: selectedPayment === item }" @click="selectPayment(item)">
-            <input class="radioBtn" type="radio" :id="'payment-' + index" :value="item" :checked="selectedPayment == index" name="payment-method" />
-            <label :for="'payment-' + index">{{ item.card_number }}</label>
+
+          <div class="card-choice-wrap" v-for="item in user.payment_methods" :key="item" :class="{ selected: selectedPayment === item.id }" @click="selectPayment(item.id)">
+            <div class="radio-btn"></div>
+            <label>{{ item.card_number }}</label>
           </div>
           <a class="add-card">
             クレジットカードまたはデビットカードを追加する
@@ -42,13 +43,14 @@
         </div>
         <div class="card-wrap">
           <p>その他</p>
-          <div class="pay-choice-wrap">
-            <input class="radioBtn" type="radio" id="cash" value="cash" v-model="paymentMethod" name="other-payment" />
-            <label for="cash">現金</label>
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'cash' }" @click="selectPayment('cash')">
+            <div class="radio-btn"></div>
+            <label>現金</label>
           </div>
-          <div class="pay-choice-wrap">
-            <input class="radioBtn" type="radio" id="convenience" value="convenience" v-model="paymentMethod" name="other-payment" />
-            <label for="convenience">コンビニ払い</label>
+
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }" @click="selectPayment('convenience')">
+            <div class="radio-btn"></div>
+            <label>コンビニ払い</label>
           </div>
 
         </div>
@@ -75,13 +77,18 @@ import { useRouter } from 'vue-router'
 export default defineComponent({
   name: "CartView",
   setup() {
-    const router = useRouter();
-    const lock_send_order = ref(false);
-    const selectedAddress = ref(0); // Индекс выбранного адреса
-    const selectedPayment = ref(null); // Выбранный метод оплаты
 
     const { user } = inject("auth");
     const { cart } = inject("cart");
+
+    const router = useRouter();
+    const lock_send_order = ref(false);
+    console.log(user.value);
+
+    const selectedAddress = ref(user.value.addresses[0].id); // Индекс выбранного адреса
+    const selectedPayment = ref(user.value.payment_methods[0].id); // Выбранный метод оплаты
+
+
 
     if (cart.value.length === 0) router.push('/cart');
 
@@ -96,6 +103,7 @@ export default defineComponent({
 
 
     const saveAction = async () => {
+      let order_id = null;
       try {
         if (lock_send_order.value) return;
         lock_send_order.value = true;
@@ -115,20 +123,14 @@ export default defineComponent({
           return;
         } else {
           console.log(response.data);
+          order_id = response.data.order_id;
         }
       } catch (error) {
         console.error("Ошибка при сохранении заказа1:", error);
       } finally {
         lock_send_order.value = false;
-        router.push('/accepted');
+        router.push('/accepted/' + order_id);
       }
-
-      onBeforeMount(() => {
-
-
-        selectAddress.value = user.value.addresses[0].id;
-        selectPayment.value = user.value.payment_methods[0].id;
-      });
     };
 
     return {
@@ -271,42 +273,30 @@ h2 {
 .order-wrap {
 
 
-  .pay-choice-wrap {
+  .radio-btn {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #d9d9d9;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    position: relative;
 
-    display: flex;
-    align-items: baseline;
-    cursor: pointer;
-
-    .radioBtn {
-      position: relative;
-      display: block;
-      height: min-content;
-      margin-bottom: 24px;
-      cursor: pointer;
+    &.selected {
+      background-color: #000;
     }
   }
 
-  .card-choice-wrap {
+  .card-choice-wrap,
+  .pay-choice-wrap {
     display: flex;
-    align-items: baseline;
-    gap: 50px;
+    align-items: center;
     cursor: pointer;
+    margin-bottom: 12px;
 
-    .radioBtn {
-      position: relative;
-      display: block;
-      height: min-content;
-      margin-bottom: 24px;
-      cursor: pointer;
-
-      &::before {
-        content: url(../assets/icons/visa.svg);
-        display: block;
-        position: absolute;
-        left: 20px;
-        bottom: -4px;
-        height: 21px;
-      }
+    &.selected .radio-btn {
+      background-color: #000;
+      /* Цвет выбранного элемента */
     }
   }
 

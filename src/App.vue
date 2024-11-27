@@ -102,8 +102,10 @@ export default defineComponent({
     const user = ref({});
     const isUserLoggedIn = ref(false); // Флаг для проверки авторизации
 
-
-
+    const closeLogin = ref(false);
+    provide('login', {
+      closeLogin
+    });
 
     // Функция для получения данных пользователя только если есть токен
     const fetchUserData = async () => {
