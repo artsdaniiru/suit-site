@@ -358,11 +358,12 @@ export default defineComponent({
                 product_id: data.value.product.id,
                 name: "New size",
                 price: 0,
-                date_of_creation: new Date('YYYY-MM-DD HH:MM:SS'),
-                date_of_change: new Date('YYYY-MM-DD HH:MM:SS'),
+                date_of_creation: new Date(),
+                date_of_change: new Date(),
                 stock: 0
-            }
-            if (data.value.product.type == 'suit') {
+            };
+
+            if (data.value.product.type === 'suit') {
                 size_template = {
                     id: null,
                     product_id: data.value.product.id,
@@ -374,21 +375,21 @@ export default defineComponent({
                     shoulder_width_max: 0,
                     waist_size_min: 0,
                     waist_size_max: 0,
-                    date_of_creation: new Date('YYYY-MM-DD HH:MM:SS'),
-                    date_of_change: new Date('YYYY-MM-DD HH:MM:SS'),
+                    date_of_creation: new Date(),
+                    date_of_change: new Date(),
                     stock: 0
-                }
+                };
             }
 
-            if (data.value.sizes.length != 0) {
-                size_template = data.value.sizes[data.value.sizes.length - 1];
+            if (data.value.sizes.length !== 0) {
+                // Использование structuredClone для глубокой копии
+                size_template = structuredClone(data.value.sizes[data.value.sizes.length - 1]);
                 size_template.id = null;
-                size_template.date_of_creation = new Date('YYYY-MM-DD HH:MM:SS');
-                size_template.date_of_change = new Date('YYYY-MM-DD HH:MM:SS');
+                size_template.date_of_creation = new Date();
+                size_template.date_of_change = new Date();
             }
 
-
-            data.value.sizes.push(size_template)
+            data.value.sizes.push(size_template);
             active_size.value = data.value.sizes.length - 1;
         }
 

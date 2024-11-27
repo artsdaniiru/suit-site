@@ -332,19 +332,20 @@ switch ($action) {
         $resultProducts = $conn->query($sqlProducts);
         $products = [];
 
-        if ($resultProducts->num_rows > 0) {
+        if ($resultProducts != false && $resultProducts->num_rows > 0) {
             while ($row = $resultProducts->fetch_assoc()) {
                 // Удаляем null поля из product
                 $product_data['product'] = array_filter($row, function ($value) {
                     return !is_null($value);
                 });
-                $product_data['product']['price'] = intval($product_data['product']['price']);
+                // $product_data['product']['price'] = intval($product_data['product']['price']);
 
                 $s_id = $row['size_id'];
                 $sqlSize = "SELECT s.* FROM sizes s WHERE s.id=$s_id";
                 $resultSize = $conn->query($sqlSize);
 
-                if ($resultSize->num_rows > 0) {
+
+                if ($resultSize != false && $resultSize->num_rows > 0) {
                     $sizeData = $resultSize->fetch_assoc();
                     $product_data['size'] = array_filter($sizeData, function ($value) {
                         return !is_null($value);
@@ -358,7 +359,7 @@ switch ($action) {
                     $sqlOptions = "SELECT * FROM options WHERE id IN ($options_sql_ids)";
                     $resultOptions = $conn->query($sqlOptions);
 
-                    if ($resultOptions->num_rows > 0) {
+                    if ($resultOptions != false && $resultOptions->num_rows > 0) {
                         $product_data['options'] = [];
                         while ($row_o = $resultOptions->fetch_assoc()) {
                             $product_data['options'][] = array_filter($row_o, function ($value) {
