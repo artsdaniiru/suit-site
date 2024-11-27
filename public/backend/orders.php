@@ -83,17 +83,19 @@ switch ($action) {
             // Обрабатываем опции
             if (isset($item['options'])) {
                 foreach ($item['options'] as $option_category => $option) {
-                    if (!$option['free']) {
+                    if ($option['id'] != "") {
                         $option_id = intval($option['id']);
                         $options[] = $option_id;
+                        if (!$option['free']) {
 
-                        // Получаем цену опции
-                        $sql = "SELECT price FROM options WHERE id = $option_id";
-                        $option_result = $conn->query($sql);
+                            // Получаем цену опции
+                            $sql = "SELECT price FROM options WHERE id = $option_id";
+                            $option_result = $conn->query($sql);
 
-                        if ($option_result->num_rows > 0) {
-                            $option_data = $option_result->fetch_assoc();
-                            $total_option_price += floatval($option_data['price']);
+                            if ($option_result->num_rows > 0) {
+                                $option_data = $option_result->fetch_assoc();
+                                $total_option_price += floatval($option_data['price']);
+                            }
                         }
                     }
                 }

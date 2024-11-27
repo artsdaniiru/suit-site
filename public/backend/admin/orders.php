@@ -235,9 +235,16 @@ switch ($action) {
             }
         }
 
-        // Обработка продуктов
-        $originalProducts = array_column($dataOriginal['products'], null, 'product.id');
-        $updatedProducts = array_column($dataUpdated['products'], null, 'product.id');
+        // Получение продуктов из оригинальных и обновленных данных
+        $originalProducts = [];
+        foreach ($dataOriginal['products'] as $product) {
+            $originalProducts[$product['product']['id']] = $product;
+        }
+
+        $updatedProducts = [];
+        foreach ($dataUpdated['products'] as $product) {
+            $updatedProducts[$product['product']['id']] = $product;
+        }
 
         // Удаление продуктов, отсутствующих в обновленных данных
         foreach ($originalProducts as $productId => $originalProduct) {
@@ -253,8 +260,13 @@ switch ($action) {
         // Обновление и добавление продуктов
         foreach ($updatedProducts as $productId => $updatedProduct) {
             $price = $conn->real_escape_string($updatedProduct['product']['price']);
-            $sizeId = $conn->real_escape_string($updatedProduct['size']['id']);
-            $optionsJson = $conn->real_escape_string(json_encode(array_map('intval', $updatedProduct['product']['order_options'])));
+            $sizeId = $conn->real_escape_string($updatedProduct['product']['size_id']);
+
+            // Фильтрация `order_options` для исключения нулей
+            $optionsArray = array_filter(json_decode($updatedProduct['product']['order_options'], true), function ($value) {
+                return $value != 0;
+            });
+            $optionsJson = $conn->real_escape_string(json_encode(array_values($optionsArray)));
 
             if (isset($originalProducts[$productId])) {
                 // Если продукт существует, обновляем его
@@ -280,6 +292,8 @@ switch ($action) {
 
         echo json_encode(['status' => 'success', 'message' => 'Заказ успешно обновлен']);
         break;
+
+
     case 'get_order':
         if ($order_id <= 0) {
             echo json_encode(['status' => 'error', 'message' => 'Некорректный ID заказа']);
