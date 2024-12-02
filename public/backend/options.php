@@ -1,8 +1,8 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once 'config.php';
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -10,61 +10,61 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Обработка запросов
+// Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Получение параметров из GET-запроса
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Тип сортировки по умолчанию - по имени
-$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Число опций на одной странице
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
-$query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+// Get parameters from GET request
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Default sort type - by name
+$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Number of options per page
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Current page
+$query = isset($_GET['query']) ? $_GET['query'] : ''; // Search string (default is empty)
 $type = isset($_GET['type']) ? "AND type='" . $_GET['type'] . "'" : '';
 
-// Определение сортировки в зависимости от параметра $sort
+// Determine sorting based on the $sort parameter
 switch ($sort) {
     case 'name_asc':
-        $orderBy = 'o.name ASC'; // Сортировка по имени по возрастанию
+        $orderBy = 'o.name ASC'; // Sort by name ascending
         break;
     case 'name_desc':
-        $orderBy = 'o.name DESC'; // Сортировка по имени по убыванию
+        $orderBy = 'o.name DESC'; // Sort by name descending
         break;
     case 'type_asc':
-        $orderBy = 'o.type ASC'; // Сортировка по имени по возрастанию
+        $orderBy = 'o.type ASC'; // Sort by type ascending
         break;
     case 'type_desc':
-        $orderBy = 'o.type DESC'; // Сортировка по имени по убыванию
+        $orderBy = 'o.type DESC'; // Sort by type descending
         break;
     case 'price_high':
-        $orderBy = 'o.price DESC'; // Сортировка по цене по убыванию
+        $orderBy = 'o.price DESC'; // Sort by price descending
         break;
     case 'price_low':
-        $orderBy = 'o.price ASC'; // Сортировка по цене по возрастанию
+        $orderBy = 'o.price ASC'; // Sort by price ascending
         break;
     default:
-        $orderBy = 'o.name ASC'; // По умолчанию сортировка по имени по возрастанию
+        $orderBy = 'o.name ASC'; // Default sort by name ascending
 }
 
-// Вычисление смещения для пагинации
+// Calculate the offset for pagination
 $offset = ($page - 1) * $itemsPerPage;
 
-// Подготовка условия для строки поиска
+// Prepare the condition for the search string
 $searchCondition = '';
 if (!empty($query)) {
-    // Экранируем значение поиска для безопасности
+    // Escape the search value for security
     $query = $conn->real_escape_string($query);
     $searchCondition .= "AND (o.name LIKE '%$query%' OR o.type LIKE '%$query%')";
 }
@@ -76,23 +76,22 @@ if ($splitByType) {
     $limit = "";
 }
 
-// SQL-запрос для получения списка опций
+// SQL query to get the list of options
 $sql = "SELECT o.* 
-                    FROM options o
-                    WHERE 1=1 $searchCondition $type
-                    ORDER BY $orderBy
-                    $limit";
+        FROM options o
+        WHERE 1=1 $searchCondition $type
+        ORDER BY $orderBy
+        $limit";
 
 $result = $conn->query($sql);
 if (!$result) {
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+    echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
     exit;
 }
 
-
 $options = [];
 
-// Сохранение результатов в массив
+// Save the results in an array
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         if ($splitByType) {
@@ -103,13 +102,13 @@ if ($result->num_rows > 0) {
     }
 }
 
-// Получение общего количества записей для вычисления количества страниц
+// Get the total number of records to calculate the number of pages
 $totalCountResult = $conn->query("SELECT COUNT(*) as count 
-                                              FROM options o 
-                                              WHERE 1=1 $searchCondition $type");
+                                 FROM options o 
+                                 WHERE 1=1 $searchCondition $type");
 
 if (!$totalCountResult) {
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества опций: ' . $conn->error]);
+    echo json_encode(['status' => 'error', 'message' => 'Error fetching the number of options: ' . $conn->error]);
     exit;
 }
 
@@ -117,7 +116,7 @@ $totalCountRow = $totalCountResult->fetch_assoc();
 $totalItems = intval($totalCountRow['count']);
 $totalPages = ceil($totalItems / $itemsPerPage);
 
-// Вывод результата (ответ с информацией об опциях и пагинации) в формате JSON
+// Output the result (response with option information and pagination) in JSON format
 echo json_encode([
     'status' => 'success',
     'options' => $options,

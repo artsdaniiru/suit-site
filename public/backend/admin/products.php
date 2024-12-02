@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once '../config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,19 +13,19 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Проверка сессии
+// Check the session
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     echo json_encode([
         "status" => "error",
@@ -34,76 +34,76 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     exit;
 }
 
-// Обработка запросов
+// Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Получение параметров из GET-запроса
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest'; // Тип сортировки по умолчанию - самые новые
-$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Число продуктов на одной странице
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
-$query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
-$popular = isset($_GET['popular']) && $_GET['popular'] == '1'; // Параметр фильтрации рекомендованных товаров
-$productType = isset($_GET['productType']) ? $_GET['productType'] : ''; // Фильтр по типу продукта (suit или not_suit)
+// Get parameters from GET request
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest'; // Default sort type - newest
+$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Number of products per page
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Current page
+$query = isset($_GET['query']) ? $_GET['query'] : ''; // Search string (default is empty)
+$popular = isset($_GET['popular']) && $_GET['popular'] == '1'; // Parameter to filter recommended products
+$productType = isset($_GET['productType']) ? $_GET['productType'] : ''; // Filter by product type (suit or not_suit)
 
-// Определение сортировки в зависимости от параметра $sort
+// Determine sorting based on the $sort parameter
 switch ($sort) {
     case 'newest':
-        $orderBy = 'p.date_of_creation DESC'; // Сначала новые товары
+        $orderBy = 'p.date_of_creation DESC'; // Newest products first
         break;
     case 'highest_price':
-        $orderBy = 'min_price DESC'; // Товары с наибольшей минимальной ценой
+        $orderBy = 'min_price DESC'; // Products with the highest minimum price
         break;
     case 'lowest_price':
-        $orderBy = 'min_price ASC'; // Товары с наименьшей минимальной ценой
+        $orderBy = 'min_price ASC'; // Products with the lowest minimum price
         break;
-    case 'recomended':
-        $orderBy = 'popular DESC'; // Рекомендованные товары
+    case 'recommended':
+        $orderBy = 'popular DESC'; // Recommended products
         break;
     case 'name_asc':
-        $orderBy = 'name ASC'; // Рекомендованные товары
+        $orderBy = 'name ASC'; // Sort by name ascending
         break;
     case 'name_desc':
-        $orderBy = 'name DESC'; // Рекомендованные товары
+        $orderBy = 'name DESC'; // Sort by name descending
         break;
     case 'name_eng_asc':
-        $orderBy = 'name_eng ASC'; // Рекомендованные товары
+        $orderBy = 'name_eng ASC'; // Sort by English name ascending
         break;
     case 'name_eng_desc':
-        $orderBy = 'name_eng DESC'; // Рекомендованные товары
+        $orderBy = 'name_eng DESC'; // Sort by English name descending
         break;
     case 'active_asc':
-        $orderBy = 'active ASC'; // Рекомендованные товары
+        $orderBy = 'active ASC'; // Sort by active status ascending
         break;
     case 'active_desc':
-        $orderBy = 'active DESC'; // Рекомендованные товары
+        $orderBy = 'active DESC'; // Sort by active status descending
         break;
     default:
-        $orderBy = 'p.date_of_creation DESC'; // По умолчанию сортировка по дате (новые)
+        $orderBy = 'p.date_of_creation DESC'; // Default sort by creation date (newest)
 }
 
-// Вычисление смещения для пагинации
+// Calculate the offset for pagination
 $offset = ($page - 1) * $itemsPerPage;
 
-// Подготовка условия для строки поиска
+// Prepare the condition for the search string
 $searchCondition = '';
 if (!empty($query)) {
-    // Экранируем значение поиска для безопасности
+    // Escape the search value for security
     $query = $conn->real_escape_string($query);
     $searchCondition .= "AND (p.name LIKE '%$query%' OR p.name_eng LIKE '%$query%' OR p.description LIKE '%$query%')";
 }
 
-// Подготовка условия для параметра "popular"
+// Prepare the condition for the "popular" parameter
 $popularCondition = '';
 if ($popular) {
-    $popularCondition .= "AND p.popular = 1"; // Фильтрация по популярности
+    $popularCondition .= "AND p.popular = 1"; // Filter by popularity
 }
 
-// Подготовка условия для фильтра по типу продукта
+// Prepare the condition for the product type filter
 $productTypeCondition = '';
 if (!empty($productType)) {
-    // Экранируем значение типа продукта для безопасности
+    // Escape the product type value for security
     $productType = $conn->real_escape_string($productType);
     $productTypeCondition .= "AND p.type = '$productType'";
 }
@@ -118,7 +118,7 @@ switch ($action) {
             $where = "WHERE 1=1 $searchCondition $popularCondition $productTypeCondition";
         }
 
-        // SQL-запрос с JOIN, MIN, сортировкой, условием поиска, популярными товарами, фильтром по типу продукта, LIMIT и OFFSET
+        // SQL query with JOIN, MIN, sorting, search condition, popular products, product type filter, LIMIT and OFFSET
         $sql = "SELECT p.*, MIN(i.price) as min_price, COALESCE(MIN(im.image_path), NULL) AS image_path
         FROM products p
         LEFT JOIN sizes i ON p.id = i.product_id
@@ -130,34 +130,33 @@ switch ($action) {
 
         $result = $conn->query($sql);
         if (!$result) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
             exit;
         }
         $products = [];
 
-        // Сохранение результатов в массив
+        // Save the results in an array
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-
                 $products[] = $row;
             }
         }
 
-        // Получение общего количества записей для вычисления количества страниц (с учетом фильтров поиска и рекомендаций)
+        // Get the total number of records to calculate the number of pages (considering search and recommendation filters)
         $totalCountResult = $conn->query("SELECT COUNT(DISTINCT p.id) as count 
                           FROM products p 
                           JOIN sizes i ON p.id = i.product_id
                           WHERE 1=1 $searchCondition $popularCondition $productTypeCondition");
 
         if (!$totalCountResult) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества товаров: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Error getting the number of products: ' . $conn->error]);
             exit;
         }
         $totalCountRow = $totalCountResult->fetch_assoc();
         $totalItems = intval($totalCountRow['count']);
         $totalPages = ceil($totalItems / $itemsPerPage);
 
-        // Вывод результата (ответ с информацией о продуктах и пагинации) в формате JSON
+        // Output the result (response with product information and pagination) in JSON format
         echo json_encode([
             'status' => 'success',
             'products' => $products,
@@ -170,44 +169,44 @@ switch ($action) {
         ]);
         break;
     case 'list_all_options':
-        // Получение параметров из GET-запроса
-        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Тип сортировки по умолчанию - по имени
-        $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Число опций на одной странице
-        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
-        $query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+        // Get parameters from GET request
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Default sort type - by name
+        $itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 20; // Number of options per page
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Current page
+        $query = isset($_GET['query']) ? $_GET['query'] : ''; // Search string (default is empty)
         $type = isset($_GET['type']) ? "AND type='" . $_GET['type'] . "'" : '';
 
-        // Определение сортировки в зависимости от параметра $sort
+        // Determine sorting based on the $sort parameter
         switch ($sort) {
             case 'name_asc':
-                $orderBy = 'o.name ASC'; // Сортировка по имени по возрастанию
+                $orderBy = 'o.name ASC'; // Sort by name ascending
                 break;
             case 'name_desc':
-                $orderBy = 'o.name DESC'; // Сортировка по имени по убыванию
+                $orderBy = 'o.name DESC'; // Sort by name descending
                 break;
             case 'type_asc':
-                $orderBy = 'o.type ASC'; // Сортировка по имени по возрастанию
+                $orderBy = 'o.type ASC'; // Sort by type ascending
                 break;
             case 'type_desc':
-                $orderBy = 'o.type DESC'; // Сортировка по имени по убыванию
+                $orderBy = 'o.type DESC'; // Sort by type descending
                 break;
             case 'price_high':
-                $orderBy = 'o.price DESC'; // Сортировка по цене по убыванию
+                $orderBy = 'o.price DESC'; // Sort by price descending
                 break;
             case 'price_low':
-                $orderBy = 'o.price ASC'; // Сортировка по цене по возрастанию
+                $orderBy = 'o.price ASC'; // Sort by price ascending
                 break;
             default:
-                $orderBy = 'o.name ASC'; // По умолчанию сортировка по имени по возрастанию
+                $orderBy = 'o.name ASC'; // Default sort by name ascending
         }
 
-        // Вычисление смещения для пагинации
+        // Calculate the offset for pagination
         $offset = ($page - 1) * $itemsPerPage;
 
-        // Подготовка условия для строки поиска
+        // Prepare the condition for the search string
         $searchCondition = '';
         if (!empty($query)) {
-            // Экранируем значение поиска для безопасности
+            // Escape the search value for security
             $query = $conn->real_escape_string($query);
             $searchCondition .= "AND (o.name LIKE '%$query%' OR o.type LIKE '%$query%')";
         }
@@ -219,7 +218,7 @@ switch ($action) {
             $limit = "";
         }
 
-        // SQL-запрос для получения списка опций
+        // SQL query to get the list of options
         $sql = "SELECT o.* 
                     FROM options o
                     WHERE 1=1 $searchCondition $type
@@ -228,14 +227,13 @@ switch ($action) {
 
         $result = $conn->query($sql);
         if (!$result) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
             exit;
         }
 
-
         $options = [];
 
-        // Сохранение результатов в массив
+        // Save the results in an array
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 if ($splitByType) {
@@ -246,13 +244,13 @@ switch ($action) {
             }
         }
 
-        // Получение общего количества записей для вычисления количества страниц
+        // Get the total number of records to calculate the number of pages
         $totalCountResult = $conn->query("SELECT COUNT(*) as count 
                                               FROM options o 
                                               WHERE 1=1 $searchCondition $type");
 
         if (!$totalCountResult) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества опций: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Error getting the number of options: ' . $conn->error]);
             exit;
         }
 
@@ -260,7 +258,7 @@ switch ($action) {
         $totalItems = intval($totalCountRow['count']);
         $totalPages = ceil($totalItems / $itemsPerPage);
 
-        // Вывод результата (ответ с информацией об опциях и пагинации) в формате JSON
+        // Output the result (response with option information and pagination) in JSON format
         echo json_encode([
             'status' => 'success',
             'options' => $options,
@@ -273,7 +271,7 @@ switch ($action) {
         ]);
         break;
     case 'get_option':
-        // Проверяем, был ли передан id в запросе
+        // Check if the id was passed in the request
         if (!isset($_GET['option_id']) || empty($_GET['option_id'])) {
             echo json_encode(['status' => 'error', 'message' => 'Option ID is missing']);
             exit;
@@ -281,16 +279,16 @@ switch ($action) {
 
         $option_id = $_GET['option_id'];
 
-        // Выполняем запрос к базе данных для получения данных об опции
+        // Execute a database query to get the option data
         $sql = "SELECT * FROM options WHERE id = '$option_id'";
         $result = $conn->query($sql);
 
-        // Проверяем, найден ли результат
+        // Check if a result was found
         if ($result && $result->num_rows > 0) {
-            // Получаем данные об опции
+            // Get the option data
             $optionData = $result->fetch_assoc();
 
-            // Выполняем запрос для получения связанных product_id из таблицы options_indexes
+            // Execute a query to get related product_id from the options_indexes table
             $productIds = [];
             $sqlProducts = "SELECT product_id FROM options_indexes WHERE option_id = '$option_id'";
             $resultProducts = $conn->query($sqlProducts);
@@ -301,7 +299,7 @@ switch ($action) {
                 }
             }
 
-            // Получаем информацию о продуктах, если они найдены
+            // Get product information if found
             $productsData = [];
             if (!empty($productIds)) {
                 $productIdsString = implode(",", $productIds);
@@ -315,14 +313,14 @@ switch ($action) {
                 }
             }
 
-            // Формируем итоговый ответ
+            // Form the final response
             echo json_encode(['status' => 'success', 'option' => $optionData, 'products' => $productsData]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Option not found']);
         }
         break;
     case 'edit_option':
-        // Проверка наличия оригинальных и обновленных данных
+        // Check for the presence of original and updated data
         if (!isset($request['data_original']) || !isset($request['data'])) {
             echo json_encode(['status' => 'error', 'message' => 'Missing original or updated data']);
             exit;
@@ -331,10 +329,10 @@ switch ($action) {
         $originalData = $request['data_original'];
         $updatedData = $request['data'];
 
-        // Получаем ID опции из оригинальных данных
+        // Get the option ID from the original data
         $optionId = intval($originalData['id']);
 
-        // Проверяем, изменились ли данные, и если да, обновляем их
+        // Check if data has changed and update if necessary
         if ($originalData !== $updatedData) {
             $sql = "UPDATE options SET
                         name = '" . $conn->real_escape_string($updatedData['name']) . "',
@@ -345,15 +343,15 @@ switch ($action) {
                         WHERE id = '$optionId'";
 
             if ($conn->query($sql) === FALSE) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления опции: ' . $conn->error]);
+                echo json_encode(['status' => 'error', 'message' => 'Error updating option: ' . $conn->error]);
                 exit;
             }
         }
 
-        echo json_encode(['status' => 'success', 'message' => 'Опция успешно обновлена']);
+        echo json_encode(['status' => 'success', 'message' => 'Option updated successfully']);
         break;
     case 'add_product':
-        // Получаем данные из JSON-запроса
+        // Get data from the JSON request
         $data = $request['data'];
 
         $product = $data['product'];
@@ -363,14 +361,13 @@ switch ($action) {
         $description = $conn->real_escape_string($product['description']);
         $popular = isset($product['popular']) ?  $product['popular'] : '';
 
-
-        // Вставка основного продукта
+        // Insert the main product
         $sql = "INSERT INTO products (type, name, name_eng, description, popular) 
             VALUES ('$type', '$name', '$name_eng', '$description', '$popular')";
         if ($conn->query($sql) === TRUE) {
             $newProductId = $conn->insert_id;
 
-            // Добавление размеров, если они есть
+            // Add sizes if they exist
             if (!empty($data['sizes'])) {
                 foreach ($data['sizes'] as $size) {
 
@@ -390,20 +387,20 @@ switch ($action) {
                         '" . $conn->real_escape_string($size['price']) . "', '" . $size_details  . $conn->real_escape_string($size['stock']) . "')";
 
                     if ($conn->query($sql) === FALSE) {
-                        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления размеров: ' . $conn->error]);
+                        echo json_encode(['status' => 'error', 'message' => 'Error adding sizes: ' . $conn->error]);
                         exit;
                     }
                 }
             }
 
-            // Добавление опций
+            // Add options
             if (!empty($data['options']) && isset($data['options'])) {
                 foreach ($data['options'] as $option) {
                     $sql = "INSERT INTO options_indexes (product_id, option_id)
                         VALUES ('$newProductId', '" . intval($option['id']) . "')";
 
                     if ($conn->query($sql) === FALSE) {
-                        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления опции: ' . $conn->error]);
+                        echo json_encode(['status' => 'error', 'message' => 'Error adding option: ' . $conn->error]);
                         exit;
                     }
                 }
@@ -431,38 +428,38 @@ switch ($action) {
 
         break;
     case 'delete_options':
-        // Получение ID опции из запроса
+        // Get the option ID from the request
         $option_id = isset($_GET['option_id']) ? (int)$_GET['option_id'] : 0;
 
-        // Проверка, что ID опции передан
+        // Check that the option ID was passed
         if ($option_id <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID опции']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid option ID']);
             exit;
         }
 
-        // Удаление связей опции с продуктами в таблице options_indexes
+        // Delete option relationships with products in the options_indexes table
         $sqlDeleteIndexes = "DELETE FROM options_indexes WHERE option_id = $option_id";
         if ($conn->query($sqlDeleteIndexes) === FALSE) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с продуктами: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting relationships with products: ' . $conn->error]);
             exit;
         }
 
-        // Удаление самой опции из таблицы options
+        // Delete the option itself from the options table
         $sqlDeleteOption = "DELETE FROM options WHERE id = $option_id";
         if ($conn->query($sqlDeleteOption) === TRUE) {
-            echo json_encode(['status' => 'success', 'message' => 'Опция успешно удалена']);
+            echo json_encode(['status' => 'success', 'message' => 'Option deleted successfully']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления опции: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting option: ' . $conn->error]);
         }
         break;
     case 'edit_product':
-        // Получение данных из запроса
+        // Get data from the request
         $originalData = $request['data_original'];
         $updatedData = $request['data'];
 
         $productId = $originalData['product']['id'];
 
-        // Обновление основного продукта
+        // Update the main product
         if ($originalData['product'] !== $updatedData['product']) {
             $sql = "UPDATE products SET
                     type = '" . $conn->real_escape_string($updatedData['product']['type']) . "',
@@ -474,36 +471,35 @@ switch ($action) {
                     date_of_change = '" . date("Y-m-d H:i:s") . "'
                     WHERE id = '$productId'";
             if ($conn->query($sql) === FALSE) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления продукта: ' . $conn->error]);
+                echo json_encode(['status' => 'error', 'message' => 'Error updating product: ' . $conn->error]);
                 exit;
             }
         }
 
-        // Обработка размеров
-        $originalSizes = array_column($originalData['sizes'], null, 'id'); // Используем ID как ключи
+        // Handle sizes
+        $originalSizes = array_column($originalData['sizes'], null, 'id'); // Use ID as keys
         $updatedSizes = array_column($updatedData['sizes'], null, 'id');
 
-        // Удаление размеров, которых нет в обновленных данных
+        // Delete sizes that are not in the updated data
         foreach ($originalSizes as $id => $originalSize) {
             if (!isset($updatedSizes[$id])) {
                 $sql = "DELETE FROM sizes WHERE id = '$id'";
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления размеров: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Error deleting sizes: ' . $conn->error]);
                     exit;
                 }
             }
         }
 
-        // Обновление или добавление размеров
+        // Update or add sizes
         foreach ($updatedSizes as $id => $updatedSize) {
             if (isset($originalSizes[$id])) {
-                // Если размер существует, обновляем его
+                // If the size exists, update it
                 if ($originalSizes[$id] != $updatedSize) {
-
 
                     $updateFields = [];
 
-                    // Используем функцию для добавления полей
+                    // Use the function to add fields
                     addFieldToUpdate($updateFields, $updatedSize, 'name');
                     addFieldToUpdate($updateFields, $updatedSize, 'price');
                     addFieldToUpdate($updateFields, $updatedSize, 'height_min');
@@ -521,7 +517,7 @@ switch ($action) {
                         $setClause = implode(', ', $updateFields);
                         $sql = "UPDATE sizes SET $setClause WHERE id = $id";
                         if ($conn->query($sql) === FALSE) {
-                            echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления размеров: ' . $sql . $conn->error]);
+                            echo json_encode(['status' => 'error', 'message' => 'Error updating sizes: ' . $sql . $conn->error]);
                             exit;
                         }
                     } else {
@@ -529,21 +525,21 @@ switch ($action) {
                     }
                 }
             } else {
-                // Если размер новый, добавляем его
+                // If the size is new, add it
                 $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, shoulder_width_max, waist_size_min, waist_size_max, stock)
                             VALUES ('$productId', '" . $conn->real_escape_string($updatedSize['name']) . "', '" . $conn->real_escape_string($updatedSize['price']) . "', '" . $conn->real_escape_string($updatedSize['height_min']) . "', '" . $conn->real_escape_string($updatedSize['height_max']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_min']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_max']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_min']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_max']) . "', '" . $conn->real_escape_string($updatedSize['stock']) . "')";
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления нового размера: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Error adding new size: ' . $conn->error]);
                     exit;
                 }
             }
         }
 
-        // Обработка изображений (аналогично размерам)
+        // Handle images (similar to sizes)
         $originalImages = array_column($originalData['product_images'], null, 'id');
         $updatedImages = array_column($updatedData['product_images'], null, 'id');
 
-        // Удаление изображений
+        // Delete images
         foreach ($originalImages as $id => $originalImage) {
             if (!isset($updatedImages[$id])) {
                 $sql = "DELETE FROM product_images WHERE id = '$id'";
@@ -551,116 +547,115 @@ switch ($action) {
 
                 $fullPath = __DIR__ . '/../..' . $imagePath;
 
-                // Удаление файла, если он существует
+                // Delete the file if it exists
                 if (file_exists($fullPath)) {
                     if (!unlink($fullPath)) {
-                        echo json_encode(['status' => 'error', 'message' => 'Не удалось удалить файл. Файл не найден.']);
+                        echo json_encode(['status' => 'error', 'message' => 'Failed to delete file. File not found.']);
                         exit;
                     }
                 }
 
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления изображения: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Error deleting image: ' . $conn->error]);
                     exit;
                 }
             }
         }
 
         if (isset($originalData['options'])) {
-            // Работа с опциями и связями в таблице options_indexes
+            // Work with options and relationships in the options_indexes table
             $originalOptionIds = array_column($originalData['options'], 'id');
             $updatedOptionIds = array_column($updatedData['options'], 'id');
 
-            // Удаление старых связей (опций, которых нет в обновленных данных)
+            // Remove old relationships (options not in updated data)
             $optionsToRemove = array_diff($originalOptionIds, $updatedOptionIds);
             if (!empty($optionsToRemove)) {
                 $optionsToRemoveStr = implode(',', array_map('intval', $optionsToRemove));
                 $sql = "DELETE FROM options_indexes WHERE product_id = '$productId' AND option_id IN ($optionsToRemoveStr)";
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления связей с опциями: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Error deleting relationships with options: ' . $conn->error]);
                     exit;
                 }
             }
 
-            // Добавление новых связей (опций, которых нет в оригинальных данных) - добавление в таблицу options_indexes
+            // Add new relationships (options not in original data) - add to options_indexes table
             $optionsToAdd = array_diff($updatedOptionIds, $originalOptionIds);
             foreach ($optionsToAdd as $optionId) {
                 $sql = "INSERT INTO options_indexes (product_id, option_id)
                 VALUES ('$productId', '" . intval($optionId) . "')";
                 if ($conn->query($sql) === FALSE) {
-                    echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления связей с опциями: ' . $conn->error]);
+                    echo json_encode(['status' => 'error', 'message' => 'Error adding relationships with options: ' . $conn->error]);
                     exit;
                 }
             }
         }
 
-
-        echo json_encode(['status' => 'success', 'message' => 'Продукт успешно обновлен']);
+        echo json_encode(['status' => 'success', 'message' => 'Product updated successfully']);
         break;
     case 'delete_product':
-        // Получение ID продукта из запроса
+        // Get the product ID from the request
         $product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
 
-        // Проверка, что ID продукта передан
+        // Check that the product ID was passed
         if ($product_id <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID продукта']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid product ID']);
             exit;
         }
 
         $sqlImagesList = "SELECT * FROM `product_images` WHERE `product_id`=$product_id";
         $resultImagesList = $conn->query($sqlImagesList);
-        // Сохранение результатов в массив
+        // Save the results in an array
         if ($resultImagesList->num_rows > 0) {
             while ($row = $resultImagesList->fetch_assoc()) {
                 $imagePath = $row['image_path'];
                 $fullPath = __DIR__ . '/../..' . $imagePath;
 
-                // Удаление файла, если он существует
+                // Delete the file if it exists
                 if (file_exists($fullPath)) {
                     unlink($fullPath);
                 }
             }
         }
 
-        // Начало транзакции
+        // Start the transaction
         $conn->begin_transaction();
 
         try {
-            // Удаление изображений продукта
+            // Delete product images
             $sqlDeleteImages = "DELETE FROM product_images WHERE product_id = $product_id";
             if ($conn->query($sqlDeleteImages) === FALSE) {
-                throw new Exception('Ошибка удаления изображений продукта: ' . $conn->error);
+                throw new Exception('Error deleting product images: ' . $conn->error);
             }
 
-            // Удаление размеров продукта
+            // Delete product sizes
             $sqlDeleteSizes = "DELETE FROM sizes WHERE product_id = $product_id";
             if ($conn->query($sqlDeleteSizes) === FALSE) {
-                throw new Exception('Ошибка удаления размеров продукта: ' . $conn->error);
+                throw new Exception('Error deleting product sizes: ' . $conn->error);
             }
 
-            // Удаление связей продукта с опциями в таблице options_indexes
+            // Delete product relationships with options in the options_indexes table
             $sqlDeleteOptionIndexes = "DELETE FROM options_indexes WHERE product_id = $product_id";
             if ($conn->query($sqlDeleteOptionIndexes) === FALSE) {
-                throw new Exception('Ошибка удаления связей с опциями: ' . $conn->error);
+                throw new Exception('Error deleting relationships with options: ' . $conn->error);
             }
 
-            // Удаление записей из client_order_indexes, связанных с продуктом
+            // Delete records from client_order_indexes related to the product
             $sqlDeleteClientOrders = "DELETE FROM client_order_indexes WHERE product_id = $product_id";
             if ($conn->query($sqlDeleteClientOrders) === FALSE) {
-                throw new Exception('Ошибка удаления заказов, связанных с продуктом: ' . $conn->error);
+                throw new Exception('Error deleting client orders related to the product: ' . $conn->error);
             }
 
-            // Удаление самого продукта
+            // Delete the product itself
             $sqlDeleteProduct = "DELETE FROM products WHERE id = $product_id";
             if ($conn->query($sqlDeleteProduct) === FALSE) {
-                throw new Exception('Ошибка удаления продукта: ' . $conn->error);
+                throw new Exception('Error deleting product: ' . $conn->error);
             }
 
-            // Если все прошло успешно, подтверждаем транзакцию
+            // If everything went well, commit the transaction
             $conn->commit();
-            echo json_encode(['status' => 'success', 'message' => 'Продукт и все связанные данные успешно удалены']);
+            echo json_encode(['status' => 'success', 'message' => 'Product and all related data deleted successfully']);
         } catch (Exception $e) {
-            // В случае ошибки откатываем транзакцию
+            // In case of an error, roll back the transaction
             $conn->rollback();
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }

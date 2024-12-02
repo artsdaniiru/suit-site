@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once '../config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,19 +13,19 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Database connection
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Проверка сессии
+// Check session
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     echo json_encode([
         "status" => "error",
@@ -34,48 +34,48 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     exit;
 }
 
-// Обработка запросов
+// Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Получение параметров из GET-запроса
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name'; // Тип сортировки по умолчанию - по имени
-$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Число клиентов на одной странице
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Текущая страница
-$query = isset($_GET['query']) ? $_GET['query'] : ''; // Строка поиска (по умолчанию пустая)
+// Get parameters from GET request
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name'; // Default sort type - by name
+$itemsPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 10; // Number of clients per page
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1; // Current page
+$query = isset($_GET['query']) ? $_GET['query'] : ''; // Search string (default empty)
 
-// Определение сортировки в зависимости от параметра $sort
+// Determine sorting based on $sort parameter
 switch ($sort) {
     case 'date_desc':
-        $orderBy = 'clients.date_of_registration DESC'; // Сначала новые клиенты
+        $orderBy = 'clients.date_of_registration DESC'; // Newest clients first
         break;
     case 'date_asc':
-        $orderBy = 'clients.date_of_registration ASC'; // Сначала старые клиенты
+        $orderBy = 'clients.date_of_registration ASC'; // Oldest clients first
         break;
     case 'name_desc':
-        $orderBy = 'clients.name DESC'; // Сортировка по имени desc
+        $orderBy = 'clients.name DESC'; // Sort by name descending
         break;
     case 'name_asc':
-        $orderBy = 'clients.name ASC'; // Сортировка по имени asc
+        $orderBy = 'clients.name ASC'; // Sort by name ascending
         break;
     case 'email_desc':
-        $orderBy = 'clients.email DESC'; // Сортировка по email desc
+        $orderBy = 'clients.email DESC'; // Sort by email descending
         break;
     case 'email_asc':
-        $orderBy = 'clients.email ASC'; // Сортировка по email asc
+        $orderBy = 'clients.email ASC'; // Sort by email ascending
         break;
     default:
-        $orderBy = 'clients.name DESC'; // По умолчанию сортировка по имени
+        $orderBy = 'clients.name DESC'; // Default sort by name descending
 }
 
-// Вычисление смещения для пагинации
+// Calculate offset for pagination
 $offset = ($page - 1) * $itemsPerPage;
 
-// Подготовка условия для строки поиска
+// Prepare condition for search string
 $searchCondition = '';
 if (!empty($query)) {
-    // Экранируем значение поиска для безопасности
+    // Escape search value for security
     $query = $conn->real_escape_string($query);
     $searchCondition .= "AND (`name` LIKE '%$query%' OR `email` LIKE '%$query%' OR `login` LIKE '%$query%')";
 }
@@ -84,15 +84,14 @@ $client_id = isset($_GET['client_id']) ? $_GET['client_id'] : '';
 
 switch ($action) {
     case 'list_all_clients':
-        // Условия фильтрации (например, для поиска или сортировки клиентов)
+        // Filtering conditions (e.g., for searching or sorting clients)
 
-
-        // Параметры сортировки, пагинации и лимитов
+        // Sorting, pagination, and limit parameters
         $orderBy = isset($orderBy) ? $orderBy : "name ASC";
         $offset = isset($offset) ? $offset : 0;
         $itemsPerPage = isset($itemsPerPage) ? $itemsPerPage : 10;
 
-        // Запрос с учетом условий, сортировки и пагинации
+        // Query considering conditions, sorting, and pagination
         $sql = "SELECT * FROM clients 
                 WHERE 1=1 $searchCondition
                 ORDER BY $orderBy
@@ -100,7 +99,7 @@ switch ($action) {
 
         $result = $conn->query($sql);
         if (!$result) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
             exit;
         }
 
@@ -111,17 +110,17 @@ switch ($action) {
             }
         }
 
-        // Получение общего количества записей для пагинации
+        // Get total count for pagination
         $totalCountResult = $conn->query("SELECT COUNT(*) as count FROM clients WHERE 1=1 $searchCondition");
         if (!$totalCountResult) {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка получения количества клиентов: ' . $conn->error]);
+            echo json_encode(['status' => 'error', 'message' => 'Error fetching client count: ' . $conn->error]);
             exit;
         }
         $totalCountRow = $totalCountResult->fetch_assoc();
         $totalItems = intval($totalCountRow['count']);
         $totalPages = ceil($totalItems / $itemsPerPage);
 
-        // Вывод результата с информацией о клиентах и пагинации
+        // Output result with client information and pagination
         echo json_encode([
             'status' => 'success',
             'clients' => $clients,
@@ -133,63 +132,64 @@ switch ($action) {
             ]
         ]);
         break;
-    case 'delete_client':
-        // Получение ID клиента из запроса
-        $client_id = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
 
-        // Проверка, что ID клиента передан
+    case 'delete_client':
+        // Get client ID from request
+        $client_id = isset($_GET['client_id']) ? (int)$client_id : 0;
+
+        // Check that client ID is provided
         if ($client_id <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID клиента']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid client ID']);
             exit;
         }
 
-        // Начало транзакции
+        // Start transaction
         $conn->begin_transaction();
 
         try {
-            // Удаление заказов клиента
-            // Сначала удалим связанные элементы корзины в client_order_indexes
+            // Delete client's order indexes
             $sqlDeleteOrderIndexes = "DELETE FROM client_order_indexes WHERE client_order_id IN (SELECT id FROM client_orders WHERE client_id = $client_id)";
             if ($conn->query($sqlDeleteOrderIndexes) === FALSE) {
-                throw new Exception('Ошибка удаления элементов корзины: ' . $conn->error);
+                throw new Exception('Error deleting order indexes: ' . $conn->error);
             }
 
-            // Затем удаляем сами заказы клиента
+            // Delete client's orders
             $sqlDeleteOrders = "DELETE FROM client_orders WHERE client_id = $client_id";
             if ($conn->query($sqlDeleteOrders) === FALSE) {
-                throw new Exception('Ошибка удаления заказов клиента: ' . $conn->error);
+                throw new Exception('Error deleting client orders: ' . $conn->error);
             }
 
-            // Удаление методов оплаты клиента
+            // Delete client's payment methods
             $sqlDeletePaymentMethods = "DELETE FROM client_payment_methods WHERE client_id = $client_id";
             if ($conn->query($sqlDeletePaymentMethods) === FALSE) {
-                throw new Exception('Ошибка удаления методов оплаты клиента: ' . $conn->error);
+                throw new Exception('Error deleting client payment methods: ' . $conn->error);
             }
 
-            // Удаление адресов клиента после удаления заказов
+            // Delete client's addresses after deleting orders
             $sqlDeleteAddresses = "DELETE FROM client_addresses WHERE client_id = $client_id";
             if ($conn->query($sqlDeleteAddresses) === FALSE) {
-                throw new Exception('Ошибка удаления адресов клиента: ' . $conn->error);
+                throw new Exception('Error deleting client addresses: ' . $conn->error);
             }
 
-            // Удаление самого клиента
+            // Delete the client
             $sqlDeleteClient = "DELETE FROM clients WHERE id = $client_id";
             if ($conn->query($sqlDeleteClient) === FALSE) {
-                throw new Exception('Ошибка удаления клиента: ' . $conn->error);
+                throw new Exception('Error deleting client: ' . $conn->error);
             }
 
-            // Если все прошло успешно, подтверждаем транзакцию
+            // If everything is successful, commit the transaction
             $conn->commit();
-            echo json_encode(['status' => 'success', 'message' => 'Клиент и все связанные данные успешно удалены']);
+            echo json_encode(['status' => 'success', 'message' => 'Client and all related data successfully deleted']);
         } catch (Exception $e) {
-            // В случае ошибки откатываем транзакцию
+            // In case of error, rollback the transaction
             $conn->rollback();
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
 
         break;
+
     case 'edit_client':
-        // Проверка наличия исходных и обновленных данных клиента
+        // Check for original and updated client data
         if (!isset($request['data_original']) || !isset($request['data'])) {
             echo json_encode(['status' => 'error', 'message' => 'Missing original or updated client data']);
             exit;
@@ -200,7 +200,7 @@ switch ($action) {
 
         $client_id = intval($originalData['client']['id']);
 
-        // --- Обновление данных клиента ---
+        // --- Update client data ---
         if ($originalData['client'] !== $updatedData['client']) {
             $sql = "UPDATE clients SET
                         login = '" . $conn->real_escape_string($updatedData['client']['login']) . "',
@@ -217,15 +217,15 @@ switch ($action) {
             }
         }
 
-        // --- Обработка изменения, добавления и деактивации адресов ---
+        // --- Handle changes, additions, and deactivation of addresses ---
         if (isset($updatedData['client_addresses'])) {
             $addressDataOriginal = array_column($originalData['client_addresses'], null, 'id');
             $addressDataUpdated = array_column($updatedData['client_addresses'], null, 'id');
 
-            // Обновление и добавление адресов
+            // Update and add addresses
             foreach ($addressDataUpdated as $addressId => $updatedAddress) {
                 if (isset($addressDataOriginal[$addressId])) {
-                    // Обновление существующего адреса, если он изменился
+                    // Update existing address if it has changed
                     if ($addressDataOriginal[$addressId] !== $updatedAddress) {
                         $sql = "UPDATE client_addresses SET
                                     name = '" . $conn->real_escape_string($updatedAddress['name']) . "',
@@ -240,7 +240,7 @@ switch ($action) {
                         }
                     }
                 } else {
-                    // Добавление нового адреса
+                    // Add new address
                     $sql = "INSERT INTO client_addresses (client_id, name, address, phone, active) VALUES (
                                 $client_id,
                                 '" . $conn->real_escape_string($updatedAddress['name']) . "',
@@ -256,7 +256,7 @@ switch ($action) {
                 }
             }
 
-            // Деактивация адресов, отсутствующих в обновлённых данных
+            // Deactivate addresses not present in updated data
             foreach ($addressDataOriginal as $addressId => $originalAddress) {
                 if (!isset($addressDataUpdated[$addressId])) {
                     $sql = "UPDATE client_addresses SET active = 0 WHERE client_id = $client_id AND id = $addressId";
@@ -268,15 +268,15 @@ switch ($action) {
             }
         }
 
-        // --- Обработка изменения и деактивации платёжных данных ---
+        // --- Handle changes and deactivation of payment methods ---
         if (isset($updatedData['client_payment_methods'])) {
             $paymentDataOriginal = array_column($originalData['client_payment_methods'], null, 'id');
             $paymentDataUpdated = array_column($updatedData['client_payment_methods'], null, 'id');
 
-            // Обновление существующих платёжных методов
+            // Update existing payment methods
             foreach ($paymentDataUpdated as $paymentId => $updatedPayment) {
                 if (isset($paymentDataOriginal[$paymentId])) {
-                    // Обновление платёжного метода, если он изменился
+                    // Update payment method if it has changed
                     if ($paymentDataOriginal[$paymentId] !== $updatedPayment) {
                         $sql = "UPDATE client_payment_methods SET
                                     card_number = '" . $conn->real_escape_string($updatedPayment['card_number']) . "',
@@ -291,7 +291,7 @@ switch ($action) {
                 }
             }
 
-            // Деактивация платёжных методов, отсутствующих в обновлённых данных
+            // Deactivate payment methods not present in updated data
             foreach ($paymentDataOriginal as $paymentId => $originalPayment) {
                 if (!isset($paymentDataUpdated[$paymentId])) {
                     $sql = "UPDATE client_payment_methods SET active = 0 WHERE client_id = $client_id AND id = $paymentId";
@@ -307,30 +307,30 @@ switch ($action) {
         break;
 
     case 'get_client':
-        // Получаем данные о конретном клиенте
+        // Get data about a specific client
         $data = [];
         if ($client_id == false) {
             $data = 'Data not found (no client_id)';
             echo json_encode(['status' => 'fail', 'data' => $data]);
         } else {
-            // SQL-запрос (к clients)
+            // SQL query (to clients)
             $sql = "SELECT * FROM clients
                     WHERE id=$client_id";
 
             $result = $conn->query($sql);
             if (!$result) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+                echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
                 exit;
             }
 
-            // Сохранение результатов в массив
+            // Store results in array
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     $data['client'] = $row;
                 }
             }
 
-            // SQL-запрос (к client_addresses)
+            // SQL query (to client_addresses)
             $sql = "SELECT * FROM client_addresses
                     WHERE client_id=$client_id";
 
@@ -338,7 +338,7 @@ switch ($action) {
 
             $client_addresses = [];
 
-            // Сохранение результатов в массив
+            // Store results in array
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     $client_addresses[] = $row;
@@ -346,13 +346,13 @@ switch ($action) {
             }
             $data['client_addresses'] = $client_addresses;
 
-            // SQL-запрос (к client_payment_methods)
+            // SQL query (to client_payment_methods)
             $sql = "SELECT * FROM client_payment_methods
                     WHERE client_id=$client_id";
             $result = $conn->query($sql);
 
             $client_payment_methods = [];
-            // Сохранение результатов в массив
+            // Store results in array
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     $client_payment_methods[] = $row;
@@ -360,7 +360,7 @@ switch ($action) {
             }
             $data['client_payment_methods'] = $client_payment_methods;
 
-            // SQL-запрос (к client_orders)
+            // SQL query (to client_orders)
             $sql = "SELECT 
             co.id, co.status,
             ca.name AS client_name,
@@ -374,13 +374,12 @@ switch ($action) {
             $result = $conn->query($sql);
 
             $client_orders = [];
-            // Сохранение результатов в массив
+            // Store results in array
             if ($result->num_rows > 0) {
-                // print($result->num_rows);
                 while ($row = $result->fetch_assoc()) {
                     $id = $row['id'];
 
-                    //SQL-запрос для формирования cart пользователя
+                    // SQL query to form the user's cart
                     $sql = "SELECT 
                     coi.price AS order_price,
                     coi.options AS order_options,
@@ -396,7 +395,7 @@ switch ($action) {
                     $result_cart = $conn->query($sql);
 
                     $cart = [];
-                    // Сохранение результатов в массив
+                    // Store results in array
                     if ($result_cart->num_rows > 0) {
                         while ($row_cart = $result_cart->fetch_assoc()) {
                             unset($row_cart['id']);
@@ -415,10 +414,10 @@ switch ($action) {
             echo json_encode(['status' => 'success', 'data' => $data]);
         }
 
-
         break;
+
     case 'edit_password':
-        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
+        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Hash the password
         $sql = "UPDATE clients 
             SET password='$password'
             WHERE id = $client_id";
@@ -453,6 +452,7 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
+
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;

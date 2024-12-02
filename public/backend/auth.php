@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once 'config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,42 +13,42 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Получаем действие через GET-параметр 'action'
+// Get the action from the GET parameter 'action'
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
-// Обработка данных, полученных от клиента
+// Handle data received from the client
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Регистрация нового пользователя
+// Register a new user
 if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['name']) && !empty($request['email']) && !empty($request['password'])) {
         $name = $conn->real_escape_string($request['name']);
         $email = $conn->real_escape_string($request['email']);
-        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Хэширование пароля
+        $password = password_hash($request['password'], PASSWORD_DEFAULT); // Hash the password
 
-        // Проверка, существует ли пользователь с таким email
+        // Check if a user with the same email already exists
         $sql = "SELECT id FROM clients WHERE email = '$email'";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
             echo json_encode(["status" => "error", "message" => "Email already exists."]);
         } else {
-            // Генерация уникального токена
+            // Generate a unique token
             $auth_token = bin2hex(random_bytes(32));
 
-            // Вставка нового пользователя в базу данных с токеном
+            // Insert the new user into the database with the token
             $sql = "INSERT INTO clients (name, email, password, auth_token) VALUES ('$name', '$email', '$password', '$auth_token')";
             if ($conn->query($sql) === TRUE) {
                 echo json_encode([
@@ -64,25 +64,25 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(["status" => "error", "message" => "All fields are required."]);
     }
 
-    // Авторизация пользователя
+    // Authenticate a user
 } elseif ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['email']) && !empty($request['password'])) {
         $email = $conn->real_escape_string($request['email']);
         $password = $request['password'];
 
-        // Проверяем наличие пользователя
+        // Check if the user exists
         $sql = "SELECT id, password, name, auth_token FROM clients WHERE email = '$email'";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
-                // Сохраняем данные пользователя в сессии
+                // Save user data in the session
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['auth_token'] = $user['auth_token'];
 
-                // Отправляем токен клиенту
+                // Send the token to the client
                 echo json_encode([
                     "status" => "success",
                     "auth_token" => $user['auth_token'],
@@ -101,18 +101,19 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode(["status" => "error", "message" => "Missing email or password."]);
     }
-    // Выход из системы
+
+    // Log out the user
 } elseif ($action === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Уничтожаем сессию
+    // Destroy the session
     session_unset();
     session_destroy();
 
     echo json_encode(["status" => "success", "message" => "Logged out successfully."]);
 
-    // Получение данных пользователя по токену
+    // Get user data by token
 } elseif ($action === 'get_user' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
-    // Проверка сессии
+    // Check the session
     if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
         echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
         exit;
@@ -120,21 +121,21 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $auth_token = $_SESSION['auth_token'];
 
-    // SQL-запрос для получения данных пользователя
+    // SQL query to get user data
     $sql = "SELECT * FROM clients WHERE auth_token = '$auth_token'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        // Удаляем конфиденциальные данные
+        // Remove sensitive data
         unset($user['login'], $user['password']);
 
         $user['height'] = intval($user['height']);
         $user['shoulder_width'] = intval($user['shoulder_width']);
         $user['waist_size'] = intval($user['waist_size']);
 
-        // Получение адресов пользователя
+        // Get user addresses
         $sql_addresses = "SELECT * FROM client_addresses WHERE client_id = " . $user['id'];
         $result_addresses = $conn->query($sql_addresses);
         $user_addresses = [];
@@ -146,7 +147,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $user['addresses'] = $user_addresses;
 
-        // Получение методов оплаты пользователя
+        // Get user payment methods
         $sql_payment_methods = "SELECT * FROM client_payment_methods WHERE client_id = " . $user['id'];
         $result_payment_methods = $conn->query($sql_payment_methods);
         $user_payment_methods = [];
@@ -158,7 +159,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $user['payment_methods'] = $user_payment_methods;
 
-        // Получение заказов пользователя
+        // Get user orders
         $sql_orders = "SELECT co.id, co.status, ca.name AS client_name, ca.address AS client_address, 
                        cpm.card_number
                        FROM client_orders co
@@ -172,7 +173,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             while ($order = $result_orders->fetch_assoc()) {
                 $order_id = $order['id'];
 
-                // Получение товаров в заказе
+                // Get items in the order
                 $sql_cart = "SELECT coi.price AS order_price, coi.options AS order_options, 
                              p.*, s.*
                              FROM client_order_indexes coi
@@ -193,7 +194,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $user['orders'] = $user_orders;
 
-        // Возвращаем все данные
+        // Return all data
         echo json_encode([
             "status" => "success",
             "user" => $user
@@ -205,13 +206,12 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $cart = json_encode($request['cart']);
 
-    // Проверка сессии
+    // Check the session
     if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
         echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
         exit;
     }
     $auth_token = $_SESSION['auth_token'];
-
 
     $sql = "UPDATE clients SET cart = '$cart' WHERE auth_token = '$auth_token'";
 
@@ -221,8 +221,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(["status" => "error", "message" => "Error updating record: " . $conn->error]);
     }
 
-
-    // Получение данных пользователя по токену
+    // Invalid action or request method
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action or request method."]);
 }
