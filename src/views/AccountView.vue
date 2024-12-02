@@ -9,12 +9,8 @@
         <div class="account-inf">
           <h2>個人情報</h2>
           <div class="inf-date">
-            <label for="">姓</label>
-            <input placeholder="例）山田" type="text">
-          </div>
-          <div class="inf-date">
-            <label for="">名</label>
-            <input placeholder="例）太郎" type="text">
+            <label for="">氏名</label>
+            <input placeholder="例）山田 太郎" type="text">
           </div>
           <div class="inf-date">
             <label for="">メール</label>
