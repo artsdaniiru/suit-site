@@ -16,7 +16,7 @@
             <span>電話番号: </span>
             <span>{{ item.phone }}</span>
           </div>
-          <span class="icon-close"></span>
+          <span class="icon-close" @click.stop="deleteAddress(item.id)"></span>
           <span class="icon-pencil" @click.stop="openEditAddressModal(item)"></span>
         </div>
 
@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <CustomModal v-model="showAddressModal" :title="editingIndex !== null ? '配達変更' : '配達追加'" :in_modal="true">
+  <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'" :in_modal="true">
     <div class="modal-content">
       <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
       <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
@@ -134,10 +134,11 @@ export default defineComponent({
 
     const deleteAddress = async (id) => {
       try {
-        await axios.post(
-          `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=delete_address&address_id=${id}}`,
+        const response = await axios.get(
+          `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=delete_address&address_id=${id}`,
           { withCredentials: true }
         );
+        console.log('here del',response);
         user.value.addresses = user.value.addresses.filter((address) => address.id !== id);
       } catch (error) {
         console.error("Ошибка при удалении адреса:", error);
@@ -148,34 +149,40 @@ export default defineComponent({
     // Сохранение адреса
     const saveAddress = async () => {
       try {
-        if (editingIndex.value !== null) {
+        if (isEditing.value) {
           // Редактирование существующего адреса
-          await axios.get(
-            `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=edit_address&address_id=${currentAddress.value.id}`,
-            {
-              name: currentAddress.value.name,
-              address: currentAddress.value.address,
-              phone: currentAddress.value.phone
-            },
-            { withCredentials: true }
-          );
+          const response = await axios.post(
+                    `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_address&address_id=${currentAddress.value.id}`,
+                    {
+                      name: currentAddress.value.name,
+                      address: currentAddress.value.address,
+                      phone: currentAddress.value.phone
+                    },
+                    { withCredentials: true }
+                );
+          console.log(response);
+          
 
         } else {
           // Добавление нового адреса
-          const response = await axios.get(
-            `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=add_address`,
-            {
-              name: currentAddress.value.name,
-              address: currentAddress.value.address,
-              phone: currentAddress.value.phone
-            },
-            { withCredentials: true }
-          );
+          const response = await axios.post(
+                    `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=add_address`,
+                    {
+                      address_name: currentAddress.value.name,
+                      address: currentAddress.value.address,
+                       phone: currentAddress.value.phone
+                    },
+                    { withCredentials: true }
+                );
+          console.log(response);
           user.value.addresses.push({ ...currentAddress.value, id: response.data.id });
         }
 
       } catch (error) {
         console.error('Ошибка при сохранении адреса:', error);
+      }
+      finally {
+        showAddressModal.value = false;
       }
     };
 

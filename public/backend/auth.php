@@ -136,7 +136,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $user['waist_size'] = intval($user['waist_size']);
 
         // Get user addresses
-        $sql_addresses = "SELECT * FROM client_addresses WHERE client_id = " . $user['id'];
+        $sql_addresses = "SELECT * FROM client_addresses WHERE client_id = " . $user['id'] . " AND active = 1";
         $result_addresses = $conn->query($sql_addresses);
         $user_addresses = [];
 
