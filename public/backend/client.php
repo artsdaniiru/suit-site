@@ -96,6 +96,26 @@ switch ($action) {
         }
         break;
 
+    case 'edit_payment_method':
+        $payment_method_id = isset($_GET['payment_method_id']) ? $_GET['payment_method_id'] : '';
+        $updateFields = [];
+
+        addFieldToUpdate($updateFields, $request, 'card_number');
+
+        if (!empty($updateFields)) {
+            $setClause = implode(', ', $updateFields);
+            $sql = "UPDATE client_payment_methods SET $setClause WHERE client_id = $user_id AND id=$payment_method_id";
+
+            if ($conn->query($sql) === TRUE) {
+                echo json_encode(['status' => 'success']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => $conn->error]);
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+        }
+        break;
+
     case 'delete_client':
         // Check that the client ID is valid
         if ($user_id <= 0) {

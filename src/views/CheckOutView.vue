@@ -8,7 +8,8 @@
       <h2>配達</h2>
       <div class="address-wrap">
 
-        <div class="address-card" v-for="item in user.addresses" :key="item" :class="{ selected: selectedAddress === item.id }" @click="selectAddress(item.id)">
+        <div class="address-card" v-for="item in user.addresses" :key="item"
+          :class="{ selected: selectedAddress === item.id }" @click="selectAddress(item.id)">
           <span class="icon-selected" v-if="selectedAddress === item.id"></span>
           <h2>{{ item.name }}</h2>
           <p>{{ item.address }}</p>
@@ -31,13 +32,17 @@
         <h2>お支払方法</h2>
         <div class="card-wrap">
           <p>クレジットカード</p>
+        
 
 
-          <div class="card-choice-wrap" v-for="item in user.payment_methods" :key="item" :class="{ selected: selectedPayment === item.id }" @click="selectPayment(item.id)">
+          <div class="card-choice-wrap" v-for="item in user.payment_methods" :key="item"
+            :class="{ selected: selectedPayment === item.id }" @click="selectPayment(item.id)">
             <div class="radio-btn"></div>
             <label>{{ item.card_number }}</label>
+            <span class="icon-close" @click.stop="deletePaymentMethod(item.id)">✕</span>
+            <span class="icon-pencil" @click.stop="openEditPaymentModal(item)">✙</span>
           </div>
-          <a class="add-card">
+          <a class="add-card" @click="openAddPaymentModal">
             クレジットカードまたはデビットカードを追加する
           </a>
         </div>
@@ -48,7 +53,8 @@
             <label>現金</label>
           </div>
 
-          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }" @click="selectPayment('convenience')">
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }"
+            @click="selectPayment('convenience')">
             <div class="radio-btn"></div>
             <label>コンビニ払い</label>
           </div>
@@ -57,7 +63,8 @@
 
       </div>
 
-      <button :class="['button', { loading: lock_send_order }]" @click="saveAction" style="width: 100%;" :disabled="lock_send_order">
+      <button :class="['button', { loading: lock_send_order }]" @click="saveAction" style="width: 100%;"
+        :disabled="lock_send_order">
         <span v-if="!lock_send_order">注文を確定する</span>
         <span v-else>送信中...</span>
       </button>
@@ -74,6 +81,17 @@
     <div class="modal-actions">
       <button class="button button-plain" @click="closeModal">戻る</button>
       <button class="button" @click="saveAddress">保存</button>
+    </div>
+  </CustomModal>
+
+  <!-- Payment Modal -->
+  <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'" :in_modal="true">
+    <div class="modal-content">
+      <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="カード番号入力" />
+    </div>
+    <div class="modal-actions">
+      <button class="button button-plain" @click="closePaymentModal">戻る</button>
+      <button class="button" @click="savePaymentMethod">保存</button>
     </div>
   </CustomModal>
 </template>
@@ -138,7 +156,7 @@ export default defineComponent({
           `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=delete_address&address_id=${id}`,
           { withCredentials: true }
         );
-        console.log('here del',response);
+        console.log('here del', response);
         user.value.addresses = user.value.addresses.filter((address) => address.id !== id);
       } catch (error) {
         console.error("Ошибка при удалении адреса:", error);
@@ -152,28 +170,28 @@ export default defineComponent({
         if (isEditing.value) {
           // Редактирование существующего адреса
           const response = await axios.post(
-                    `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_address&address_id=${currentAddress.value.id}`,
-                    {
-                      name: currentAddress.value.name,
-                      address: currentAddress.value.address,
-                      phone: currentAddress.value.phone
-                    },
-                    { withCredentials: true }
-                );
+            `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_address&address_id=${currentAddress.value.id}`,
+            {
+              name: currentAddress.value.name,
+              address: currentAddress.value.address,
+              phone: currentAddress.value.phone
+            },
+            { withCredentials: true }
+          );
           console.log(response);
-          
+
 
         } else {
           // Добавление нового адреса
           const response = await axios.post(
-                    `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=add_address`,
-                    {
-                      address_name: currentAddress.value.name,
-                      address: currentAddress.value.address,
-                       phone: currentAddress.value.phone
-                    },
-                    { withCredentials: true }
-                );
+            `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=add_address`,
+            {
+              address_name: currentAddress.value.name,
+              address: currentAddress.value.address,
+              phone: currentAddress.value.phone
+            },
+            { withCredentials: true }
+          );
           console.log(response);
           user.value.addresses.push({ ...currentAddress.value, id: response.data.id });
         }
@@ -186,6 +204,80 @@ export default defineComponent({
       }
     };
 
+    // 支払方法
+    const showPaymentModal = ref(false);
+    const isEditingPayment = ref(false);
+    const currentPaymentMethod = ref({ card_number: "" });
+
+    const openAddPaymentModal = () => {
+      currentPaymentMethod.value = { card_number: "" };
+      isEditingPayment.value = false;
+      showPaymentModal.value = true;
+    };
+
+    const openEditPaymentModal = (paymentMethod) => {
+      currentPaymentMethod.value = { ...paymentMethod };
+      isEditingPayment.value = true;
+      showPaymentModal.value = true;
+    };
+
+    const closePaymentModal = () => {
+      showPaymentModal.value = false;
+    };
+
+    const savePaymentMethod = async () => {
+      try {
+        if (isEditingPayment.value) {
+          // Редактирование существующего метода оплаты
+          const response = await axios.post(
+            `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_payment_method&payment_method_id=${currentPaymentMethod.value.id}`,
+            {
+              card_number: currentPaymentMethod.value.card_number,
+            },
+            { withCredentials: true }
+          );
+          console.log(response);
+          // Обновить локальные данные
+          const index = user.value.payment_methods.findIndex(
+            (method) => method.id === currentPaymentMethod.value.id
+          );
+          if (index !== -1) {
+            user.value.payment_methods[index] = currentPaymentMethod.value;
+          }
+        } else {
+          // Добавление нового метода оплаты
+          const response = await axios.post(
+            `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=add_payment_method`,
+            {
+              card_number: currentPaymentMethod.value.card_number,
+            },
+            { withCredentials: true }
+          );
+          console.log(response);
+          user.value.payment_methods.push({
+            ...currentPaymentMethod.value,
+            id: response.data.id,
+          });
+        }
+      } catch (error) {
+        console.error("Ошибка при сохранении метода оплаты:", error);
+      } finally {
+        showPaymentModal.value = false;
+      }
+    };
+
+    const deletePaymentMethod = async (id) => {
+      try {
+        await axios.post(
+          `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=delete_payment_method&payment_method_id=${id}`,
+          {},
+          { withCredentials: true }
+        );
+        user.value.payment_methods = user.value.payment_methods.filter((method) => method.id !== id);
+      } catch (error) {
+        console.error("Ошибка при удалении метода оплаты:", error);
+      }
+    };
 
 
     if (cart.value.length === 0) router.push('/cart');
@@ -205,7 +297,7 @@ export default defineComponent({
       try {
         if (lock_send_order.value) return;
         lock_send_order.value = true;
-        
+
         const response = await axios.post(
           process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
           {
@@ -248,7 +340,15 @@ export default defineComponent({
       closeAddressModal,
       saveAddressHandler,
       deleteAddress,
-      saveAddress
+      saveAddress,
+      showPaymentModal,
+      isEditingPayment,
+      currentPaymentMethod,
+      openAddPaymentModal,
+      openEditPaymentModal,
+      closePaymentModal,
+      savePaymentMethod,
+      deletePaymentMethod
     };
   },
 });
