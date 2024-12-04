@@ -17,10 +17,10 @@
             <span>{{ item.phone }}</span>
           </div>
           <span class="icon-close"></span>
-          <span class="icon-pencil"></span>
+          <span class="icon-pencil" @click.stop="openEditAddressModal(item)"></span>
         </div>
 
-        <div class="add-card">
+        <div class="add-card" @click="openAddAddressModal">
           <span class="icon-plus"></span>
           <p>新しいお届け先住所を追加する</p>
         </div>
@@ -65,6 +65,17 @@
     </div>
   </div>
 
+  <CustomModal v-model="showAddressModal" :title="editingIndex !== null ? '配達変更' : '配達追加'" :in_modal="true">
+    <div class="modal-content">
+      <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
+      <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
+      <CustomInput v-model="currentAddress.phone" labelText="電話番号" placeholderText="電話番号入力" />
+    </div>
+    <div class="modal-actions">
+      <button class="button button-plain" @click="closeModal">戻る</button>
+      <button class="button" @click="saveAddress">保存</button>
+    </div>
+  </CustomModal>
 </template>
 <!-- eslint-disable -->
 <script>
@@ -87,6 +98,86 @@ export default defineComponent({
 
     const selectedAddress = ref(user.value.addresses[0].id); // Индекс выбранного адреса
     const selectedPayment = ref(user.value.payment_methods[0].id); // Выбранный метод оплаты
+
+
+
+    // Для AddressModal
+    const showAddressModal = ref(false);
+    const isEditing = ref(false);
+    const currentAddress = ref({ name: "", address: "", phone: "" });
+
+    const openAddAddressModal = () => {
+      currentAddress.value = { name: "", address: "", phone: "" };
+      isEditing.value = false;
+      showAddressModal.value = true;
+    };
+
+    const openEditAddressModal = (address) => {
+      currentAddress.value = { ...address };
+      isEditing.value = true;
+      showAddressModal.value = true;
+    };
+
+    const closeAddressModal = () => {
+      showAddressModal.value = false;
+    };
+
+    const saveAddressHandler = (savedAddress) => {
+      if (isEditing.value) {
+        const index = user.value.addresses.findIndex((addr) => addr.id === savedAddress.id);
+        if (index !== -1) user.value.addresses[index] = savedAddress;
+      } else {
+        user.value.addresses.push(savedAddress);
+      }
+      showAddressModal.value = false;
+    };
+
+    const deleteAddress = async (id) => {
+      try {
+        await axios.post(
+          `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=delete_address&address_id=${id}}`,
+          { withCredentials: true }
+        );
+        user.value.addresses = user.value.addresses.filter((address) => address.id !== id);
+      } catch (error) {
+        console.error("Ошибка при удалении адреса:", error);
+      }
+    };
+
+
+    // Сохранение адреса
+    const saveAddress = async () => {
+      try {
+        if (editingIndex.value !== null) {
+          // Редактирование существующего адреса
+          await axios.get(
+            `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=edit_address&address_id=${currentAddress.value.id}`,
+            {
+              name: currentAddress.value.name,
+              address: currentAddress.value.address,
+              phone: currentAddress.value.phone
+            },
+            { withCredentials: true }
+          );
+
+        } else {
+          // Добавление нового адреса
+          const response = await axios.get(
+            `${process.env.VUE_APP_BACKEND_URL}/backend/clients.php?action=add_address`,
+            {
+              name: currentAddress.value.name,
+              address: currentAddress.value.address,
+              phone: currentAddress.value.phone
+            },
+            { withCredentials: true }
+          );
+          user.value.addresses.push({ ...currentAddress.value, id: response.data.id });
+        }
+
+      } catch (error) {
+        console.error('Ошибка при сохранении адреса:', error);
+      }
+    };
 
 
 
@@ -142,6 +233,15 @@ export default defineComponent({
       selectedPayment,
       selectAddress,
       selectPayment,
+      showAddressModal,
+      isEditing,
+      currentAddress,
+      openAddAddressModal,
+      openEditAddressModal,
+      closeAddressModal,
+      saveAddressHandler,
+      deleteAddress,
+      saveAddress
     };
   },
 });
@@ -351,5 +451,19 @@ h2 {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 0;
 }
 </style>
