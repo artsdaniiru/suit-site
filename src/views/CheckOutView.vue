@@ -107,13 +107,13 @@ export default defineComponent({
       try {
         if (lock_send_order.value) return;
         lock_send_order.value = true;
-
+        
         const response = await axios.post(
           process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
           {
             cart: cart.value,
-            address_id: user.value.addresses[selectedAddress.value].id,
-            payment_method_id: selectedPayment.value.id,
+            address_id: selectedAddress.value,
+            payment_method_id: selectedPayment.value,
           },
           { withCredentials: true }
         );
