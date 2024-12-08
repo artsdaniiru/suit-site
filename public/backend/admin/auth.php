@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once '../config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,43 +13,43 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Database connection
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Получаем действие через GET-параметр 'action'
+// Get action via GET parameter 'action'
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
-// Обработка данных, полученных от клиента
+// Handle data received from client
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Авторизация администратора
+// Admin authorization
 if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['email']) && !empty($request['password'])) {
         $email = $conn->real_escape_string($request['email']);
         $password = $request['password'];
 
-        // Проверяем наличие администратора
+        // Check for admin presence
         $sql = "SELECT id, password, name, auth_token FROM users WHERE email = '$email'";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
-                // Сохраняем данные администратора в сессии
+                // Save admin data in session
                 $_SESSION['admin_id'] = $user['id'];
                 $_SESSION['admin_name'] = $user['name'];
                 $_SESSION['admin_auth_token'] = $user['auth_token'];
 
-                // Отправляем токен клиенту
+                // Send token to client
                 echo json_encode([
                     "status" => "success",
                     "auth_token" => $user['auth_token'],
@@ -68,18 +68,18 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(["status" => "error", "message" => "Missing email or password."]);
     }
 
-    // Выход администратора
+    // Admin logout
 } elseif ($action === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Уничтожаем сессию администратора
+    // Destroy admin session
     session_unset();
     session_destroy();
 
     echo json_encode(["status" => "success", "message" => "Logged out successfully."]);
 
-    // Получение данных администратора по токену
+    // Get admin data via token
 } elseif ($action === 'get_user' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
-    // Проверка сессии
+    // Check session
     if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
         echo json_encode([
             "status" => "error",
@@ -88,7 +88,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Возвращаем данные администратора
+    // Return admin data
     echo json_encode([
         "status" => "success",
         "user" => [

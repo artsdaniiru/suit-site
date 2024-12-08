@@ -1,8 +1,8 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once 'config.php';
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -10,24 +10,24 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Обработка запросов
+// Process requests
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Получение параметров из GET-запроса
+// Get parameters from GET request
 $product_id = isset($_GET['product_id']) ? $_GET['product_id'] : false;
 
 $data = [];
@@ -36,27 +36,27 @@ if ($product_id == false) {
     $data = 'Data not found (no product_id)';
     echo json_encode(['status' => 'fail', 'data' => $data]);
 } else {
-    // SQL-запрос (к products)
+    // SQL query to products
     $sql = "SELECT * FROM products
             WHERE id=$product_id";
 
     $result = $conn->query($sql);
     if (!$result) {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка выполнения запроса: ' . $conn->error]);
+        echo json_encode(['status' => 'error', 'message' => 'Query execution error: ' . $conn->error]);
         exit;
     }
 
-    // Сохранение результатов в массив
+    // Save results to array
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $data['product'] = $row;
         }
     }
 
-    // Получаем тип продукта
+    // Get product type
     $product_type = isset($data['product']['type']) ? $data['product']['type'] : '';
 
-    // SQL-запрос (к sizes)
+    // SQL query to sizes
     $sql = "SELECT * FROM sizes
             WHERE product_id=$product_id";
 
@@ -64,17 +64,17 @@ if ($product_id == false) {
 
     $sizes = [];
 
-    // Удаляем null поля из массива
+    // Remove null fields from array
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            // Применяем array_filter к каждой строке размеров
+            // Apply array_filter to each size row
             $sizes[] = array_filter($row, function ($value) {
                 return !is_null($value);
             });
         }
     }
 
-    // Сохранение результатов в массив
+    // Save results to array
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $sizes[] = $row;
@@ -82,13 +82,13 @@ if ($product_id == false) {
     }
     $data['sizes'] = $sizes;
 
-    // SQL-запрос (к product_images)
+    // SQL query to product_images
     $sql = "SELECT * FROM product_images
             WHERE product_id=$product_id";
     $result = $conn->query($sql);
 
     $product_images = [];
-    // Сохранение результатов в массив
+    // Save results to array
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $product_images[] = $row;
@@ -96,14 +96,14 @@ if ($product_id == false) {
     }
     $data['product_images'] = $product_images;
 
-    // SQL-запрос (к options через options_indexes) -  только если тип продукта "suit"
+    // SQL query to options through options_indexes - only if product type is "suit"
     if ($product_type === 'suit') {
         $sql = "SELECT o.* FROM `options` o JOIN options_indexes op 
         ON o.id=op.option_id WHERE op.product_id=$product_id;";
         $result = $conn->query($sql);
 
         $options = [];
-        // Сохранение результатов в массив
+        // Save results to array
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 $options[] = $row;
@@ -114,7 +114,6 @@ if ($product_id == false) {
 
     echo json_encode(['status' => 'success', 'data' => $data]);
 }
-
 
 $conn->close();
 exit();

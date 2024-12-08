@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once 'config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,26 +13,24 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Обработка запросов
+// Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $request = json_decode(file_get_contents('php://input'), true);
 
-
-
-// Проверка сессии
+// Check the session
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
     echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
     exit;
@@ -44,7 +42,7 @@ switch ($action) {
     case 'edit_client':
         $updateFields = [];
 
-        // Используем функцию для добавления полей
+        // Use the function to add fields
         addFieldToUpdate($updateFields, $request, 'name');
         addFieldToUpdate($updateFields, $request, 'email');
         addFieldToUpdate($updateFields, $request, 'height');
@@ -97,53 +95,73 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
         }
         break;
+
+    case 'edit_payment_method':
+        $payment_method_id = isset($_GET['payment_method_id']) ? $_GET['payment_method_id'] : '';
+        $updateFields = [];
+
+        addFieldToUpdate($updateFields, $request, 'card_number');
+
+        if (!empty($updateFields)) {
+            $setClause = implode(', ', $updateFields);
+            $sql = "UPDATE client_payment_methods SET $setClause WHERE client_id = $user_id AND id=$payment_method_id";
+
+            if ($conn->query($sql) === TRUE) {
+                echo json_encode(['status' => 'success']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => $conn->error]);
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No fields to update']);
+        }
+        break;
+
     case 'delete_client':
-        // Проверка, что ID клиента передан
+        // Check that the client ID is valid
         if ($user_id <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Некорректный ID клиента']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid client ID']);
             exit;
         }
 
-        // Начало транзакции
+        // Start the transaction
         $conn->begin_transaction();
 
         try {
-            // Удаление заказов клиента
-            // Сначала удалим связанные элементы корзины в client_order_indexes
+            // Delete client's cart items first in client_order_indexes
             $sqlDeleteOrderIndexes = "DELETE FROM client_order_indexes WHERE client_order_id IN (SELECT id FROM client_orders WHERE client_id = $user_id)";
             if ($conn->query($sqlDeleteOrderIndexes) === FALSE) {
-                throw new Exception('Ошибка удаления элементов корзины: ' . $conn->error);
+                throw new Exception('Error deleting cart items: ' . $conn->error);
             }
 
-            // Затем удаляем сами заказы клиента
+            // Then delete the client's orders
             $sqlDeleteOrders = "DELETE FROM client_orders WHERE client_id = $user_id";
             if ($conn->query($sqlDeleteOrders) === FALSE) {
-                throw new Exception('Ошибка удаления заказов клиента: ' . $conn->error);
+                throw new Exception('Error deleting client orders: ' . $conn->error);
             }
 
-            // Удаление методов оплаты клиента
+            // Delete client's payment methods
             $sqlDeletePaymentMethods = "DELETE FROM client_payment_methods WHERE client_id = $user_id";
             if ($conn->query($sqlDeletePaymentMethods) === FALSE) {
-                throw new Exception('Ошибка удаления методов оплаты клиента: ' . $conn->error);
+                throw new Exception('Error deleting client payment methods: ' . $conn->error);
             }
 
-            // Удаление адресов клиента после удаления заказов
+            // Delete client's addresses after deleting orders
             $sqlDeleteAddresses = "DELETE FROM client_addresses WHERE client_id = $user_id";
             if ($conn->query($sqlDeleteAddresses) === FALSE) {
-                throw new Exception('Ошибка удаления адресов клиента: ' . $conn->error);
+                throw new Exception('Error deleting client addresses: ' . $conn->error);
             }
 
-            // Удаление самого клиента
+            // Delete the client itself
             $sqlDeleteClient = "DELETE FROM clients WHERE id = $user_id";
             if ($conn->query($sqlDeleteClient) === FALSE) {
-                throw new Exception('Ошибка удаления клиента: ' . $conn->error);
+                throw new Exception('Error deleting client: ' . $conn->error);
             }
 
-            // Если все прошло успешно, подтверждаем транзакцию
+            // If everything went well, commit the transaction
             $conn->commit();
-            echo json_encode(['status' => 'success', 'message' => 'Клиент и все связанные данные успешно удалены']);
+            echo json_encode(['status' => 'success', 'message' => 'Client and all related data deleted successfully']);
         } catch (Exception $e) {
-            // В случае ошибки откатываем транзакцию
+            // In case of an error, roll back the transaction
             $conn->rollback();
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }

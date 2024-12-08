@@ -1,11 +1,11 @@
 <?php
-// Включаем файл конфигурации
+// Include the configuration file
 require_once '../config.php';
 
-// Стартуем сессию
+// Start the session
 session_start();
 
-// Разрешаем доступ с любого источника
+// Allow access from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Access-Control-Allow-Credentials: true');
@@ -13,19 +13,19 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
 }
 
-// Обрабатываем preflight-запрос
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("HTTP/1.1 200 OK");
     exit();
 }
 
-// Подключение к базе данных
+// Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Проверка сессии
+// Check the session
 if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     echo json_encode([
         "status" => "error",
@@ -34,30 +34,26 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['admin_auth_token'])) {
     exit;
 }
 
-
-// Установка директории для загрузки изображений
+// Set the directory for image uploads
 $uploadDir = __DIR__ . '/../../images/';
 // $uploadDir = __DIR__ . '/images/';
 $logFile = __DIR__ . '/upload_log.txt';
 
-
-// Функция логирования
+// Logging function
 function logMessage($message)
 {
     global $logFile;
     // file_put_contents($logFile, date('Y-m-d H:i:s') . " - " . $message . PHP_EOL, FILE_APPEND);
 }
 
+// Log the start of the script
+logMessage("Script started");
 
-// Логируем начало работы скрипта
-logMessage("Начало работы скрипта");
-
-
-// Проверка наличия папки для загрузок и прав на запись
+// Check if the upload directory exists and is writable
 if (!is_dir($uploadDir)) {
-    logMessage("Ошибка: Папка для загрузок не существует - $uploadDir");
+    logMessage("Error: Upload directory does not exist - $uploadDir");
 } elseif (!is_writable($uploadDir)) {
-    logMessage("Ошибка: Папка для загрузок не доступна для записи - $uploadDir");
+    logMessage("Error: Upload directory is not writable - $uploadDir");
 }
 
 $response = [
@@ -68,40 +64,38 @@ $response = [
 
 $product_id = isset($_GET['product_id']) ? $_GET['product_id'] : '';
 
-
-
-// Проверка, что запрос содержит файлы
+// Check that the request contains files
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
-    logMessage("Файлы обнаружены в запросе");
+    logMessage("Files detected in the request");
 
-    // Проверка на множественные файлы
+    // Check for multiple files
     $files = is_array($_FILES['image']['name']) ? $_FILES['image'] : [$_FILES['image']];
 
-    // Массив допустимых форматов изображений
+    // Array of allowed image formats
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    logMessage("Допустимые форматы файлов: " . implode(", ", $allowedExtensions));
+    logMessage("Allowed file formats: " . implode(", ", $allowedExtensions));
 
-    // Обработка каждого файла
+    // Process each file
     foreach ($files as $index => $file) {
         $name = is_array($file) ? $file['name'] : $file['name'];
         $tmpName = is_array($file) ? $file['tmp_name'] : $file['tmp_name'];
         $fileType = pathinfo($name, PATHINFO_EXTENSION);
 
-        logMessage("Обработка файла: $name, временное имя: $tmpName, тип файла: $fileType");
+        logMessage("Processing file: $name, temporary name: $tmpName, file type: $fileType");
 
-        // Проверка на допустимое расширение
+        // Check for allowed extension
         if (!in_array(strtolower($fileType), $allowedExtensions)) {
-            $message = "Недопустимый формат файла: $name";
+            $message = "Invalid file format: $name";
             $response['message'] = $message;
             logMessage($message);
             continue;
         }
 
-        // Уникальное имя для файла
+        // Unique name for the file
         $uniqueName = uniqid() . '.' . $fileType;
         $targetPath = $uploadDir . $uniqueName;
 
-        // Перемещение файла в папку /images
+        // Move the file to the /images directory
         if (move_uploaded_file($tmpName, $targetPath)) {
 
             chmod($targetPath, 0777);
@@ -110,10 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
             $sql = "INSERT INTO product_images (product_id, image_path) 
                             VALUES ('$product_id', '" . $conn->real_escape_string($image_path) . "')";
             if ($conn->query($sql) === FALSE) {
-                echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления изображения: ' . $conn->error]);
+                echo json_encode(['status' => 'error', 'message' => 'Error adding image: ' . $conn->error]);
                 exit;
             }
-            // Получаем ID новой записи
+            // Get the ID of the new record
             $newImageId = $conn->insert_id;
 
             $response['uploadedImages'][] = [
@@ -123,9 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
                 'date_of_change' => date("Y-m-d H:i:s"),
                 'new' => true,
             ];
-            logMessage("Файл успешно загружен: $targetPath");
+            logMessage("File successfully uploaded: $targetPath");
         } else {
-            $message = "Ошибка загрузки файла: $name";
+            $message = "Error uploading file: $name";
             $response['message'] = $message;
             logMessage($message);
         }
@@ -133,20 +127,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
 
     if (!empty($response['uploadedImages'])) {
         $response['status'] = 'success';
-        $response['message'] = 'Файлы успешно загружены';
-        logMessage("Все файлы успешно загружены");
+        $response['message'] = 'Files uploaded successfully';
+        logMessage("All files uploaded successfully");
     } else {
-        $response['message'] = 'Загрузка файлов не удалась';
-        logMessage("Загрузка файлов не удалась");
+        $response['message'] = 'File upload failed';
+        logMessage("File upload failed");
     }
 } else {
-    $response['message'] = 'Файлы не найдены в запросе';
-    logMessage("Ошибка: Файлы не найдены в запросе");
+    $response['message'] = 'No files found in the request';
+    logMessage("Error: No files found in the request");
 }
 
-// Установка заголовка JSON и вывод ответа
+// Set the JSON header and output the response
 header('Content-Type: application/json');
 echo json_encode($response);
 
-// Логируем завершение работы скрипта
-logMessage("Завершение работы скрипта");
+// Log the end of the script
+logMessage("Script ended");
