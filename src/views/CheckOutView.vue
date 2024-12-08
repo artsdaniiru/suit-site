@@ -215,7 +215,13 @@ export default defineComponent({
             { withCredentials: true }
           );
           console.log(response);
-
+          // Обновить локальные данные
+          const index = user.value.addresses.findIndex(
+            (method) => method.id === currentAddress.value.id
+          );
+          if (index !== -1) {
+            user.value.addresses[index] = currentAddress.value;
+          }
 
         } else {
           // Добавление нового адреса

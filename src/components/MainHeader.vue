@@ -10,6 +10,7 @@
                 <router-link to="/guide"><span>ご利用ガイド</span></router-link>
                 <router-link to="/delivery"><span>配送について</span></router-link>
                 <router-link to="/contact"><span>連絡</span></router-link>
+                <router-link v-if="isUserLoggedIn" to="/account"><span>マイページ</span></router-link>
                 <button class="button" v-if="!isUserLoggedIn" @click="closeLogin = true"><span>ログイン</span></button>
                 <div v-else class="account">
                     <img src="../assets/icons/user.svg" alt="logo" @click="goToAccount">

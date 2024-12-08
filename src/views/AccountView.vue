@@ -4,8 +4,12 @@
 
     <h2>マイページ</h2>
 
-    <div class="account-view ">
+    <div class="tabs">
+      <span class="tab" :class="{ active: tab == 'info' }" @click="switchTab('info')">個人情報</span>
+      <span class="tab" :class="{ active: tab == 'orders' }" @click="switchTab('orders')">オーダー歴史</span>
+    </div>
 
+    <div class="account-view" v-if="tab == 'info'">
       <div>
         <div class="account-inf">
           <h2>個人情報</h2>
@@ -68,6 +72,10 @@
 
     </div>
 
+    <div class="account-orders" v-if="tab == 'orders'">
+
+    </div>
+
   </div>
 
   <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
@@ -110,14 +118,27 @@
 <!-- eslint-disable -->
 <script>
 import axios from "axios";
-import { defineComponent, ref, inject } from "vue";
+import { defineComponent, ref, inject, watch } from "vue";
 import { useToast } from "vue-toast-notification";
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: "AccountView",
   setup() {
+
+    const router = useRouter();
+    // Set initial tab based on route or defaultTab prop
+    const tab = ref('info');
+
+    // Method to switch tabs and navigate
+    const switchTab = (selectedTab) => {
+      tab.value = selectedTab;
+    };
+
     const toast = useToast();
-    const { user } = inject("auth");
+    const { user, isUserLoggedIn } = inject("auth");
+
+    if (!isUserLoggedIn.value) router.push('/');
 
     // Размеры тела
     const body_sizes = ref({
@@ -216,6 +237,13 @@ export default defineComponent({
           );
           console.log(response);
 
+          // Обновить локальные данные
+          const index = user.value.addresses.findIndex(
+            (method) => method.id === currentAddress.value.id
+          );
+          if (index !== -1) {
+            user.value.addresses[index] = currentAddress.value;
+          }
 
         } else {
           // Добавление нового адреса
@@ -343,7 +371,10 @@ export default defineComponent({
       openEditPaymentModal,
       closePaymentModal,
       savePaymentMethod,
-      deleteAction
+      deleteAction,
+
+      tab,
+      switchTab
 
     };
   },
@@ -356,6 +387,28 @@ h2 {
   font-weight: 600;
   font-size: 24px;
   text-align: left;
+}
+
+.tabs {
+  display: flex;
+
+  .tab {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 140%;
+    color: #767676;
+
+    padding: 4px 12px;
+    border-bottom: 1px solid #b2b2b2;
+    cursor: pointer;
+
+    margin-bottom: 48px;
+
+    &.active {
+      color: #303030;
+      border-bottom: 1px solid #303030;
+    }
+  }
 }
 
 .account-view {
