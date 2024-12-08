@@ -2,14 +2,14 @@
   <div :class="['custom-input-container', labelPositionClass]">
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
-    <input :type="type" :value="modelValue" @input="updateValue($event.target.value)" :placeholder="placeholderText" :required="required" @blur="validateInput" :disabled="disabled" />
+    <input :type="type" :value="formattedValue" @input="onInput" @blur="validateInput" :placeholder="placeholderText" :maxlength="computedMaxLength" :required="required" :disabled="disabled" />
     <!-- Условно отображаем сообщение об ошибке -->
     <span v-if="showError" class="error-message">This field is required</span>
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, toRefs, watch } from "vue";
+import { defineComponent, ref, toRefs, watch, computed } from "vue";
 
 export default defineComponent({
   name: "CustomInput",
@@ -28,7 +28,7 @@ export default defineComponent({
       type: String,
       required: false,
       default: "top",
-      validator: value => ["top", "side"].includes(value)
+      validator: (value) => ["top", "side"].includes(value)
     },
     placeholderText: {
       type: String,
@@ -49,16 +49,50 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false
+    },
+    maxLength: {
+      type: Number,
+      required: false,
+      default: null // Если не указано, максимальная длина не ограничена
     }
   },
   setup(props, { emit }) {
-    const { modelValue, labelPosition, required } = toRefs(props);
+    const { modelValue, labelPosition, required, type, maxLength } = toRefs(props);
     const labelPositionClass = ref(labelPosition.value === "side" ? "label-side" : "label-top");
     const showError = ref(false);
 
-    // Метод для обновления значения через emit
-    const updateValue = (value) => {
-      emit("update:modelValue", value);
+    // Вычисляемое максимальное значение для длины ввода
+    const computedMaxLength = computed(() => {
+      if (type.value === "credit-card") {
+        return 19; // 16 цифр + 3 пробела
+      }
+      return maxLength.value || undefined; // Либо значение из пропсов, либо не ограничено
+    });
+
+    // Форматированное значение для отображения (только для типа "credit-card")
+    const formattedValue = computed({
+      get() {
+        return type.value === "credit-card"
+          ? modelValue.value
+            .replace(/\D/g, "") // Удалить нецифровые символы
+            .replace(/(.{4})/g, "$1 ") // Добавить пробел после каждых 4 цифр
+            .trim() // Убрать пробелы в конце
+          : modelValue.value;
+      },
+      set(value) {
+        emit("update:modelValue", cleanValue(value));
+      }
+    });
+
+    // Очистка значения (удаление пробелов для хранения)
+    const cleanValue = (value) => {
+      return value.replace(/\s+/g, ""); // Удалить все пробелы
+    };
+
+    // Обработка ввода
+    const onInput = (event) => {
+      const rawValue = event.target.value;
+      emit("update:modelValue", cleanValue(rawValue));
     };
 
     // Метод для валидации поля
@@ -79,7 +113,9 @@ export default defineComponent({
 
     return {
       labelPositionClass,
-      updateValue,
+      formattedValue,
+      computedMaxLength,
+      onInput,
       validateInput,
       showError
     };
