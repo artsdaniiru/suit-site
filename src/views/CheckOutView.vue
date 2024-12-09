@@ -8,8 +8,7 @@
       <h2>配達</h2>
       <div class="address-wrap">
 
-        <div class="address-card" v-for="item in user.addresses" :key="item"
-          :class="{ selected: selectedAddress === item.id }" @click="selectAddress(item.id)">
+        <div class="address-card" v-for="item in user.addresses" :key="item" :class="{ selected: selectedAddress === item.id }" @click="selectAddress(item.id)">
           <span class="icon-selected" v-if="selectedAddress === item.id"></span>
           <h2>{{ item.name }}</h2>
           <p>{{ item.address }}</p>
@@ -17,7 +16,7 @@
             <span>電話番号: </span>
             <span>{{ item.phone }}</span>
           </div>
-          <span class="icon-close" @click.stop="deleteAddress(item.id)"></span>
+          <span class="icon-close" @click.stop="openDelete('address', item.id)"></span>
           <span class="icon-pencil" @click.stop="openEditAddressModal(item)"></span>
         </div>
 
@@ -28,19 +27,17 @@
 
       </div>
 
-      <div class="order-wrap">
+      <div class="payment-methods">
         <h2>お支払方法</h2>
         <div class="card-wrap">
           <p>クレジットカード</p>
-        
 
-
-          <div class="card-choice-wrap" v-for="item in user.payment_methods" :key="item"
-            :class="{ selected: selectedPayment === item.id }" @click="selectPayment(item.id)">
+          <div class="card-choice-wrap" v-for="item in user.payment_methods" :key="item" :class="{ selected: selectedPayment === item.id }" @click="selectPayment(item.id)">
             <div class="radio-btn"></div>
-            <label>{{ item.card_number }}</label>
-            <span class="icon-close" @click.stop="deletePaymentMethod(item.id)">✕</span>
-            <span class="icon-pencil" @click.stop="openEditPaymentModal(item)">✙</span>
+            <img src="@/assets/icons/card.svg" alt="card">
+            <label>{{ item.card_number.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim() }}</label>
+            <img src="@/assets/icons/delete.svg" alt="delete" @click.stop="openDelete('payment', item.id)">
+            <img src="@/assets/icons/pencil.svg" alt="edit" @click.stop="openEditPaymentModal(item)">
           </div>
           <a class="add-card" @click="openAddPaymentModal">
             クレジットカードまたはデビットカードを追加する
@@ -53,8 +50,7 @@
             <label>現金</label>
           </div>
 
-          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }"
-            @click="selectPayment('convenience')">
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }" @click="selectPayment('convenience')">
             <div class="radio-btn"></div>
             <label>コンビニ払い</label>
           </div>
@@ -63,8 +59,7 @@
 
       </div>
 
-      <button :class="['button', { loading: lock_send_order }]" @click="saveAction" style="width: 100%;"
-        :disabled="lock_send_order">
+      <button :class="['button', { loading: lock_send_order }]" @click="saveAction" style="width: 100%;" :disabled="lock_send_order">
         <span v-if="!lock_send_order">注文を確定する</span>
         <span v-else>送信中...</span>
       </button>
@@ -72,7 +67,7 @@
     </div>
   </div>
 
-  <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'" :in_modal="true">
+  <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
     <div class="modal-content">
       <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
       <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
@@ -85,13 +80,26 @@
   </CustomModal>
 
   <!-- Payment Modal -->
-  <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'" :in_modal="true">
+  <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'">
     <div class="modal-content">
-      <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="カード番号入力" />
+      <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="1234 5678 9012 3456" type="credit-card" />
+
+      <div class="double">
+        <CustomInput labelText="Exp date(2024年01月⇒2401)" placeholderText="2401" type="number" />
+        <CustomInput labelText="CVV" placeholderText="023" type="number" />
+      </div>
+
     </div>
     <div class="modal-actions">
       <button class="button button-plain" @click="closePaymentModal">戻る</button>
       <button class="button" @click="savePaymentMethod">保存</button>
+    </div>
+  </CustomModal>
+
+  <CustomModal class="delete" v-model="deleteModalFlag" :title="deleteType == 'address' ? '配達削除' : '支払い方法削除'">
+    <div class="delete-container">
+      <button class="button danger" @click="deleteAction">削除</button>
+      <button class="button" @click="deleteModalFlag = false;">戻る</button>
     </div>
   </CustomModal>
 </template>
@@ -104,7 +112,7 @@ import { useRouter } from 'vue-router'
 
 
 export default defineComponent({
-  name: "CartView",
+  name: "CheckOutViewView",
   setup() {
 
     const { user } = inject("auth");
@@ -112,7 +120,31 @@ export default defineComponent({
 
     const router = useRouter();
     const lock_send_order = ref(false);
-    console.log(user.value);
+
+    const deleteModalFlag = ref(false);
+    const deleteType = ref('');
+    const deleteId = ref('');
+
+    function deleteAction() {
+      switch (deleteType.value) {
+        case 'address':
+          deleteAddress(deleteId.value);
+          break;
+        case 'payment':
+          deletePaymentMethod(deleteId.value);
+          break;
+
+        default:
+          break;
+      }
+      deleteModalFlag.value = false;
+    }
+
+    function openDelete(type, id) {
+      deleteType.value = type;
+      deleteId.value = id;
+      deleteModalFlag.value = true;
+    }
 
     const selectedAddress = ref(user.value.addresses[0].id); // Индекс выбранного адреса
     const selectedPayment = ref(user.value.payment_methods[0].id); // Выбранный метод оплаты
@@ -166,6 +198,10 @@ export default defineComponent({
 
     // Сохранение адреса
     const saveAddress = async () => {
+      if (!currentAddress.value.name.trim() || !currentAddress.value.address.trim() || !currentAddress.value.phone.trim()) {
+        alert("すべてのフィールドを正しく入力してください"); // "Пожалуйста, заполните все поля."
+        return;
+      }
       try {
         if (isEditing.value) {
           // Редактирование существующего адреса
@@ -179,7 +215,13 @@ export default defineComponent({
             { withCredentials: true }
           );
           console.log(response);
-
+          // Обновить локальные данные
+          const index = user.value.addresses.findIndex(
+            (method) => method.id === currentAddress.value.id
+          );
+          if (index !== -1) {
+            user.value.addresses[index] = currentAddress.value;
+          }
 
         } else {
           // Добавление нового адреса
@@ -226,6 +268,11 @@ export default defineComponent({
     };
 
     const savePaymentMethod = async () => {
+
+      if (!currentPaymentMethod.value.card_number.trim()) {
+        alert("カード番号を正しく入力してください"); // "Пожалуйста, введите корректный номер карты."
+        return;
+      }
       try {
         if (isEditingPayment.value) {
           // Редактирование существующего метода оплаты
@@ -313,6 +360,7 @@ export default defineComponent({
           return;
         } else {
           console.log(response.data);
+          cart.value = [];
           order_id = response.data.order_id;
         }
       } catch (error) {
@@ -348,7 +396,12 @@ export default defineComponent({
       openEditPaymentModal,
       closePaymentModal,
       savePaymentMethod,
-      deletePaymentMethod
+      deletePaymentMethod,
+      deleteModalFlag,
+      deleteType,
+      deleteAction,
+      openDelete,
+      deleteId
     };
   },
 });
@@ -383,6 +436,10 @@ h2 {
     width: 100%;
 
     cursor: pointer;
+
+    &.selected {
+      border: 1px solid #1e1e1e;
+    }
 
     .icon-selected {
       width: min-content;
@@ -422,7 +479,7 @@ h2 {
       cursor: pointer;
 
       &::before {
-        content: url(../assets/icons/close.svg);
+        content: url(../assets/icons/delete.svg);
         display: block;
 
       }
@@ -477,7 +534,7 @@ h2 {
 
 }
 
-.order-wrap {
+.payment-methods {
 
 
   .radio-btn {
@@ -500,16 +557,27 @@ h2 {
     align-items: center;
     cursor: pointer;
     margin-bottom: 12px;
+    gap: 5px;
 
     &.selected .radio-btn {
       background-color: #000;
       /* Цвет выбранного элемента */
     }
+
+    img {
+      width: 20px;
+    }
+
+    label {
+      cursor: pointer;
+    }
+
   }
 
   .add-card {
     padding-left: 30px;
     position: relative;
+    cursor: pointer;
 
     &::before {
       content: url(../assets/icons/plus.svg);
@@ -565,6 +633,11 @@ h2 {
   flex-direction: column;
   gap: 16px;
   padding: 20px;
+
+  .double {
+    display: flex;
+    gap: 16px;
+  }
 }
 
 .modal-actions {
@@ -572,5 +645,16 @@ h2 {
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 20px 0;
+}
+
+.modal.delete {
+  z-index: 110;
+
+  .delete-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 12px;
+  }
 }
 </style>

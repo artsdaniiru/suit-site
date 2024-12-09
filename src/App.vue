@@ -164,6 +164,10 @@ export default defineComponent({
       }
     };
 
+    watch(isUserLoggedIn, (newVal) => {
+      if (!newVal) router.go();
+    });
+
     function reloadUserData() {
       fetchUserData();
     }
