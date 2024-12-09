@@ -54,7 +54,7 @@ switch ($action) {
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
             $client_id = intval($user['id']);
-            $client_email = intval($user['email']);
+            $client_email = $user['email'];
         } else {
             echo json_encode(["status" => "error", "message" => "Invalid token."]);
             exit;
@@ -119,19 +119,19 @@ switch ($action) {
 
         // Sending order complition email to user
         $to = $client_email;
-        $order_id_formated = str_pad($order_id, 5, '0', STR_PAD_LEFT);
-        $subject = "注文番号： ＃。" . $order_id_formated . "ご注文ありがとうございました!";
-        $message = "注文番号： ＃。" . $order_id_formated . "ご注文ありがとうございました!";
+        $order_id_formatted = str_pad($order_id, 5, '0', STR_PAD_LEFT);
+        $subject = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!";
+        $message = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!"; //TODO: добавить адрес и состав заказа
 
         $headers = "From: mailer@arts-suit.com\r\n";
         $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
         $to_admin = "k237034@kccollege.ac.jp";
 
         if (!mail($to, $subject, $message, $headers)) {
-            echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
+            // echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
         } else {
-            mail($to_admin, "お客様からの注文: $order_id_formated", $message, $headers);
-            echo json_encode(['status' => 'success', 'message' => "Email successfully sent!"]);
+            mail($to_admin, "お客様からの注文: $order_id_formatted", $message, $headers);
+            // echo json_encode(['status' => 'success', 'message' => "Email successfully sent!"]);
         }
 
         break;
