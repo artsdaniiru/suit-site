@@ -71,22 +71,22 @@
 
         <div class="section-box contact">
             <h3>連絡</h3>
-            <form>
+            <form @submit.prevent="submitContactForm">
                 <div class="form-elem">
                     <label for="name">名前</label>
-                    <input id="name" type="text" placeholder="名前を入力してください">
+                    <input id="name" type="text" v-model="contactForm.name" placeholder="名前を入力してください">
                 </div>
                 <div class="form-elem">
                     <label for="email">メール</label>
-                    <input id="email" type="email" placeholder="メールアドレスを入力してください">
+                    <input id="email" type="email" v-model="contactForm.email" placeholder="メールアドレスを入力してください">
                 </div>
                 <div class="form-elem">
                     <label for="phone">電話番号</label>
-                    <input id="phone" type="tel" placeholder="電話番号を入力してください">
+                    <input id="phone" type="tel" v-model="contactForm.phone" placeholder="電話番号を入力してください">
                 </div>
                 <div class="form-elem">
                     <label for="message">メッセージ</label>
-                    <textarea id="message" placeholder="メッセージを入力してください"></textarea>
+                    <textarea id="message" v-model="contactForm.message" placeholder="メッセージを入力してください"></textarea>
                 </div>
                 <button class="button" type="submit">送信</button>
             </form>
@@ -156,9 +156,47 @@ export default defineComponent({
             fetchProducts();
         });
 
+        const contactForm = ref({
+            name: '',
+            email: '',
+            phone: '',
+            message: '',
+        });
+
+        const submitContactForm = async () => {
+            const formData = {
+                to: contactForm.value.email,
+                subject: contactForm.value.name,
+                name: contactForm.value.name,
+                phone: contactForm.value.phone,
+                message: contactForm.value.message,
+            };
+
+            try {
+                const response = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/sendmail.php?action=contact',
+                    formData,
+                    {
+                        withCredentials: true
+                    }
+                );
+                if (response.status === 200) {
+                    console.log('Сообщение успешно отправлено!');
+                    contactForm.value = { name: '', email: '', phone: '', message: '' }; // Сброс формы
+                } else {
+                    console.log('Ошибка при отправке сообщения.');
+                }
+            } catch (error) {
+                console.error('Ошибка при отправке формы:', error);
+                console.log('Не удалось отправить сообщение.');
+            }
+        };
+
         return {
             popular,
-            new_items
+            new_items,
+            contactForm,
+            submitContactForm
         };
     }
 });
