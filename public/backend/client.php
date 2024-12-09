@@ -220,7 +220,67 @@ switch ($action) {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
         break;
+    case 'get_client_orders':
+        if (!$user_id) {
+            echo json_encode(['status' => 'fail', 'data' => 'No client_id provided']);
+            exit;
+        }
 
+        $data = [];
+        $sql = "SELECT 
+                    co.id, co.status,
+                    ca.name AS client_name,
+                    ca.address AS client_address,
+                    ca.phone AS client_phone,
+                    cpm.card_number
+                FROM client_orders co
+                JOIN client_addresses ca ON co.address_id = ca.id
+                JOIN client_payment_methods cpm ON co.payment_method_id = cpm.id
+                WHERE co.client_id = $user_id";
+
+        $result = $conn->query($sql);
+
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Query error: ' . $conn->error]);
+            exit;
+        }
+
+        $client_orders = [];
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $order_id = $row['id'];
+
+                // Getting products from orders
+                $cart_sql = "SELECT 
+                                coi.price AS order_price,
+                                coi.options AS order_options,
+                                coi.id AS oi_id,
+                                p.*,
+                                p.id AS p_id,
+                                s.*,
+                                s.id AS s_id
+                            FROM client_order_indexes coi
+                            JOIN products p ON coi.product_id = p.id
+                            JOIN sizes s ON coi.size_id = s.id
+                            WHERE client_order_id = $order_id";
+
+                $cart_result = $conn->query($cart_sql);
+                $cart = [];
+                if ($cart_result->num_rows > 0) {
+                    while ($cart_row = $cart_result->fetch_assoc()) {
+                        $cart_row['id'] = $cart_row['oi_id'];
+                        unset($cart_row['oi_id']);
+                        $cart[] = $cart_row;
+                    }
+                }
+
+                $row['cart'] = $cart;
+                $client_orders[] = $row;
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'data' => $client_orders]);
+        break;
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
