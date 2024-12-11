@@ -2,44 +2,56 @@
     <div v-if="closeFlag" class="modal">
         <div class="form">
             <img class="close" src="../assets/icons/close.svg" alt="close" @click="closeModal">
-            <!-- Форма входа -->
+
+            <!-- Форма логина -->
             <form v-if="type === 'login'" @submit.prevent="login">
                 <h3>ログインフォーム</h3>
                 <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
                 <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
-
-                <!-- Вывод ошибки логина -->
                 <div v-if="errorMessage" class="alert-filed danger">
                     <img src="../assets/icons/info-danger.svg" alt="info">
                     <p>{{ errorMessage }}</p>
                 </div>
-
                 <button class="button" type="submit">ログイン</button>
                 <button class="button" @click="type = 'register'; clear()">登録</button>
+                <a @click.prevent="type = 'passwordReset'; clear()">パスワードをお忘れですか？</a>
             </form>
 
             <!-- Форма регистрации -->
             <form v-if="type === 'register'" @submit.prevent="register">
                 <h3>登録フォーム</h3>
-
                 <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
                 <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
                 <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
                 <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
-
-                <!-- Вывод ошибки регистрации -->
                 <div v-if="errorMessage" class="alert-filed danger">
                     <img src="../assets/icons/info-danger.svg" alt="info">
                     <p>{{ errorMessage }}</p>
                 </div>
-
                 <button class="button" type="submit">登録</button>
+                <button class="button" @click="type = 'login'; clear()">戻る</button>
+            </form>
+
+            <!-- Форма сброса пароля -->
+            <form v-if="type === 'passwordReset'" @submit.prevent="resetPassword">
+                <h3>パスワードリセットフォーム</h3>
+                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+                <div v-if="errorMessage" class="alert-filed danger">
+                    <img src="../assets/icons/info-danger.svg" alt="info">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div v-if="successMessage" class="alert-filed success">
+                    <p>{{ successMessage }}</p>
+                </div>
+                <button class="button" type="submit">リセット</button>
+                <div v-if="emailSent" class="alert-filed success">
+                    <p>パスワードリセットメールが送信されました。</p>
+                </div>
                 <button class="button" @click="type = 'login'; clear()">戻る</button>
             </form>
         </div>
     </div>
 </template>
-
 <script>
 import { ref, defineComponent, inject, watch } from 'vue';
 import axios from 'axios';
@@ -58,15 +70,15 @@ export default defineComponent({
         const password = ref('');
         const name = ref('');
         const confirmPassword = ref('');
-        const errorMessage = ref(''); // Переменная для хранения сообщений об ошибках
+        const errorMessage = ref('');
+        const emailSent = ref(false);
 
-        const type = ref('login'); // Переключение между логином и регистрацией
+        const type = ref('login');
         const { reloadUserData } = inject('auth');
 
-        // Функция для логина
         const login = async () => {
             const url = process.env.VUE_APP_BACKEND_URL + '/backend/auth.php?action=login';
-            errorMessage.value = ''; // Сбрасываем ошибки перед каждой попыткой
+            errorMessage.value = '';
             try {
                 const response = await axios.post(url, { email: email.value, password: password.value }, { withCredentials: true });
                 if (response.data.status === 'success') {
@@ -75,7 +87,7 @@ export default defineComponent({
                     closeModal();
                     clear();
                 } else {
-                    errorMessage.value = response.data.message; // Устанавливаем сообщение об ошибке
+                    errorMessage.value = response.data.message;
                 }
             } catch (error) {
                 errorMessage.value = 'An error occurred during login.';
@@ -83,9 +95,8 @@ export default defineComponent({
             }
         };
 
-        // Функция для регистрации
         const register = async () => {
-            errorMessage.value = ''; // Сбрасываем ошибки перед каждой попыткой
+            errorMessage.value = '';
             if (password.value !== confirmPassword.value) {
                 errorMessage.value = "Passwords do not match!";
                 return;
@@ -97,7 +108,7 @@ export default defineComponent({
                     closeModal();
                     clear();
                 } else {
-                    errorMessage.value = response.data.message; // Устанавливаем сообщение об ошибке
+                    errorMessage.value = response.data.message;
                 }
             } catch (error) {
                 errorMessage.value = 'An error occurred during registration.';
@@ -122,8 +133,33 @@ export default defineComponent({
             password.value = '';
             name.value = '';
             confirmPassword.value = '';
-            errorMessage.value = ''; // Очищаем сообщение об ошибке
+            errorMessage.value = '';
+            emailSent.value = false;
         }
+
+        const resetPassword = async () => {
+            errorMessage.value = '';
+            successMessage.value = '';
+
+            const url = `${process.env.VUE_APP_BACKEND_URL}/backend/auth.php?action=pass_reset`;
+
+            try {
+                const response = await axios.post(url, { email: email.value }, { withCredentials: true });
+                console.log(response.data);
+                if (response.data.status === 'success') {
+                    successMessage.value = 'リセットリンクが送信されました。メールを確認してください。';
+                    emailSent.value = true;
+                    clear();
+                } else {
+                    errorMessage.value = response.data.message;
+                }
+            } catch (error) {
+                errorMessage.value = 'An error occurred while resetting the password.';
+                console.error('Error:', error);
+            }
+        };
+
+        const successMessage = ref('');
 
         return {
             email,
@@ -135,7 +171,10 @@ export default defineComponent({
             closeModal,
             type,
             clear,
-            errorMessage // Возвращаем переменную с сообщениями об ошибках
+            errorMessage,
+            resetPassword,
+            successMessage,
+            emailSent
         };
     }
 });
@@ -178,5 +217,10 @@ export default defineComponent({
         top: 20px;
         cursor: pointer;
     }
+}
+
+a {
+    text-decoration: underline;
+    cursor: pointer;
 }
 </style>

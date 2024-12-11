@@ -264,7 +264,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Log out the user
-} elseif ($action === 'aprove_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+} elseif ($action === 'approve_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['pass_reset_url']) && !empty($request['password']) && $request['pass_reset_url'] != "") {
         $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
         $password = $conn->real_escape_string($request['password']);

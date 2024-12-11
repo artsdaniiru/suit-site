@@ -72,23 +72,30 @@
         <div class="section-box contact">
             <h3>連絡</h3>
             <form @submit.prevent="submitContactForm">
-                <div class="form-elem">
-                    <label for="name">名前</label>
-                    <input id="name" type="text" v-model="contactForm.name" placeholder="名前を入力してください">
-                </div>
-                <div class="form-elem">
-                    <label for="email">メール</label>
-                    <input id="email" type="email" v-model="contactForm.email" placeholder="メールアドレスを入力してください">
-                </div>
-                <div class="form-elem">
-                    <label for="phone">電話番号</label>
-                    <input id="phone" type="tel" v-model="contactForm.phone" placeholder="電話番号を入力してください">
-                </div>
-                <div class="form-elem">
-                    <label for="message">メッセージ</label>
-                    <textarea id="message" v-model="contactForm.message" placeholder="メッセージを入力してください"></textarea>
-                </div>
-                <button class="button" type="submit">送信</button>
+
+                <template v-if="!mail_send">
+                    <div class="form-elem">
+                        <label for="name">名前</label>
+                        <input id="name" type="text" v-model="contactForm.name" placeholder="名前を入力してください">
+                    </div>
+                    <div class="form-elem">
+                        <label for="email">メール</label>
+                        <input id="email" type="email" v-model="contactForm.email" placeholder="メールアドレスを入力してください">
+                    </div>
+                    <div class="form-elem">
+                        <label for="phone">電話番号</label>
+                        <input id="phone" type="tel" v-model="contactForm.phone" placeholder="電話番号を入力してください">
+                    </div>
+                    <div class="form-elem">
+                        <label for="message">メッセージ</label>
+                        <textarea id="message" v-model="contactForm.message" placeholder="メッセージを入力してください"></textarea>
+                    </div>
+                    <button :class="['button', { loading: lock_send }]" type="submit">送信</button>
+                </template>
+                <template v-else>
+                    <h2>メッセージは送信されました</h2>
+                </template>
+
             </form>
         </div>
     </div>
@@ -156,6 +163,10 @@ export default defineComponent({
             fetchProducts();
         });
 
+        const mail_send = ref(false);
+        const lock_send = ref(false);
+
+
         const contactForm = ref({
             name: '',
             email: '',
@@ -164,6 +175,7 @@ export default defineComponent({
         });
 
         const submitContactForm = async () => {
+            lock_send.value = true;
             const formData = {
                 to: contactForm.value.email,
                 subject: contactForm.value.name,
@@ -189,6 +201,12 @@ export default defineComponent({
             } catch (error) {
                 console.error('Ошибка при отправке формы:', error);
                 console.log('Не удалось отправить сообщение.');
+            } finally {
+                lock_send.value = false;
+                mail_send.value = true;
+                setTimeout(() => {
+                    mail_send.value = false;
+                }, 3000);
             }
         };
 
@@ -196,7 +214,9 @@ export default defineComponent({
             popular,
             new_items,
             contactForm,
-            submitContactForm
+            submitContactForm,
+            mail_send,
+            lock_send
         };
     }
 });
@@ -301,6 +321,36 @@ export default defineComponent({
             flex-direction: column;
             gap: 8px;
         }
+    }
+}
+
+.button {
+
+
+    &.loading {
+        cursor: not-allowed;
+        background-color: #ccc;
+
+        &:after {
+            content: '';
+            position: absolute;
+            border: 3px solid transparent;
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
     }
 }
 </style>
