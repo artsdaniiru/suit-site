@@ -2,9 +2,9 @@
   <div :class="['custom-input-container', labelPositionClass]">
     <!-- Условно отображаем лейбл с учетом позиции -->
     <label v-if="labelText" class="custom-label">{{ labelText }}</label>
-    <input :type="type" :value="formattedValue" @input="onInput" @blur="validateInput" :placeholder="placeholderText" :maxlength="computedMaxLength" :required="required" :disabled="disabled" />
+    <input :class="{ 'danger': showError }" :type="type" :value="formattedValue" @input="onInput" @blur="validateInput" :placeholder="placeholderText" :maxlength="computedMaxLength" :required="required" :disabled="disabled" />
     <!-- Условно отображаем сообщение об ошибке -->
-    <span v-if="showError" class="error-message">This field is required</span>
+    <span v-if="showError" class="error-message">このフィールドは必須です</span>
   </div>
 </template>
 

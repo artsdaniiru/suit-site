@@ -21,6 +21,7 @@
             </template>
 
             <div v-if="errorMessage" class="alert-filed danger">
+                <img src="../assets/icons/info-danger.svg" alt="info">
                 <p class="error">{{ errorMessage }}</p>
             </div>
 

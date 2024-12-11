@@ -20,16 +20,24 @@
             <!-- Форма регистрации -->
             <form v-if="type === 'register'" @submit.prevent="register">
                 <h3>登録フォーム</h3>
-                <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
-                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
-                <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
-                <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
-                <div v-if="errorMessage" class="alert-filed danger">
-                    <img src="../assets/icons/info-danger.svg" alt="info">
-                    <p>{{ errorMessage }}</p>
+                <template v-if="!registerSuccess">
+                    <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
+                    <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+                    <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
+                    <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
+                    <div v-if="errorMessage" class="alert-filed danger">
+                        <img src="../assets/icons/info-danger.svg" alt="info">
+                        <p>{{ errorMessage }}</p>
+                    </div>
+                    <button class="button" type="submit">登録</button>
+                </template>
+                <div v-if="registerSuccess" class="alert-filed success">
+                    <img src="../assets/icons/info.svg" alt="info">
+                    <p>ユーザーが正常に登録されました。</p>
                 </div>
-                <button class="button" type="submit">登録</button>
                 <button class="button" @click="type = 'login'; clear()">戻る</button>
+
+
             </form>
 
             <!-- Форма сброса пароля -->
@@ -90,10 +98,12 @@ export default defineComponent({
                     errorMessage.value = response.data.message;
                 }
             } catch (error) {
-                errorMessage.value = 'An error occurred during login.';
+                errorMessage.value = 'ログイン中にエラーが発生しました。';
                 console.error('Error:', error);
             }
         };
+
+        const registerSuccess = ref(false);
 
         const register = async () => {
             errorMessage.value = '';
@@ -105,13 +115,18 @@ export default defineComponent({
             try {
                 const response = await axios.post(url, { name: name.value, email: email.value, password: password.value }, { withCredentials: true });
                 if (response.data.status === 'success') {
-                    closeModal();
+
                     clear();
+                    registerSuccess.value = true;
+                    setTimeout(() => {
+                        registerSuccess.value = false;
+                        type.value = 'login';
+                    }, 3000);
                 } else {
                     errorMessage.value = response.data.message;
                 }
             } catch (error) {
-                errorMessage.value = 'An error occurred during registration.';
+                errorMessage.value = '登録中にエラーが発生しました。';
                 console.error('Error:', error);
             }
         };
@@ -154,7 +169,7 @@ export default defineComponent({
                     errorMessage.value = response.data.message;
                 }
             } catch (error) {
-                errorMessage.value = 'An error occurred while resetting the password.';
+                errorMessage.value = 'パスワードのリセット中にエラーが発生しました。';
                 console.error('Error:', error);
             }
         };
@@ -174,7 +189,8 @@ export default defineComponent({
             errorMessage,
             resetPassword,
             successMessage,
-            emailSent
+            emailSent,
+            registerSuccess
         };
     }
 });

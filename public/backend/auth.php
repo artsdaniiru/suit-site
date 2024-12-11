@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // Connect to the database
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("接続に失敗しました: " . $conn->connect_error);
 }
 
 // Get the action from the GET parameter 'action'
@@ -43,7 +43,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-            echo json_encode(["status" => "error", "message" => "Email already exists."]);
+            echo json_encode(["status" => "error", "message" => "電子メールはすでに存在します。"]);
         } else {
             // Generate a unique token
             $auth_token = bin2hex(random_bytes(32));
@@ -54,14 +54,14 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode([
                     "status" => "success",
                     "auth_token" => $auth_token,
-                    "message" => "User registered successfully."
+                    "message" => "ユーザーが正常に登録されました。"
                 ]);
             } else {
                 echo json_encode(["status" => "error", "message" => $conn->error]);
             }
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "All fields are required."]);
+        echo json_encode(["status" => "error", "message" => "すべてのフィールドは必須です。"]);
     }
 
     // Authenticate a user
@@ -93,13 +93,13 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]
                 ]);
             } else {
-                echo json_encode(["status" => "error", "message" => "Invalid email or password."]);
+                echo json_encode(["status" => "error", "message" => "メールアドレスまたはパスワードが無効です。"]);
             }
         } else {
-            echo json_encode(["status" => "error", "message" => "Invalid email or password."]);
+            echo json_encode(["status" => "error", "message" => "メールアドレスまたはパスワードが無効です。"]);
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Missing email or password."]);
+        echo json_encode(["status" => "error", "message" => "メールアドレスまたはパスワードが見つかりません。"]);
     }
 
     // Log out the user
@@ -108,14 +108,14 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     session_unset();
     session_destroy();
 
-    echo json_encode(["status" => "success", "message" => "Logged out successfully."]);
+    echo json_encode(["status" => "success", "message" => "ログアウトに成功しました。"]);
 
     // Get user data by token
 } elseif ($action === 'get_user' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // Check the session
     if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
-        echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
+        echo json_encode(["status" => "error", "message" => "不正アクセス。"]);
         exit;
     }
 
@@ -200,7 +200,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             "user" => $user
         ]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Invalid token."]);
+        echo json_encode(["status" => "error", "message" => "無効なトークンです。"]);
     }
 } elseif ($action === 'update_cart' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -208,7 +208,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check the session
     if (!isset($_SESSION['user_id']) && !isset($_SESSION['auth_token'])) {
-        echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
+        echo json_encode(["status" => "error", "message" => "認証されていないアクセスです。"]);
         exit;
     }
     $auth_token = $_SESSION['auth_token'];
@@ -216,12 +216,12 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql = "UPDATE clients SET cart = '$cart' WHERE auth_token = '$auth_token'";
 
     if ($conn->query($sql) === TRUE) {
-        echo json_encode(["status" => "success", "message" => "Cart has been updated"]);
+        echo json_encode(["status" => "success", "message" => "カートが更新されました。"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Error updating record: " . $conn->error]);
+        echo json_encode(["status" => "error", "message" => "レコードの更新中にエラーが発生しました: " . $conn->error]);
     }
 
-    // Invalid action or request method
+    // Password reset
 } elseif ($action === 'pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['email'])) {
         $email = $conn->real_escape_string($request['email']);
@@ -248,22 +248,22 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                 if (!mail($to, "パスワードリセットリンク",  $message, $headers)) {
-                    echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
+                    echo json_encode(['status' => 'error', 'message' => "メールを送信できません"]);
                 } else {
 
-                    echo json_encode(["status" => "success", "message" => "Pass reset request sent"]);
+                    echo json_encode(["status" => "success", "message" => "パスワードリセットリクエストが送信されました"]);
                 }
             } else {
-                echo json_encode(["status" => "error", "message" => "Error : " . $conn->error]);
+                echo json_encode(["status" => "error", "message" => "エラー: " . $conn->error]);
             }
         } else {
-            echo json_encode(["status" => "error", "message" => "Invalid email or password."]);
+            echo json_encode(["status" => "error", "message" => "メールアドレスまたはパスワードが無効です。"]);
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Missing email or password."]);
+        echo json_encode(["status" => "error", "message" => "メールアドレスが見つかりません。"]);
     }
 
-    // Log out the user
+    // Check password reset link validity
 } elseif ($action === 'check_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['pass_reset_url']) && $request['pass_reset_url'] != "") {
         $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
@@ -274,15 +274,15 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-            echo json_encode(['status' => 'success', 'message' => "This link is valid"]);
+            echo json_encode(['status' => 'success', 'message' => "このリンクは有効です"]);
         } else {
-            echo json_encode(["status" => "error", "message" => "Invalid request data."]);
+            echo json_encode(["status" => "error", "message" => "無効なリクエストデータです。"]);
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Missing request data."]);
+        echo json_encode(["status" => "error", "message" => "リクエストデータが不足しています。"]);
     }
 
-    // Log out the user
+    // Approve password reset
 } elseif ($action === 'approve_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['pass_reset_url']) && !empty($request['password']) && $request['pass_reset_url'] != "") {
         $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
@@ -299,20 +299,20 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $sql = "UPDATE clients SET password = '$password', pass_reset_url = '' WHERE id = '$user_id'";
             if ($conn->query($sql) === TRUE) {
-                echo json_encode(['status' => 'success', 'message' => "Successfully changed password"]);
+                echo json_encode(['status' => 'success', 'message' => "パスワードが正常に変更されました。"]);
             } else {
-                echo json_encode(["status" => "error", "message" => "Error : " . $conn->error]);
+                echo json_encode(["status" => "error", "message" => "エラー: " . $conn->error]);
             }
         } else {
-            echo json_encode(["status" => "error", "message" => "Invalid request data."]);
+            echo json_encode(["status" => "error", "message" => "無効なリクエストデータです。"]);
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Missing request data."]);
+        echo json_encode(["status" => "error", "message" => "リクエストデータが不足しています。"]);
     }
 
-    // Log out the user
+    // Invalid action or request method
 } else {
-    echo json_encode(["status" => "error", "message" => "Invalid action or request method."]);
+    echo json_encode(["status" => "error", "message" => "無効なアクションまたはリクエストメソッドです。"]);
 }
 
 $conn->close();
