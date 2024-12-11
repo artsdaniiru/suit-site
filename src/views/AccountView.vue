@@ -27,7 +27,20 @@
 
         </div>
 
+        <div class="password-change">
+          <h2>パスワード変更</h2>
 
+          <CustomInput v-model="user.password" :labelText="'現在のパスワード'" type="password" />
+          <CustomInput v-model="user.password" :labelText="'新しいパスワード'" type="password" />
+          <CustomInput v-model="user.password" :labelText="'新しいパスワード（確認）'" type="password" />
+
+          <button class="button">保存</button>
+        </div>
+
+      </div>
+
+
+      <div>
         <div class="payment-methods">
           <h2>お支払方法</h2>
           <div class="card-wrap">
@@ -45,30 +58,29 @@
           </div>
 
         </div>
-      </div>
+        <div class="account-address">
+          <h2>配達</h2>
 
-
-      <div class="account-address">
-
-
-        <div class="address-card" v-for="item in user.addresses" :key="item">
-          <h2>{{ item.name }}</h2>
-          <p>{{ item.address }}</p>
-          <div class="tel">
-            <span>電話番号: </span>
-            <span>{{ item.phone }}</span>
+          <div class="address-card" v-for="item in user.addresses" :key="item">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.address }}</p>
+            <div class="tel">
+              <span>電話番号: </span>
+              <span>{{ item.phone }}</span>
+            </div>
+            <span class="icon-close" @click.stop="openDelete('address', item.id)"></span>
+            <span class="icon-pencil" @click.stop="openEditAddressModal(item)"></span>
           </div>
-          <span class="icon-close" @click.stop="openDelete('address', item.id)"></span>
-          <span class="icon-pencil" @click.stop="openEditAddressModal(item)"></span>
+
+
+          <div class="add-card" @click="openAddAddressModal">
+            <span class="icon-plus"></span>
+            <p>新しいお届け先住所を追加する</p>
+          </div>
+
         </div>
-
-
-        <div class="add-card" @click="openAddAddressModal">
-          <span class="icon-plus"></span>
-          <p>新しいお届け先住所を追加する</p>
-        </div>
-
       </div>
+
 
     </div>
 
@@ -439,12 +451,24 @@ h2 {
 
   }
 
+  .password-change {
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: -webkit-fill-available;
+    height: min-content;
+    margin-top: 20px;
+
+  }
+
   .payment-methods {
 
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     padding: 24px;
-    margin-top: 20px;
 
     .radio-btn {
       width: 16px;
@@ -501,6 +525,10 @@ h2 {
 
   .account-address {
 
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -512,6 +540,12 @@ h2 {
       box-sizing: border-box;
       width: -webkit-fill-available;
       padding: 32px;
+
+      h3 {
+        margin-top: 0px;
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
 
       .icon-close {
         width: min-content;
