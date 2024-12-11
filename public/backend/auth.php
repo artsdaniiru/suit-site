@@ -264,6 +264,25 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Log out the user
+} elseif ($action === 'check_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!empty($request['pass_reset_url']) && $request['pass_reset_url'] != "") {
+        $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
+
+
+        // Check if the user exists
+        $sql = "SELECT id, password, name, auth_token FROM clients WHERE pass_reset_url = '$pass_reset_url'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            echo json_encode(['status' => 'success', 'message' => "This link is valid"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Invalid request data."]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Missing request data."]);
+    }
+
+    // Log out the user
 } elseif ($action === 'approve_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($request['pass_reset_url']) && !empty($request['password']) && $request['pass_reset_url'] != "") {
         $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
@@ -280,7 +299,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $sql = "UPDATE clients SET password = '$password', pass_reset_url = '' WHERE id = '$user_id'";
             if ($conn->query($sql) === TRUE) {
-                echo json_encode(['status' => 'error', 'message' => "Successfully changed password"]);
+                echo json_encode(['status' => 'success', 'message' => "Successfully changed password"]);
             } else {
                 echo json_encode(["status" => "error", "message" => "Error : " . $conn->error]);
             }

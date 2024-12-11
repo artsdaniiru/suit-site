@@ -1,24 +1,36 @@
 <template>
-    <div class="reset-pass">
-        <CustomInput v-model="pass.password" labelText="パスワード" type="password" />
-        <CustomInput v-model="pass.password_confirmation" labelText="パスワード確認" type="password" />
-        <button class="button" @click="sendNewPassword" :disabled="isSubmitting">
-            送信
-        </button>
-        <div v-if="errorMessage" class="alert-filed danger">
-            <p class="error">{{ errorMessage }}</p>
-        </div>
-        <div v-if="successMessage" class="alert-filed success">
-            <p v-if="successMessage">{{ successMessage }}</p>
-        </div>
+    <div>
+        <div class="reset-pass">
+            <h1 v-if="isInvalidLink">エラー</h1>
+            <template v-else>
+                <h1>パスワードリセット</h1>
+                <template v-if="successMessage == ''">
+                    <CustomInput v-model="pass.password" labelText="新しいパスワード" type="password" />
+                    <CustomInput v-model="pass.password_confirmation" labelText="パスワード確認" type="password" />
+                    <button class="button" @click="sendNewPassword" :disabled="isSubmitting">
+                        送信
+                    </button>
+                </template>
 
+                <div v-if="successMessage" class="alert-filed success">
+                    <p>{{ successMessage }}</p>
+                </div>
+                <router-link v-if="successMessage" to="/">
+                    <button class="button">ホームページへ戻る</button>
+                </router-link>
+            </template>
 
+            <div v-if="errorMessage" class="alert-filed danger">
+                <p class="error">{{ errorMessage }}</p>
+            </div>
+
+        </div>
     </div>
 </template>
 
 
 <script>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios'; // Убедитесь, что Axios подключен
 
@@ -36,10 +48,36 @@ export default defineComponent({
         const isSubmitting = ref(false);
         const errorMessage = ref('');
         const successMessage = ref('');
+        const isInvalidLink = ref(false);
+
+        const checkPassResetUrl = async () => {
+            try {
+                const response = await axios.post(
+                    `${process.env.VUE_APP_BACKEND_URL}/backend/auth.php?action=check_pass_reset`,
+                    { pass_reset_url },
+                    {
+                        withCredentials: true,
+                    }
+                );
+
+                if (response.data.status !== 'success') {
+                    isInvalidLink.value = true;
+                    errorMessage.value = '無効なパスワードリセットリンクです';
+                }
+            } catch (error) {
+                errorMessage.value = 'リンク確認中にエラーが発生しました';
+                console.error('Ошибка при проверке ссылки сброса пароля:', error);
+            }
+        };
 
         const sendNewPassword = async () => {
             if (pass.value.password !== pass.value.password_confirmation) {
-                errorMessage.value = 'Пароли не совпадают!';
+                errorMessage.value = 'パスワードが一致しません!';
+                return;
+            }
+
+            if (pass.value.password == '' || pass.value.password_confirmation == '') {
+                errorMessage.value = 'パスワードを入力してください!';
                 return;
             }
 
@@ -49,7 +87,7 @@ export default defineComponent({
 
             const formData = {
                 password: pass.value.password,
-                pass_reset_url: pass_reset_url, // Если необходимо передать ID заказа
+                pass_reset_url: pass_reset_url,
             };
 
             try {
@@ -75,12 +113,17 @@ export default defineComponent({
             }
         };
 
+        onMounted(() => {
+            checkPassResetUrl();
+        });
+
         return {
             pass_reset_url,
             pass,
             isSubmitting,
             errorMessage,
             successMessage,
+            isInvalidLink,
             sendNewPassword,
         };
     },
@@ -95,22 +138,22 @@ export default defineComponent({
     gap: 12px;
     width: 100%;
     max-width: 500px;
-    margin: 20px auto;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
     padding: 16px;
-    border: 1px solid #ddd;
+    border: 1px solid #d9d9d9;
     border-radius: 8px;
     height: min-content;
 
-
-
-    .error {
-        color: red;
-        font-size: 14px;
+    h1 {
+        text-align: center;
     }
 
-    .success {
-        color: green;
-        font-size: 14px;
+    a {
+        margin-left: auto;
+        margin-right: auto;
     }
+
 }
 </style>
