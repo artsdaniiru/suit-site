@@ -264,6 +264,34 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Log out the user
+} elseif ($action === 'aprove_pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!empty($request['pass_reset_url']) && !empty($request['password']) && $request['pass_reset_url'] != "") {
+        $pass_reset_url = $conn->real_escape_string($request['pass_reset_url']);
+        $password = $conn->real_escape_string($request['password']);
+
+        // Check if the user exists
+        $sql = "SELECT id, password, name, auth_token FROM clients WHERE pass_reset_url = '$pass_reset_url'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            $user_id = $user['id'];
+            $password = password_hash($request['password'], PASSWORD_DEFAULT); // Hash the password
+
+            $sql = "UPDATE clients SET password = '$password', pass_reset_url = '' WHERE id = '$user_id'";
+            if ($conn->query($sql) === TRUE) {
+                echo json_encode(['status' => 'error', 'message' => "Successfully changed password"]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "Error : " . $conn->error]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "Invalid request data."]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Missing request data."]);
+    }
+
+    // Log out the user
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action or request method."]);
 }
