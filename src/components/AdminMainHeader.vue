@@ -12,7 +12,7 @@
                 <div class="account">
                     <img src="../assets/icons/user.svg" alt="logo">
                     <span class="name">{{ admin_user['name'] }}</span>
-                    <button @click="admin_logout" class="button danger"><span>ログアウト</span></button>
+                    <button @click="admin_logout()" class="button danger"><span>ログアウト</span></button>
                 </div>
             </nav>
         </div>

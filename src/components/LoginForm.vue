@@ -83,8 +83,14 @@ export default defineComponent({
 
         const type = ref('login');
         const { reloadUserData } = inject('auth');
+        const { isAdminLoggedIn, admin_logout } = inject('admin_auth')
 
         const login = async () => {
+
+            if (isAdminLoggedIn.value) {
+                admin_logout(true);
+            }
+
             const url = process.env.VUE_APP_BACKEND_URL + '/backend/auth.php?action=login';
             errorMessage.value = '';
             try {

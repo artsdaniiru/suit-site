@@ -33,7 +33,7 @@ export default defineComponent({
         const errorMessage = ref(''); // Переменная для хранения сообщений об ошибках
 
         const { isUserLoggedIn, logout } = inject('auth')
-        const { isAdminLoggedIn, reloadAdminUserData } = inject('admin_auth')
+        const { isAdminLoggedIn, reloadAdminUserData, admin_logout } = inject('admin_auth')
 
 
         onBeforeMount(() => {
@@ -44,6 +44,7 @@ export default defineComponent({
 
         const loginAdmin = async () => {
 
+            await admin_logout();
             errorMessage.value = '';
             if (isUserLoggedIn.value) {
                 logout();

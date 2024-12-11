@@ -214,7 +214,7 @@ export default defineComponent({
     };
 
 
-    const admin_logout = async () => {
+    const admin_logout = async (from_user = false) => {
       try {
         const response = await axios.post(process.env.VUE_APP_BACKEND_URL + '/backend/admin/auth.php?action=logout', {}, {
           withCredentials: true // Передача куки сессии
@@ -229,7 +229,9 @@ export default defineComponent({
 
           isAdminLoggedIn.value = false;
           admin_user.value = {};
-          router.push('/admin/login');
+          if (from_user == false) {
+            router.push('/admin/login');
+          }
         } else {
           console.error('Logout failed:', response.data.message);
         }
