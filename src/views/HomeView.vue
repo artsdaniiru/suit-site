@@ -44,7 +44,7 @@
 
         <div class="section-box products">
             <h3>人気な商品</h3>
-            <Carousel :items-to-show="3" :wrap-around="true">
+            <Carousel :items-to-show="3" :wrap-around="true" v-bind="config">
                 <Slide v-for="item in popular" :key="item">
                     <ProductCard :item="item" :width="'270px'" />
 
@@ -57,7 +57,7 @@
 
         <div class="section-box products">
             <h3>新品</h3>
-            <Carousel :items-to-show="3" :wrap-around="true">
+            <Carousel :items-to-show="3" :wrap-around="true" v-bind="config">
                 <Slide v-for="item in new_items" :key="item">
                     <ProductCard :item="item" :width="'270px'" />
 
@@ -94,6 +94,20 @@ export default defineComponent({
         ContactForm
     },
     setup() {
+
+        const config = {
+            itemsToShow: 1,
+            snapAlign: 'center',
+            breakpointMode: 'carousel',
+
+            breakpoints: {
+                // 400px and up
+                768: {
+                    itemsToShow: 3,
+                    snapAlign: 'start',
+                },
+            },
+        };
 
         const popular = ref(null)
         const new_items = ref(null)
@@ -144,6 +158,7 @@ export default defineComponent({
         return {
             popular,
             new_items,
+            config
         };
     }
 });
@@ -152,6 +167,10 @@ export default defineComponent({
 <style lang="scss" scoped>
 .section-box {
     padding: 10px 64px 10px 64px;
+
+    @include respond-to('md') {
+        padding: 10px 24px 10px 24px;
+    }
 }
 
 .hero {
@@ -163,6 +182,10 @@ export default defineComponent({
     height: 495px;
     position: relative;
 
+    @include respond-to('md') {
+        height: 350px;
+    }
+
     .cover {
         position: absolute;
         width: 100%;
@@ -171,12 +194,22 @@ export default defineComponent({
         display: flex;
         flex-direction: column;
 
+
+
         p {
             margin: auto;
             font-weight: 700;
             font-size: 36px;
             text-align: center;
             color: #fff;
+
+            @include respond-to('md') {
+                padding: 0px 24px;
+            }
+
+            @include respond-to('md') {
+                font-size: 24px;
+            }
         }
     }
 }
@@ -203,6 +236,11 @@ export default defineComponent({
         justify-content: space-around;
         margin-top: 20px;
         gap: 64px;
+
+        @include respond-to('md') {
+            flex-direction: column;
+            justify-content: unset;
+        }
 
         .strength {
             display: flex;

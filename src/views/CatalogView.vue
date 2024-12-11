@@ -180,11 +180,65 @@ export default defineComponent({
   align-items: baseline;
   margin: 20px 0;
 
+  @include respond-to('md') {
+    padding: 0px 24px;
+    flex-direction: column;
+    justify-content: unset;
+    gap: 20px;
+  }
+
   .section-sort {
     display: flex;
     justify-content: space-between;
     gap: 20px;
     align-items: center;
+
+    @include respond-to('md') {
+      width: 100%;
+      flex-direction: column-reverse;
+
+    }
+
+    .sort-buttons {
+      display: flex;
+      gap: 10px;
+
+      @include respond-to('md') {
+        width: 100%;
+        justify-content: space-between;
+
+      }
+
+      button {
+        padding: 8px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        border: 0px;
+        cursor: pointer;
+
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 100%;
+        color: #757575;
+
+        outline: unset;
+
+        @include respond-to('md') {
+          font-size: 12px;
+
+        }
+
+        &.active {
+          background: #2c2c2c;
+          color: #f5f5f5;
+        }
+
+      }
+
+
+    }
+
+
   }
 }
 
@@ -192,6 +246,10 @@ export default defineComponent({
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 20px;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
 
   .item-card {
     display: flex;
@@ -244,38 +302,5 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-}
-
-
-
-
-.sort-buttons {
-  display: flex;
-  gap: 10px;
-
-
-  button {
-    padding: 8px;
-    background: #f5f5f5;
-    border-radius: 8px;
-    border: 0px;
-    cursor: pointer;
-
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 100%;
-    color: #757575;
-
-    outline: unset;
-
-
-    &.active {
-      background: #2c2c2c;
-      color: #f5f5f5;
-    }
-
-  }
-
-
 }
 </style>

@@ -12,6 +12,14 @@ module.exports = defineConfig({
     },
     watchFiles: ['src/**/*'], // Следим только за файлами в src
   },
+  css: {
+    loaderOptions: {
+      sass: {
+        // @/ is an alias to src/
+        additionalData: `@import "@/assets/main.scss";`
+      }
+    }
+  }
 })
 
 // module.exports = {

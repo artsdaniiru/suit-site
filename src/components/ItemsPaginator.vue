@@ -115,6 +115,10 @@ export default defineComponent({
     margin-top: auto;
     gap: 8px;
 
+    @include respond-to('md') {
+        margin-bottom: 20px;
+    }
+
     button {
         padding: 8px 12px;
         margin: 0;

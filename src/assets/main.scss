@@ -1,3 +1,31 @@
+$breakpoints: ('xs': 0,
+  'sm': 480px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1200px,
+  'xxl': 1400px);
+
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $value: map-get($breakpoints, $breakpoint);
+
+    @if $value !=0 {
+      @media (max-width: $value) {
+        @content;
+      }
+    }
+
+    @else {
+      @content;
+    }
+  }
+
+  @else {
+    @warn "No value found for breakpoint: #{$breakpoint}";
+  }
+}
+
+
 body {
   margin: 0;
   overflow-x: hidden;
@@ -23,20 +51,25 @@ body {
 
 main {
   max-width: 1200px;
-  min-width: 1200px; //исправить для мобилки
+  min-width: 0px;
   margin-left: auto;
   margin-right: auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+
+  @include respond-to('md') {
+    width: 100vw;
+    overflow-x: hidden;
+  }
 }
 
-.router-view {
-  min-height: calc(100vh - 222px);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 20px; //лучше оставить так и добавлять отступы на конкретных страницах если нужно
-}
+// .router-view {
+//   min-height: calc(100vh - 222px);
+//   display: flex;
+//   flex-direction: column;
+//   padding-bottom: 20px; //лучше оставить так и добавлять отступы на конкретных страницах если нужно
+// }
 
 
 .button {
