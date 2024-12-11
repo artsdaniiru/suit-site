@@ -222,6 +222,48 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Invalid action or request method
+} elseif ($action === 'pass_reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!empty($request['email'])) {
+        $email = $conn->real_escape_string($request['email']);
+
+        // Check if the user exists
+        $sql = "SELECT id, password, name, auth_token FROM clients WHERE email = '$email'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            $user_id = $user['id'];
+            $pass_reset_url = bin2hex(random_bytes(32));
+
+            $sql = "UPDATE clients SET pass_reset_url = '$pass_reset_url' WHERE id = '$user_id'";
+            if ($conn->query($sql) === TRUE) {
+
+
+
+                $to = $email;
+                $headers = "From: mailer@arts-suit.com\r\n";
+                $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+
+                $message = "パスワードリセットリンク: https://arts-suit.com/pass-reset/" . $pass_reset_url;
+
+
+                if (!mail($to, "パスワードリセットリンク",  $message, $headers)) {
+                    echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
+                } else {
+
+                    echo json_encode(["status" => "success", "message" => "Pass reset request sent"]);
+                }
+            } else {
+                echo json_encode(["status" => "error", "message" => "Error : " . $conn->error]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "Invalid email or password."]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Missing email or password."]);
+    }
+
+    // Log out the user
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action or request method."]);
 }
