@@ -54,7 +54,7 @@
 </template>
 <script>
 
-import { defineComponent, inject, ref } from 'vue';
+import { defineComponent, inject, ref, watch } from 'vue';
 import { useRouter } from 'vue-router'
 
 import LoginForm from './LoginForm.vue';
@@ -81,6 +81,14 @@ export default defineComponent({
                 document.body.classList.remove('no-scroll');
             }
         }
+
+        watch(isMobileMenuOpen, (newValue) => {
+            if (newValue) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        });
 
         function closeMobileMenu() {
             isMobileMenuOpen.value = false;
