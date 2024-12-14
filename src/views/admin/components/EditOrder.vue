@@ -4,17 +4,19 @@
 
         <div class="grid-selection">
             <div class="side">
+                <CustomSelect :values="status_field_names" v-model="data.order.status" labelText="状態：" :labelPosition="'side'" width="130px" :notSelect="true" />
                 <span class="label">個人情報</span>
                 <div class="client">
 
                     <span class="name">{{ data.order.client_name }}</span>
                     <span><strong>メールアドレス：</strong>{{ data.order.email }}</span>
+                    <span><strong>電話番号：</strong>{{ data.order.phone }}</span>
                     <span><strong>身長：</strong>{{ data.order.height }}cm</span>
                     <span><strong>肩幅：</strong>{{ data.order.shoulder_width }}cm</span>
                     <span><strong>ウェストサイズ：</strong>{{ data.order.waist_size }}cm</span>
                     <div class="payment-method">
                         <img class="card" src="@/assets/icons/card.svg" alt="card">
-                        <span class="number">{{ data.order.card_number }}</span>
+                        <span class="number">{{ String(data.order.card_number).replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim() }}</span>
                     </div>
                 </div>
             </div>
@@ -32,21 +34,18 @@
         <div class="order">
             <span class="label">注文内容</span>
             <div class="order-item" v-for="(item, key) in data.products" :key="item">
-                <img class="image" src="/Image.png" alt="product">
+                <img class="image" :src="item.product.image_path" alt="product">
                 <div class="info">
-                    <span class="name">商品名</span>
+                    <span class="name">{{ item.product.name }}</span>
                     <div class="elem">
                         <span class="name">サイズ</span>
-                        <span class="value">M <strong>10000¥</strong></span>
+                        <span class="value">{{ item.size.name }} <strong v-if="item.product.type == 'suit'">{{ priceFormatter(item.size.price) }}</strong></span>
                     </div>
-                    <div class="elem">
-                        <span class="name">生地の種類</span>
-                        <span class="value">赤 (あか) <strong>+1000¥</strong></span>
+                    <div class="elem" v-for="option in item.options" :key="option">
+                        <span class="name">{{ options_types[option.type] }}</span>
+                        <span class="value">{{ option.name }} <strong>+{{ priceFormatter(option.price) }}</strong></span>
                     </div>
-                    <!-- Additional options can be added here -->
-
-                    <!-- Product Price under Options -->
-                    <span class="price">{{ item.product.price }}¥</span>
+                    <span class="price">{{ priceFormatter(item.product.price) }}¥</span>
                 </div>
 
                 <!-- Edit and Delete icons -->
@@ -56,7 +55,7 @@
         </div>
         <!-- Total Price -->
         <div class="total-price">
-            <span>合計金額: </span><strong>{{ totalOrderPrice }}¥</strong>
+            <span>合計金額: </span><strong>{{ priceFormatter(totalOrderPrice) }}¥</strong>
         </div>
 
         <div class="actions">
@@ -201,7 +200,7 @@ export default defineComponent({
         };
 
         const totalOrderPrice = computed(() => {
-            return data.value.products.reduce((total, item) => total + (item.product.price || 0), 0);
+            return data.value.products.reduce((total, item) => total + (Number(item.product.price) || 0), 0);
         });
 
 
@@ -318,6 +317,25 @@ export default defineComponent({
             fetchAction();
         });
 
+        function priceFormatter(price) {
+            return `¥${Number(price).toLocaleString('ja-JP')}`
+        }
+
+        const options_types = ref({
+            cloth: '生地',
+            color: '生地の色',
+            lining: '裏地',
+            button: 'ボタン',
+        });
+
+        const status_field_names = ref({
+            confirmed: '確定済(confirmed)',
+            processing: '処理中(processing)',
+            shipped: '発送済(shipped)',
+            in_transit: '配送中(in_transit)',
+            delivered: '配達済(delivered)'
+        });
+
         return {
             data,
             client_headers,
@@ -336,7 +354,11 @@ export default defineComponent({
             editAddressModalFlag,   // Controls the visibility of the address edit modal
             openEditAddressModal,   // Opens the address edit modal with current data
             addressEditData,        // Holds the data for editing the address
-            saveAddressEdit         // Saves the changes made to the address
+            saveAddressEdit,         // Saves the changes made to the address
+
+            priceFormatter,
+            options_types,
+            status_field_names
         };
 
     }
@@ -452,7 +474,7 @@ export default defineComponent({
     .order {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 12px;
         padding-left: 10px;
         padding-right: 10px;
 
@@ -538,6 +560,7 @@ export default defineComponent({
         font-weight: 600;
         padding-right: 10px;
         margin-top: 16px;
+        align-items: baseline;
     }
 
     .actions {

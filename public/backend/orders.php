@@ -117,22 +117,25 @@ switch ($action) {
 
         echo json_encode(["status" => "success", "order_id" => $order_id]);
 
-        // Sending order complition email to user
-        $to = $client_email;
-        $order_id_formatted = str_pad($order_id, 5, '0', STR_PAD_LEFT);
-        $subject = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!";
-        $message = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!"; //TODO: добавить адрес и состав заказа
+        if ($_SERVER['HTTP_HOST'] == "arts-suit.com") {
+            // Sending order complition email to user
+            $to = $client_email;
+            $order_id_formatted = str_pad($order_id, 5, '0', STR_PAD_LEFT);
+            $subject = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!";
+            $message = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!"; //TODO: добавить адрес и состав заказа
 
-        $headers = "From: mailer@arts-suit.com\r\n";
-        $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
-        $to_admin = "k237034@kccollege.ac.jp";
+            $headers = "From: mailer@arts-suit.com\r\n";
+            $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+            $to_admin = "k237034@kccollege.ac.jp";
 
-        if (!mail($to, $subject, $message, $headers)) {
-            // echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
-        } else {
-            mail($to_admin, "お客様からの注文: $order_id_formatted", $message, $headers);
-            // echo json_encode(['status' => 'success', 'message' => "Email successfully sent!"]);
+            if (!mail($to, $subject, $message, $headers)) {
+                // echo json_encode(['status' => 'error', 'message' => "Can't send email"]);
+            } else {
+                mail($to_admin, "お客様からの注文: $order_id_formatted", $message, $headers);
+                // echo json_encode(['status' => 'success', 'message' => "Email successfully sent!"]);
+            }
         }
+
 
         break;
     default:

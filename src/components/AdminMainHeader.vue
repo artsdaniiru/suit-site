@@ -1,7 +1,7 @@
 <template>
     <header>
         <div class="content">
-            <router-link to="/" class="logo">
+            <router-link to="/admin/catalog" class="logo">
                 <img src="../assets/icons/logo.svg" alt="logo">
                 <span>管理サイト</span>
             </router-link>

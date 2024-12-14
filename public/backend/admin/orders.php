@@ -323,17 +323,30 @@ switch ($action) {
         }
 
         // Get products information in the order
-        $sqlProducts = "SELECT coi.price AS price, coi.options AS order_options,  coi.size_id AS size_id,
-                            p.*, COALESCE(MIN(im.image_path), NULL) AS image_path
-                            FROM client_order_indexes coi
-                            JOIN products p ON coi.product_id = p.id
-                            LEFT JOIN product_images im ON p.id = im.product_id
-                            WHERE coi.client_order_id = $order_id";
+        $sqlProducts = "SELECT 
+                coi.price AS price, 
+                coi.options AS order_options,  
+                coi.size_id AS size_id,
+                p.*, 
+                COALESCE(im.image_path, '/Image.png') AS image_path
+            FROM client_order_indexes coi
+            JOIN products p ON coi.product_id = p.id
+            LEFT JOIN (
+                SELECT 
+                    product_id, 
+                    image_path, 
+                    ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY id ASC) AS rn
+                FROM product_images
+            ) im ON p.id = im.product_id AND im.rn = 1
+            WHERE coi.client_order_id =  $order_id";
         $resultProducts = $conn->query($sqlProducts);
         $products = [];
 
+        // print_r($sqlProducts);
+
         if ($resultProducts != false && $resultProducts->num_rows > 0) {
             while ($row = $resultProducts->fetch_assoc()) {
+                $product_data = [];
                 // Remove null fields from product
                 $product_data['product'] = array_filter($row, function ($value) {
                     return !is_null($value);
@@ -352,9 +365,8 @@ switch ($action) {
                     });
                     $product_data['size']['price'] = intval($product_data['size']['price']);
                 }
-
-                if ($row['order_options'] != null) {
-                    $options = json_decode($row['order_options']);
+                $options = json_decode($row['order_options']);
+                if ($row['order_options'] != null && !empty($options)) {
                     $options_sql_ids = implode(',', $options);
                     $sqlOptions = "SELECT * FROM options WHERE id IN ($options_sql_ids)";
                     $resultOptions = $conn->query($sqlOptions);
