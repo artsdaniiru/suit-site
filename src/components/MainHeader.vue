@@ -22,35 +22,43 @@
                     <span v-if="cart.length != 0" class="count">{{ cart.length }}</span>
                 </div>
             </nav>
-            <div class="mob-menu" @click="toggleMobileMenu">
-                <img src="../assets/icons/menu.svg" alt="logo">
+
+            <div class="mob-menu">
+                <div v-if="isUserLoggedIn" class="account" @click="goToAccount">
+                    <img src="../assets/icons/user.svg" alt="logo">
+                    <span class="name">{{ user['name'] }}</span>
+                </div>
+                <div class="cart" @click="goToCart">
+                    <img src="../assets/icons/cart.svg" alt="logo">
+                    <span v-if="cart.length != 0" class="count">{{ cart.length }}</span>
+                </div>
+                <img src="../assets/icons/menu.svg" alt="logo" @click="toggleMobileMenu">
             </div>
             <transition name="menu-slide">
                 <div v-if="isMobileMenuOpen" class="mobile-menu" v-click-out-side="() => toggleMobileMenu()">
+                    <img class="close" src="../assets/icons/close.svg" alt="close" @click="toggleMobileMenu()">
                     <nav>
-
-
                         <router-link to="/catalog" @click="closeMobileMenu"><span>カタログ</span></router-link>
                         <router-link to="/guide" @click="closeMobileMenu"><span>ご利用ガイド</span></router-link>
                         <router-link to="/contact" @click="closeMobileMenu"><span>連絡</span></router-link>
+                        <router-link to="/cart" @click="closeMobileMenu"><span>カート</span></router-link>
                         <router-link v-if="isUserLoggedIn" to="/account" @click="closeMobileMenu"><span>マイページ</span></router-link>
-                        <div v-if="isUserLoggedIn" class="account">
+                        <div v-if="isUserLoggedIn" class="account" @click="goToAccount">
                             <img src="../assets/icons/user.svg" alt="logo">
                             <span class="name">{{ user['name'] }}</span>
                         </div>
                         <button class="button" v-if="!isUserLoggedIn" @click="closeLogin = true; closeMobileMenu"><span>ログイン</span></button>
-                        <button class="button danger" v-if="isUserLoggedIn" @click="logout; closeMobileMenu"><span>ログアウト</span></button>
-                        <div class="cart" @click="goToCart">
-                            <img src="../assets/icons/cart.svg" alt="logo">
-                            <span v-if="cart.length != 0" class="count">{{ cart.length }}</span>
-                        </div>
+                        <button class="button danger" v-if="isUserLoggedIn" @click="logout(); closeMobileMenu"><span>ログアウト</span></button>
                     </nav>
                 </div>
             </transition>
         </div>
 
     </header>
-    <LoginForm :closeFlag="closeLogin" @update:closeFlag="closeLogin = false"></LoginForm>
+    <CustomModal v-model="closeLogin">
+        <LoginForm :closeFlag="closeLogin" @update:closeFlag="closeLogin = false"></LoginForm>
+    </CustomModal>
+
 </template>
 <script>
 
@@ -74,12 +82,15 @@ export default defineComponent({
         const isMobileMenuOpen = ref(false);
 
         function toggleMobileMenu() {
-            isMobileMenuOpen.value = !isMobileMenuOpen.value;
-            if (isMobileMenuOpen.value) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
+            if (!closeLogin.value) {
+                isMobileMenuOpen.value = !isMobileMenuOpen.value;
+                if (isMobileMenuOpen.value) {
+                    document.body.classList.add('no-scroll');
+                } else {
+                    document.body.classList.remove('no-scroll');
+                }
             }
+
         }
 
         watch(isMobileMenuOpen, (newValue) => {
@@ -156,14 +167,17 @@ header {
 
         .mob-menu {
             display: none;
+            user-select: none;
 
             @include respond-to('md') {
-                display: block;
+                display: flex;
+                align-items: center;
+                gap: 16px;
             }
 
             img {
                 cursor: pointer;
-                width: 24px;
+                width: 28px;
             }
         }
 
@@ -210,47 +224,49 @@ header {
                 height: 32px;
             }
 
-            .cart {
-                position: relative;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
 
-                img {
-                    width: 26px;
-                }
+        }
 
-                .count {
-                    position: absolute;
-                    right: -12px;
-                    top: -5px;
-                    border-radius: 25px;
-                    width: 20px;
-                    height: 20px;
-                    background: #ff7a00;
-                    font-size: 12px;
-                    text-align: center;
-                    color: #fff;
-                    align-content: center;
-                }
+        .cart {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+
+            img {
+                width: 26px;
             }
 
-            .account {
-                align-items: center;
-                display: flex;
-                gap: 10px;
-                cursor: pointer;
+            .count {
+                position: absolute;
+                right: -12px;
+                top: -5px;
+                border-radius: 25px;
+                width: 20px;
+                height: 20px;
+                background: #ff7a00;
+                font-size: 12px;
+                text-align: center;
+                color: #fff;
+                align-content: center;
+            }
+        }
 
-                .name {
-                    font-weight: 400;
-                    font-size: 16px;
-                    line-height: 100%;
-                    color: #000;
-                }
+        .account {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
 
-                img {
-                    width: 24px;
-                }
+            .name {
+                font-weight: 400;
+                font-size: 16px;
+                line-height: 100%;
+                color: #000;
+            }
+
+            img {
+                width: 24px;
             }
         }
     }
@@ -260,13 +276,46 @@ header {
         top: 0;
         right: 0;
         height: 100vh;
-        width: 70%;
+        width: 60%;
         background: #fff;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
         padding: 16px;
-        z-index: 1000;
+        z-index: 98;
+
+        .close {
+
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            cursor: pointer;
+            width: 28px;
+        }
+
+        nav {
+            margin-top: 30px;
+
+            .button,
+            a {
+                width: -webkit-fill-available;
+            }
+
+            .account {
+                margin-top: 10px;
+                flex-direction: column;
+                margin-bottom: 10px;
+
+                img {
+                    width: 44px;
+                    padding: 24px;
+                    background: #ecebea;
+                    border-radius: 50%;
+                }
+            }
+
+
+        }
     }
 }
 

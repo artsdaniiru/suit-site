@@ -5,7 +5,7 @@
       <div class="product-img" :class="{ loading: is_loading }">
         <img v-if="!is_loading" :src="data.product_images[show_image_id] == undefined ? '/Image.png' : data.product_images[show_image_id].image_path" :alt="data.product.name" class="product-image" @click="showImage(data.product_images[show_image_id], show_image_id)" />
 
-        <div class="gallery" v-if="data.product_images.length != 0">
+        <div class="gallery" v-if="data.product_images.length > 1">
           <template v-for="(image, index) in data.product_images" :key="index">
             <img :src="image.image_path" :alt="data.product.name" class="gallery-image" :class="{ selected: show_image_id == index }" @click="show_image_id = index" />
           </template>
@@ -71,7 +71,7 @@
     </div>
 
 
-    <div class="add-product" v-if="data.product.type == 'suit'">
+    <div class="add-product" v-if="data.product.type == 'suit' && ADD_PRODUCTS">
       <h2>追加の商品</h2>
 
       <form class="add-content">
@@ -150,6 +150,8 @@ import { useToast } from 'vue-toast-notification';
 export default defineComponent({
   name: "ProductCard",
   setup() {
+
+    const ADD_PRODUCTS = ref(false);
 
     const toast = useToast();
     //users thing
@@ -551,7 +553,11 @@ export default defineComponent({
       in_cart,
       deleteFromCartLocal,
       updateCartLocal,
-      showNotIf
+      showNotIf,
+
+
+
+      ADD_PRODUCTS
     };
   },
 });
@@ -562,6 +568,11 @@ export default defineComponent({
   padding: 64px;
   gap: 64px;
 
+  @include respond-to('md') {
+    padding: 24px;
+    gap: 24px;
+  }
+
   .main {
     display: flex;
     justify-content: space-between;
@@ -569,12 +580,22 @@ export default defineComponent({
 
     flex-direction: unset;
 
+    @include respond-to('md') {
+      flex-direction: column;
+      justify-content: unset;
+      gap: 24px;
+    }
+
     .product-img {
       width: 50%;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       gap: 12px;
+
+      @include respond-to('md') {
+        width: -webkit-fill-available;
+      }
 
       .product-image {
         width: 100%;
@@ -611,6 +632,10 @@ export default defineComponent({
       display: flex;
       flex-direction: column;
       gap: 24px;
+
+      @include respond-to('md') {
+        width: -webkit-fill-available;
+      }
 
       .product-title {
         h3 {
@@ -652,6 +677,10 @@ export default defineComponent({
         .size-cont {
           display: flex;
           gap: 24px;
+
+          @include respond-to('md') {
+            flex-direction: column;
+          }
 
           .size-box {
             display: flex;
@@ -746,6 +775,26 @@ export default defineComponent({
 .size-cont.grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+
+
+    >* {
+      @for $i from 1 through 3 {
+        &:nth-child(3n - #{$i - 1}) {
+          @if $i ==3 {
+            grid-column: 1 / -1; // Третий элемент занимает всю строку
+          }
+
+          @else {
+            grid-column: span 1; // Первые два элемента делят строку
+          }
+        }
+      }
+    }
+  }
 
   .size-box {
     width: 100%;

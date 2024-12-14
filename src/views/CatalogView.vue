@@ -205,7 +205,7 @@ export default defineComponent({
 
       @include respond-to('md') {
         width: 100%;
-        justify-content: space-between;
+        flex-wrap: wrap;
 
       }
 

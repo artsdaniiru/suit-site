@@ -7,86 +7,88 @@
   </div>
 
   <template v-else>
-    <h2 style="text-align: left">カート</h2>
+    <div class="cart-page">
+      <h2 style="text-align: left">カート</h2>
 
 
-    <div class="product-list">
+      <div class="product-list">
 
-      <template v-if="!is_loading">
-        <div class="product-cart" v-for="item in computedCart" :key="item">
-          <div class="product-info">
+        <template v-if="!is_loading">
+          <div class="product-cart" v-for="item in computedCart" :key="item">
+            <div class="product-info">
 
-            <img :src="items[item.id].image_path" :alt="name" class="product-image" @click="goToProductPage(item.id)" />
+              <img :src="items[item.id].image_path" :alt="name" class="product-image" @click="goToProductPage(item.id)" />
 
-            <div class="price-info">
-              <div class="price-title">
-                <h3 class="product-title" @click="goToProductPage(item.id)">{{ items[item.id].name }}</h3>
-                <p class="product-title">{{ englishName }}</p>
-                <div class="price-size">
-                  <template v-if="items[item.id].type == 'suit'">
-                    <div class="size-price">
-                      <span class="font-weight">身長</span>
-                      <span>{{ item.body_sizes.height }}cm</span>
+              <div class="price-info">
+                <div class="price-title">
+                  <h3 class="product-title" @click="goToProductPage(item.id)">{{ items[item.id].name }}</h3>
+                  <p class="product-title">{{ englishName }}</p>
+                  <div class="price-size">
+                    <template v-if="items[item.id].type == 'suit'">
+                      <div class="size-price">
+                        <span class="font-weight">身長</span>
+                        <span>{{ item.body_sizes.height }}cm</span>
+                      </div>
+                      <div class="size-price">
+                        <span class="font-weight">肩幅</span>
+                        <span>{{ item.body_sizes.shoulder_width }}cm</span>
+                      </div>
+                      <div class="size-price">
+                        <span class="font-weight">ウェストサイズ</span>
+                        <span>{{ item.body_sizes.waist_size }}cm</span>
+                      </div>
+                    </template>
+                    <div v-else class="size-price">
+                      <span class="font-weight">サイズ</span>
+                      <span>{{ items[item.id].sizes[item.size].name }}</span>
                     </div>
-                    <div class="size-price">
-                      <span class="font-weight">肩幅</span>
-                      <span>{{ item.body_sizes.shoulder_width }}cm</span>
-                    </div>
-                    <div class="size-price">
-                      <span class="font-weight">ウェストサイズ</span>
-                      <span>{{ item.body_sizes.waist_size }}cm</span>
-                    </div>
-                  </template>
-                  <div v-else class="size-price">
-                    <span class="font-weight">サイズ</span>
-                    <span>{{ items[item.id].sizes[item.size].name }}</span>
+
+                    <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
                   </div>
-
-                  <span class="final-price font-weight">{{ formattedPrice(items[item.id].sizes[item.size].price) }}</span>
                 </div>
-              </div>
-              <div class="option-price" v-if="items[item.id].type == 'suit'">
-                <div class="option-wrap" v-if="item.options.cloth.id != ''">
-                  <span class="font-weight">生地の種類</span>
-                  <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
-                </div>
-                <div class="option-wrap" v-if="item.options.color.id != ''">
-                  <span class="font-weight">生地の色</span>
-                  <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
-                </div>
-                <div class="option-wrap" v-if="item.options.lining.id != ''">
-                  <span class="font-weight">裏地の種類</span>
-                  <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
-                </div>
-                <div class="option-wrap" v-if="item.options.button.id != ''">
-                  <span class="font-weight">ボタンの種類</span>
-                  <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
+                <div class="option-price" v-if="items[item.id].type == 'suit'">
+                  <div class="option-wrap" v-if="item.options.cloth.id != ''">
+                    <span class="font-weight">生地の種類</span>
+                    <span>{{ options[item.options.cloth.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.cloth)) }}</span></span>
+                  </div>
+                  <div class="option-wrap" v-if="item.options.color.id != ''">
+                    <span class="font-weight">生地の色</span>
+                    <span>{{ options[item.options.color.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.color)) }}</span></span>
+                  </div>
+                  <div class="option-wrap" v-if="item.options.lining.id != ''">
+                    <span class="font-weight">裏地の種類</span>
+                    <span>{{ options[item.options.lining.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.lining)) }}</span></span>
+                  </div>
+                  <div class="option-wrap" v-if="item.options.button.id != ''">
+                    <span class="font-weight">ボタンの種類</span>
+                    <span>{{ options[item.options.button.id].name }} <span class="font-weight">+{{ formattedPrice(optionPrice(item.options.button)) }}</span></span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="product-final-price">
-            <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
-            <div class="change-box" @click="goToProductPage(item.id)"><span class="product-change">Order Change</span></div>
-            <div class="final-price">
-              <span>金額</span>
-              <span>{{ formattedPrice(item.totalPrice) }}</span>
+            <div class="product-final-price">
+              <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
+              <div class="change-box" @click="goToProductPage(item.id)"><span class="product-change">Order Change</span></div>
+              <div class="final-price">
+                <span>金額</span>
+                <span>{{ formattedPrice(item.totalPrice) }}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
 
-    </div>
+      </div>
 
-    <div class="checkout-box">
-      <div class="list-pricebox">
-        <div class="list-price">
-          <span>会計</span>
-          <span>{{ formattedPrice(totalPrice) }}</span>
-        </div>
-        <div class="list-btn">
-          <router-link to="/catalog"><span>戻る</span></router-link>
-          <button class="button" @click="goToAboutPage">チェックアウト</button>
+      <div class="checkout-box">
+        <div class="list-pricebox">
+          <div class="list-price">
+            <span>会計</span>
+            <span>{{ formattedPrice(totalPrice) }}</span>
+          </div>
+          <div class="list-btn">
+            <router-link to="/catalog"><span>戻る</span></router-link>
+            <button class="button" @click="goToAboutPage">チェックアウト</button>
+          </div>
         </div>
       </div>
     </div>
@@ -275,6 +277,21 @@ export default defineComponent({
 
 }
 
+.cart-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  .checkout-box {
+    margin-top: auto;
+    margin-bottom: 0px;
+  }
+
+  @include respond-to('md') {
+    padding: 24px;
+  }
+}
+
 
 .font-weight {
   font-weight: 700;
@@ -302,17 +319,25 @@ h3 {
   .product-info {
     display: flex;
     gap: 24px;
-    margin: 24px 0 24px 24px;
+    padding: 24px;
 
-
+    @include respond-to('md') {
+      padding: 12px;
+    }
 
 
     .product-image {
       width: 160px;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1 / 1 !important;
       object-fit: cover;
       border-radius: 5px;
       cursor: pointer;
+
+      @include respond-to('md') {
+        width: 80px;
+        height: 80px;
+      }
+
     }
 
 
@@ -324,6 +349,11 @@ h3 {
       display: flex;
       gap: 12px;
       align-items: baseline;
+
+      @include respond-to('md') {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
 
       .size-price {
         width: max-content;

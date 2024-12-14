@@ -71,8 +71,9 @@ export default defineComponent({
     .product-image {
         width: 100%;
         border-radius: 8px;
-        height: 250px;
+
         object-fit: cover;
+        aspect-ratio: 1 / 1;
     }
 
     .product-info {

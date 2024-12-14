@@ -41,6 +41,11 @@ export default defineComponent({
 
     input {
         border-radius: 20px;
+
+        @include respond-to('md') {
+            width: -webkit-fill-available;
+
+        }
     }
 
     position: relative;
@@ -53,6 +58,11 @@ export default defineComponent({
         right: 10px;
         width: 16px;
         height: 16px;
+    }
+
+    @include respond-to('md') {
+        width: -webkit-fill-available;
+
     }
 }
 </style>

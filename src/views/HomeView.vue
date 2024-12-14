@@ -46,10 +46,10 @@
             <h3>人気な商品</h3>
             <Carousel :items-to-show="3" :wrap-around="true" v-bind="config">
                 <Slide v-for="item in popular" :key="item">
-                    <ProductCard :item="item" :width="'270px'" />
+                    <ProductCard :item="item" :width="cardWidth" />
 
                 </Slide>
-                <template #addons>
+                <template v-if="!isMobile" #addons>
                     <Navigation />
                 </template>
             </Carousel>
@@ -59,10 +59,10 @@
             <h3>新品</h3>
             <Carousel :items-to-show="3" :wrap-around="true" v-bind="config">
                 <Slide v-for="item in new_items" :key="item">
-                    <ProductCard :item="item" :width="'270px'" />
+                    <ProductCard :item="item" :width="cardWidth" />
 
                 </Slide>
-                <template #addons>
+                <template v-if="!isMobile" #addons>
                     <Navigation />
                 </template>
             </Carousel>
@@ -76,7 +76,7 @@
     </div>
 </template>
 <script>
-import { defineComponent, onMounted, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
 import axios from "axios";
 
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
@@ -99,12 +99,15 @@ export default defineComponent({
             itemsToShow: 1,
             snapAlign: 'center',
             breakpointMode: 'carousel',
+            // autoplay: 3000,
+            transition: 600,
 
             breakpoints: {
                 // 400px and up
                 768: {
                     itemsToShow: 3,
                     snapAlign: 'start',
+
                 },
             },
         };
@@ -155,10 +158,50 @@ export default defineComponent({
         });
 
 
+        const breakpoints = {
+            xs: 0,
+            sm: 480,
+            md: 768,
+            lg: 1024,
+            xl: 1200,
+            xxl: 1400,
+        };
+
+        /**
+         * Проверяет, соответствует ли текущее окно заданному брейкпоинту.
+         * @param {string} breakpoint - Название брейкпоинта (например, 'sm', 'md').
+         * @returns {boolean} - Возвращает true, если текущая ширина окна меньше или равна брейкпоинту.
+         */
+        function respondTo(breakpoint) {
+            if (Object.hasOwn(breakpoints, breakpoint)) {
+                const value = breakpoints[breakpoint];
+                if (value !== 0) {
+                    return window.matchMedia(`(max-width: ${value}px)`).matches;
+                }
+                return true; // Для случая 'xs' (нулевой брейкпоинт).
+            } else {
+                console.warn(`No value found for breakpoint: ${breakpoint}`);
+                return false;
+            }
+        }
+
+        const isMobile = computed(() => respondTo('md'))
+
+
+        const cardWidth = computed(() => {
+            if (respondTo('md')) {
+                return '90%';
+            } else {
+                return '270px';
+            }
+        });
         return {
             popular,
             new_items,
-            config
+            config,
+            respondTo,
+            cardWidth,
+            isMobile
         };
     }
 });
@@ -240,6 +283,7 @@ export default defineComponent({
         @include respond-to('md') {
             flex-direction: column;
             justify-content: unset;
+            gap: 20px;
         }
 
         .strength {

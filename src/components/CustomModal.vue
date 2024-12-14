@@ -99,6 +99,14 @@ export default defineComponent({
     flex-direction: column;
     gap: 8px;
 
+    @include respond-to('md') {
+        min-width: unset;
+        max-width: unset;
+        width: -webkit-fill-available;
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
 
     .head {
         display: flex;

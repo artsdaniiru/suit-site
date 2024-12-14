@@ -1,6 +1,6 @@
 <template>
 
-  <div>
+  <div class="account">
 
     <h2>マイページ</h2>
 
@@ -395,6 +395,12 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
+.account {
+  @include respond-to('md') {
+    padding: 24px;
+  }
+}
+
 h2 {
   font-weight: 600;
   font-size: 24px;
@@ -430,6 +436,10 @@ h2 {
   gap: 20px;
   margin-bottom: 64px;
 
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
+
 
 
   .account-inf {
@@ -447,7 +457,34 @@ h2 {
     .sizes {
       display: flex;
       gap: 24px;
+
+      flex-direction: column;
     }
+
+    .sizes {
+      @include respond-to('md') {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+
+
+        >* {
+          @for $i from 1 through 3 {
+            &:nth-child(3n - #{$i - 1}) {
+              @if $i ==3 {
+                grid-column: 1 / -1; // Третий элемент занимает всю строку
+              }
+
+              @else {
+                grid-column: span 1; // Первые два элемента делят строку
+              }
+            }
+          }
+        }
+      }
+    }
+
+
 
   }
 
@@ -540,6 +577,16 @@ h2 {
       box-sizing: border-box;
       width: -webkit-fill-available;
       padding: 32px;
+
+      @include respond-to('md') {
+        padding: 24px;
+
+        p {
+          width: -webkit-fill-available;
+          word-break: break-all;
+
+        }
+      }
 
       h3 {
         margin-top: 0px;

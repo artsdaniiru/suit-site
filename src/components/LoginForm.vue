@@ -1,67 +1,63 @@
 <template>
-    <div v-if="closeFlag" class="modal">
-        <div class="form">
-            <img class="close" src="../assets/icons/close.svg" alt="close" @click="closeModal">
+    <div class="form">
+        <!-- Форма логина -->
+        <form v-if="type === 'login'" @submit.prevent="login">
+            <h3>ログインフォーム</h3>
+            <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+            <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
+            <div v-if="errorMessage" class="alert-filed danger">
+                <img src="../assets/icons/info-danger.svg" alt="info">
+                <p>{{ errorMessage }}</p>
+            </div>
+            <button class="button" type="submit">ログイン</button>
+            <button class="button" @click="type = 'register'; clear()">登録</button>
+            <a @click.prevent="type = 'passwordReset'; clear()">パスワードをお忘れですか？</a>
+        </form>
 
-            <!-- Форма логина -->
-            <form v-if="type === 'login'" @submit.prevent="login">
-                <h3>ログインフォーム</h3>
+        <!-- Форма регистрации -->
+        <form v-if="type === 'register'" @submit.prevent="register">
+            <h3>登録フォーム</h3>
+            <template v-if="!registerSuccess">
+                <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
                 <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
                 <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
+                <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
                 <div v-if="errorMessage" class="alert-filed danger">
                     <img src="../assets/icons/info-danger.svg" alt="info">
                     <p>{{ errorMessage }}</p>
                 </div>
-                <button class="button" type="submit">ログイン</button>
-                <button class="button" @click="type = 'register'; clear()">登録</button>
-                <a @click.prevent="type = 'passwordReset'; clear()">パスワードをお忘れですか？</a>
-            </form>
-
-            <!-- Форма регистрации -->
-            <form v-if="type === 'register'" @submit.prevent="register">
-                <h3>登録フォーム</h3>
-                <template v-if="!registerSuccess">
-                    <CustomInput :required="true" v-model="name" :labelText="'名前'" placeholderText="名前" />
-                    <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
-                    <CustomInput :required="true" :type="'password'" v-model="password" :labelText="'パスワード'" placeholderText="パスワード" />
-                    <CustomInput :required="true" :type="'password'" v-model="confirmPassword" :labelText="'パスワード確認'" placeholderText="パスワード確認" />
-                    <div v-if="errorMessage" class="alert-filed danger">
-                        <img src="../assets/icons/info-danger.svg" alt="info">
-                        <p>{{ errorMessage }}</p>
-                    </div>
-                    <button class="button" type="submit">登録</button>
-                </template>
-                <div v-if="registerSuccess" class="alert-filed success">
-                    <img src="../assets/icons/info.svg" alt="info">
-                    <p>ユーザーが正常に登録されました。</p>
-                </div>
-                <button class="button" @click="type = 'login'; clear()">戻る</button>
+                <button class="button" type="submit">登録</button>
+            </template>
+            <div v-if="registerSuccess" class="alert-filed success">
+                <img src="../assets/icons/info.svg" alt="info">
+                <p>ユーザーが正常に登録されました。</p>
+            </div>
+            <button class="button" @click="type = 'login'; clear()">戻る</button>
 
 
-            </form>
+        </form>
 
-            <!-- Форма сброса пароля -->
-            <form v-if="type === 'passwordReset'" @submit.prevent="resetPassword">
-                <h3>パスワードリセットフォーム</h3>
-                <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
-                <div v-if="errorMessage" class="alert-filed danger">
-                    <img src="../assets/icons/info-danger.svg" alt="info">
-                    <p>{{ errorMessage }}</p>
-                </div>
-                <div v-if="successMessage" class="alert-filed success">
-                    <p>{{ successMessage }}</p>
-                </div>
-                <button class="button" type="submit">リセット</button>
-                <div v-if="emailSent" class="alert-filed success">
-                    <p>パスワードリセットメールが送信されました。</p>
-                </div>
-                <button class="button" @click="type = 'login'; clear()">戻る</button>
-            </form>
-        </div>
+        <!-- Форма сброса пароля -->
+        <form v-if="type === 'passwordReset'" @submit.prevent="resetPassword">
+            <h3>パスワードリセットフォーム</h3>
+            <CustomInput :required="true" :type="'email'" v-model="email" :labelText="'メールアドレス'" placeholderText="メールアドレス" />
+            <div v-if="errorMessage" class="alert-filed danger">
+                <img src="../assets/icons/info-danger.svg" alt="info">
+                <p>{{ errorMessage }}</p>
+            </div>
+            <div v-if="successMessage" class="alert-filed success">
+                <p>{{ successMessage }}</p>
+            </div>
+            <button class="button" type="submit">リセット</button>
+            <div v-if="emailSent" class="alert-filed success">
+                <p>パスワードリセットメールが送信されました。</p>
+            </div>
+            <button class="button" @click="type = 'login'; clear()">戻る</button>
+        </form>
     </div>
 </template>
 <script>
-import { ref, defineComponent, inject, watch } from 'vue';
+import { ref, defineComponent, inject } from 'vue';
 import axios from 'axios';
 
 export default defineComponent({
@@ -141,13 +137,6 @@ export default defineComponent({
             emit('update:closeFlag', false);
         };
 
-        watch(() => props.closeFlag, (newValue) => {
-            if (newValue) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
-            }
-        });
 
         function clear() {
             email.value = '';
@@ -204,14 +193,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .form {
-    border: 1px solid #d9d9d9;
-    border-radius: 8px;
-    padding: 32px;
-    max-width: 600px;
-    width: 400px;
-    box-shadow: 0 4px 4px -4px rgba(12, 12, 13, 0.05), 0 16px 32px -4px rgba(12, 12, 13, 0.1);
-    background: #fff;
-    margin-top: 140px;
     margin-left: auto;
     margin-right: auto;
     position: relative;
@@ -230,6 +211,10 @@ export default defineComponent({
             flex-direction: column;
             gap: 8px;
             min-width: 400px;
+
+            @include respond-to('md') {
+                min-width: unset;
+            }
         }
     }
 
