@@ -85,7 +85,19 @@
     </div>
 
     <div class="account-orders" v-if="tab == 'orders'">
-
+      <div class="order-list">
+        <div class="order-elem" v-for="order in orders" :key="order">
+          <img :src="order.cart[0]?.image_path != undefined ? order.cart[0]?.image_path : 'Image.png'" alt="img">
+          <div class="order-info">
+            <h3>オーダー番号: {{ "#" + order.id.toString().padStart(5, '0') }}</h3>
+            <span><strong>合計: </strong>{{ priceFormatter(order.total_price) }}</span>
+          </div>
+          <div class="order-status">
+            <span>配達中</span>
+            <button class="button">詳細</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -130,7 +142,7 @@
 <!-- eslint-disable -->
 <script>
 import axios from "axios";
-import { defineComponent, ref, inject, watch } from "vue";
+import { defineComponent, ref, inject, watch, onMounted } from "vue";
 import { useToast } from "vue-toast-notification";
 import { useRouter } from 'vue-router'
 
@@ -360,6 +372,37 @@ export default defineComponent({
       }
     };
 
+    const orders = ref([]);
+
+    // Метод для получения товара
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/client.php?action=get_client_orders', {
+          withCredentials: true
+        });
+
+        console.log(response);
+
+
+        if (response.data.status == "success") {
+          orders.value = response.data.data;
+        } else {
+          console.error("Ошибка при получении товара:", response.data.status);
+        }
+
+      } catch (error) {
+        console.error("Ошибка при получении товара:", error);
+      }
+    };
+
+    function priceFormatter(price) {
+      return `¥${Number(price).toLocaleString('ja-JP')}`
+    }
+
+    onMounted(() => {
+      fetchOrders();
+    })
+
     return {
       user,
       toast,
@@ -386,7 +429,10 @@ export default defineComponent({
       deleteAction,
 
       tab,
-      switchTab
+      switchTab,
+      orders,
+
+      priceFormatter
 
     };
   },
@@ -657,6 +703,62 @@ h2 {
     }
   }
 
+}
+
+
+.account-orders {
+  border-radius: 8px;
+  padding: 24px;
+  width: -webkit-fill-available;
+
+  .order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .order-elem {
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+
+      h3 {
+        margin-top: 0px;
+      }
+
+      img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+      }
+
+      .order-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+      }
+
+      .order-status {
+        margin-left: auto;
+        margin-right: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        span {
+          font-size: 16px;
+          font-weight: 600;
+          padding: 4px 8px;
+          color: #f5f5f5;
+          background: #2c2c2c;
+          border-radius: 8px;
+          text-align: center;
+        }
+      }
+    }
+  }
 }
 
 .modal-content {

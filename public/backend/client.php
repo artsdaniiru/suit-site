@@ -247,6 +247,7 @@ switch ($action) {
 
         $client_orders = [];
         if ($result->num_rows > 0) {
+
             while ($row = $result->fetch_assoc()) {
                 $order_id = $row['id'];
 
@@ -258,23 +259,52 @@ switch ($action) {
                                 p.*,
                                 p.id AS p_id,
                                 s.*,
-                                s.id AS s_id
+                                s.id AS s_id, 
+                            COALESCE(im.image_path, '/Image.png') AS image_path
                             FROM client_order_indexes coi
                             JOIN products p ON coi.product_id = p.id
                             JOIN sizes s ON coi.size_id = s.id
+                            LEFT JOIN (
+                            SELECT 
+                                product_id, 
+                                image_path, 
+                                ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY id ASC) AS rn
+                            FROM product_images
+                        ) im ON p.id = im.product_id AND im.rn = 1
                             WHERE client_order_id = $order_id";
 
                 $cart_result = $conn->query($cart_sql);
                 $cart = [];
+                $total_price = 0;
                 if ($cart_result->num_rows > 0) {
                     while ($cart_row = $cart_result->fetch_assoc()) {
                         $cart_row['id'] = $cart_row['oi_id'];
                         unset($cart_row['oi_id']);
+                        $total_price += intval($cart_row['order_price']);
+
+                        $options = json_decode($cart_row['order_options']);
+                        if ($cart_row['order_options'] != null && !empty($options)) {
+                            $options_sql_ids = implode(',', $options);
+                            $sqlOptions = "SELECT * FROM options WHERE id IN ($options_sql_ids)";
+                            $resultOptions = $conn->query($sqlOptions);
+
+                            if ($resultOptions != false && $resultOptions->num_rows > 0) {
+                                $cart_row['options'] = [];
+                                while ($row_o = $resultOptions->fetch_assoc()) {
+                                    $cart_row['options'][] = array_filter($row_o, function ($value) {
+                                        return !is_null($value);
+                                    });
+                                }
+                            }
+                        }
+                        unset($cart_row['order_options']);
+
                         $cart[] = $cart_row;
                     }
                 }
 
                 $row['cart'] = $cart;
+                $row['total_price'] = $total_price;
                 $client_orders[] = $row;
             }
         }
