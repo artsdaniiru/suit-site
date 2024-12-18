@@ -67,6 +67,7 @@ export default defineComponent({
     flex-direction: column;
     gap: 16px;
     text-align: start;
+    height: 450px;
 
     .product-image {
         width: 100%;
@@ -87,6 +88,9 @@ export default defineComponent({
             font-size: 16px;
 
             color: #1e1e1e;
+            max-height: 48px; //TODO: запилить нормально
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
         .english-name {
@@ -105,6 +109,8 @@ export default defineComponent({
     }
 
     .button {
+        margin-bottom: 0px;
+        margin-top: auto;
         width: -webkit-fill-available;
     }
 }
