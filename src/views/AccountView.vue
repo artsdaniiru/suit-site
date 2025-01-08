@@ -14,8 +14,8 @@
         <div class="account-inf">
           <h2>個人情報</h2>
           <div class="main">
-            <CustomInput v-model="user.name" :labelText="'氏名'" placeholderText="例）山田 太郎" type="text" />
-            <CustomInput v-model="user.email" :labelText="'メール'" placeholderText="例）サイトーズ@mail.jp" type=" text" />
+            <CustomInput v-model="userValue.name" :labelText="'氏名'" placeholderText="例）山田 太郎" type="text" />
+            <CustomInput v-model="userValue.email" :labelText="'メール'" placeholderText="例）サイトーズ@mail.jp" type="text" />
           </div>
           <div class="sizes">
             <CustomInput v-model="body_sizes.height" :labelText="'身長'" placeholderText="175cm" type="number" />
@@ -23,18 +23,18 @@
             <CustomInput v-model="body_sizes.waist_size" :labelText="'ウェストサイズ'" placeholderText="70cm" type="number" />
           </div>
 
-          <button class="button">保存</button>
+          <button class="button" @click="saveUserData">保存</button>
 
         </div>
 
         <div class="password-change">
           <h2>パスワード変更</h2>
 
-          <CustomInput v-model="user.password" :labelText="'現在のパスワード'" type="password" />
-          <CustomInput v-model="user.password" :labelText="'新しいパスワード'" type="password" />
-          <CustomInput v-model="user.password" :labelText="'新しいパスワード（確認）'" type="password" />
+          <CustomInput v-model="password.current" :labelText="'現在のパスワード'" type="password" />
+          <CustomInput v-model="password.new" :labelText="'新しいパスワード'" type="password" />
+          <CustomInput v-model="password.confirm" :labelText="'新しいパスワード（確認）'" type="password" />
 
-          <button class="button">保存</button>
+          <button class="button" @click="updatePassword">保存</button>
         </div>
 
       </div>
@@ -142,7 +142,7 @@
 <!-- eslint-disable -->
 <script>
 import axios from "axios";
-import { defineComponent, ref, inject, watch, onMounted } from "vue";
+import { defineComponent, ref, inject, watch, onMounted, computed } from "vue";
 import { useToast } from "vue-toast-notification";
 import { useRouter } from 'vue-router'
 
@@ -164,12 +164,87 @@ export default defineComponent({
 
     if (!isUserLoggedIn.value) router.push('/');
 
+    const userValue = ref({
+      name: user.value.name,
+      email: user.value.email,
+      password: user.value.password,
+    });
+
+
     // Размеры тела
     const body_sizes = ref({
       height: user.value.height,
       shoulder_width: user.value.shoulder_width,
       waist_size: user.value.waist_size,
     });
+
+
+    const saveUserData = async () => {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_client`,
+          {
+            name: userValue.value.name,
+            email: userValue.value.email,
+            height: body_sizes.value.height,
+            shoulder_width: body_sizes.value.shoulder_width,
+            waist_size: body_sizes.value.waist_size,
+          },
+          { withCredentials: true }
+        );
+        console.log(response);
+        if (response.data.status == 'success') {
+          toast.success("保存されました");
+        } else {
+          console.error('Ошибка при сохранении пользователя:', response.data.message);
+        }
+
+
+      } catch (error) {
+        console.error('Ошибка при сохранении пользователя:', error);
+      }
+
+    }
+
+    const password = ref({
+      current: "",
+      new: "",
+      confirm: "",
+    })
+
+    function checkPasswordsEqual() {
+      if (password.value.new !== password.value.confirm) {
+        return false;
+      }
+      return true;
+    }
+
+    const updatePassword = async () => {
+      if (checkPasswordsEqual()) {
+        try {
+          const response = await axios.post(
+            `${process.env.VUE_APP_BACKEND_URL}/backend/client.php?action=edit_password`,
+            {
+              password: password.value.confirm,
+            },
+            { withCredentials: true }
+          );
+          console.log(response);
+          if (response.data.status == 'success') {
+            toast.success("保存されました");
+          } else {
+            console.error('Ошибка при сохранении пользователя:', response.data.message);
+          }
+
+
+        } catch (error) {
+          console.error('Ошибка при сохранении пользователя:', error);
+        }
+      } else {
+        toast.error("パスワードが同じではないです");
+      }
+
+    }
 
     const deleteModalFlag = ref(false);
     const deleteType = ref('');
@@ -405,6 +480,7 @@ export default defineComponent({
 
     return {
       user,
+      userValue,
       toast,
       body_sizes,
       currentAddress,
@@ -432,7 +508,12 @@ export default defineComponent({
       switchTab,
       orders,
 
-      priceFormatter
+      priceFormatter,
+
+
+      saveUserData,
+      password,
+      updatePassword
 
     };
   },
