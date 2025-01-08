@@ -86,7 +86,7 @@ export default defineComponent({
 
     // Очистка значения (удаление пробелов для хранения)
     const cleanValue = (value) => {
-      return value.replace(/\s+/g, ""); // Удалить все пробелы
+      return value.trim(); // Удалить все пробелы
     };
 
     // Обработка ввода
