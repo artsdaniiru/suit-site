@@ -93,8 +93,8 @@
             <span><strong>合計: </strong>{{ priceFormatter(order.total_price) }}</span>
           </div>
           <div class="order-status">
-            <span>配達中</span>
-            <button class="button">詳細</button>
+            <span>{{ status_field_names[order.status] }}</span>
+            <button class="button" @click="openOrderModal(order)">詳細</button>
           </div>
         </div>
       </div>
@@ -135,6 +135,26 @@
     <div class="delete-container">
       <button class="button danger" @click="deleteAction">削除</button>
       <button class="button" @click="deleteModalFlag = false;">戻る</button>
+    </div>
+  </CustomModal>
+  <CustomModal class="order-modal" v-model="orderModal" title="注文内容">
+    <div class="order">
+      <div class="order-item" v-for="item in currentOrder.cart" :key="item">
+        <img class="image" :src="item.image_path" alt="product">
+        <div class="info">
+          <span class="name">{{ item.product_name }}</span>
+          <div class="elem">
+            <span class="name">サイズ</span>
+            <span class="value">{{ item.size_name }} <strong v-if="item.type == 'suit'">{{ priceFormatter(item.price) }}</strong></span>
+          </div>
+          <div class="elem" v-for="option in item.options" :key="option">
+            <span class="name">{{ options_types[option.type] }}</span>
+            <span class="value">{{ option.name }} <strong>+{{ priceFormatter(option.price) }}</strong></span>
+          </div>
+          <span class="price">{{ priceFormatter(item.order_price) }}</span>
+        </div>
+
+      </div>
     </div>
   </CustomModal>
 
@@ -478,6 +498,29 @@ export default defineComponent({
       fetchOrders();
     })
 
+
+    const orderModal = ref(false);
+    const currentOrder = ref({});
+
+    function openOrderModal(order) {
+      currentOrder.value = order;
+      orderModal.value = true;
+    }
+    const options_types = ref({
+      cloth: '生地',
+      color: '生地の色',
+      lining: '裏地',
+      button: 'ボタン',
+    });
+
+    const status_field_names = ref({
+      confirmed: '確定済',
+      processing: '処理中',
+      shipped: '発送済',
+      in_transit: '配送中',
+      delivered: '配達済'
+    });
+
     return {
       user,
       userValue,
@@ -513,8 +556,12 @@ export default defineComponent({
 
       saveUserData,
       password,
-      updatePassword
-
+      updatePassword,
+      orderModal,
+      currentOrder,
+      openOrderModal,
+      options_types,
+      status_field_names
     };
   },
 });
@@ -869,6 +916,90 @@ h2 {
     display: flex;
     flex-direction: row-reverse;
     gap: 12px;
+  }
+}
+
+.order-modal {
+  .order {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    .order-item {
+      display: flex;
+      gap: 24px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 140%;
+
+      .image {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+
+      .info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 220px;
+
+        .name {
+          font-weight: 600;
+          font-size: 16px;
+          line-height: 120%;
+        }
+
+        .elem {
+          display: flex;
+          justify-content: space-between;
+
+          .name {
+            font-weight: 600;
+            font-size: 12px;
+            line-height: 140%;
+          }
+
+          .value {
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 140%;
+          }
+        }
+
+        .price {
+          font-weight: 600;
+          font-size: 16px;
+          line-height: 120%;
+          margin-top: 8px; // Adjust margin to position under options
+        }
+      }
+
+      .delete {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      .edit {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+    }
   }
 }
 </style>
