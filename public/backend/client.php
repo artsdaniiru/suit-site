@@ -237,9 +237,11 @@ switch ($action) {
                                 coi.options AS order_options,
                                 coi.id AS oi_id,
                                 p.*,
+                                p.name AS product_name,
                                 p.id AS p_id,
                                 s.*,
                                 s.id AS s_id, 
+                                s.name AS size_name, 
                             COALESCE(im.image_path, '/Image.png') AS image_path
                             FROM client_order_indexes coi
                             JOIN products p ON coi.product_id = p.id
