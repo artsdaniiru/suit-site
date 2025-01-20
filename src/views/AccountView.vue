@@ -100,64 +100,64 @@
       </div>
     </div>
 
-  </div>
 
-  <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
-    <div class="modal-content">
-      <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
-      <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
-      <CustomInput v-model="currentAddress.phone" labelText="電話番号" placeholderText="電話番号入力" />
-    </div>
-    <div class="modal-actions">
-      <button class="button button-plain" @click="closeModal">戻る</button>
-      <button class="button" @click="saveAddress">保存</button>
-    </div>
-  </CustomModal>
 
-  <!-- Payment Modal -->
-  <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'">
-    <div class="modal-content">
-      <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="1234 5678 9012 3456" type="credit-card" />
-
-      <div class="double">
-        <CustomInput labelText="Exp date(2024年01月⇒2401)" placeholderText="2401" type="number" />
-        <CustomInput labelText="CVV" placeholderText="023" type="number" />
+    <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
+      <div class="modal-content">
+        <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
+        <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
+        <CustomInput v-model="currentAddress.phone" labelText="電話番号" placeholderText="電話番号入力" />
       </div>
+      <div class="modal-actions">
+        <button class="button button-plain" @click="closeModal">戻る</button>
+        <button class="button" @click="saveAddress">保存</button>
+      </div>
+    </CustomModal>
 
-    </div>
-    <div class="modal-actions">
-      <button class="button button-plain" @click="closePaymentModal">戻る</button>
-      <button class="button" @click="savePaymentMethod">保存</button>
-    </div>
-  </CustomModal>
+    <!-- Payment Modal -->
+    <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'">
+      <div class="modal-content">
+        <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="1234 5678 9012 3456" type="credit-card" />
 
-  <CustomModal class="delete" v-model="deleteModalFlag" :title="deleteType == 'address' ? '配達削除' : '支払い方法削除'">
-    <div class="delete-container">
-      <button class="button danger" @click="deleteAction">削除</button>
-      <button class="button" @click="deleteModalFlag = false;">戻る</button>
-    </div>
-  </CustomModal>
-  <CustomModal class="order-modal" v-model="orderModal" title="注文内容">
-    <div class="order">
-      <div class="order-item" v-for="item in currentOrder.cart" :key="item">
-        <img class="image" :src="item.image_path" alt="product">
-        <div class="info">
-          <span class="name">{{ item.product_name }}</span>
-          <div class="elem">
-            <span class="name">サイズ</span>
-            <span class="value">{{ item.size_name }} <strong v-if="item.type == 'suit'">{{ priceFormatter(item.price) }}</strong></span>
-          </div>
-          <div class="elem" v-for="option in item.options" :key="option">
-            <span class="name">{{ options_types[option.type] }}</span>
-            <span class="value">{{ option.name }} <strong>+{{ priceFormatter(option.price) }}</strong></span>
-          </div>
-          <span class="price">{{ priceFormatter(item.order_price) }}</span>
+        <div class="double">
+          <CustomInput labelText="Exp date(2024年01月⇒2401)" placeholderText="2401" type="number" />
+          <CustomInput labelText="CVV" placeholderText="023" type="number" />
         </div>
 
       </div>
-    </div>
-  </CustomModal>
+      <div class="modal-actions">
+        <button class="button button-plain" @click="closePaymentModal">戻る</button>
+        <button class="button" @click="savePaymentMethod">保存</button>
+      </div>
+    </CustomModal>
 
+    <CustomModal class="delete" v-model="deleteModalFlag" :title="deleteType == 'address' ? '配達削除' : '支払い方法削除'">
+      <div class="delete-container">
+        <button class="button danger" @click="deleteAction">削除</button>
+        <button class="button" @click="deleteModalFlag = false;">戻る</button>
+      </div>
+    </CustomModal>
+    <CustomModal class="order-modal" v-model="orderModal" title="注文内容">
+      <div class="order">
+        <div class="order-item" v-for="item in currentOrder.cart" :key="item">
+          <img class="image" :src="item.image_path" alt="product">
+          <div class="info">
+            <span class="name">{{ item.product_name }}</span>
+            <div class="elem">
+              <span class="name">サイズ</span>
+              <span class="value">{{ item.size_name }} <strong v-if="item.type == 'suit'">{{ priceFormatter(item.price) }}</strong></span>
+            </div>
+            <div class="elem" v-for="option in item.options" :key="option">
+              <span class="name">{{ options_types[option.type] }}</span>
+              <span class="value">{{ option.name }} <strong>+{{ priceFormatter(option.price) }}</strong></span>
+            </div>
+            <span class="price">{{ priceFormatter(item.order_price) }}</span>
+          </div>
+
+        </div>
+      </div>
+    </CustomModal>
+  </div>
 </template>
 <!-- eslint-disable -->
 <script>
