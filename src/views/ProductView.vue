@@ -208,6 +208,17 @@ export default defineComponent({
       show_image.value = true;
     }
 
+    // Следим за изменениями modelValue
+    watch(() => show_image.value, (newValue) => {
+
+      if (newValue) {
+        document.body.classList.add('no-scroll');
+      } else {
+        document.body.classList.remove('no-scroll');
+      }
+
+    });
+
     function showImageNext() {
       if ((show_image_id.value + 1) != data.value.product_images.length) {
         show_image_id.value = show_image_id.value + 1;
