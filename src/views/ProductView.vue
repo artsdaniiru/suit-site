@@ -246,6 +246,10 @@ export default defineComponent({
             fetchAllOptions()
           }
 
+          if (data.value.product.active == 0 || data.value.product.active == '0') {
+            router.push('/404');
+          }
+
           is_loading.value = false;
         } else {
           console.error("Ошибка при получении товара:", response.data.status);

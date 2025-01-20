@@ -19,7 +19,9 @@ export default defineComponent({
 .page-404 {
     display: flex;
     flex-direction: column;
-    margin: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
     text-align: center;
 
     h1 {
