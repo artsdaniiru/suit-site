@@ -182,7 +182,7 @@ switch ($action) {
         $sql = "INSERT INTO client_addresses (name, client_id, address, phone) 
                 VALUES ('$address_name', '$user_id', '$address', '$phone')";
         if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
+            echo json_encode(['status' => 'success', 'id' => $conn->insert_id]);
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
@@ -195,7 +195,7 @@ switch ($action) {
                     VALUES ('$user_id', '$card_number')";
 
         if ($conn->query($sql) === TRUE) {
-            echo json_encode(['status' => 'success']);
+            echo json_encode(['status' => 'success', 'id' => $conn->insert_id]);
         } else {
             echo json_encode(['status' => 'error', 'message' => $conn->error]);
         }
