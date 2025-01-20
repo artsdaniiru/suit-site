@@ -2,7 +2,7 @@
   <main>
     <MainHeader v-if="!isAdminPage" />
     <AdminMainHeader v-else />
-    <RouterView class="router-view" />
+    <RouterView class="router-view" :class="{ 'router-margin': !isAdminPage }" />
     <MainFooter />
   </main>
 </template>
@@ -288,5 +288,9 @@ export default defineComponent({
     'Noto Sans JP',
     'Noto Sans',
     sans-serif !important;
+}
+
+.router-margin {
+  margin-top: 90px;
 }
 </style>

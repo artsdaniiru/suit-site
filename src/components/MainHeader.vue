@@ -1,5 +1,5 @@
 <template>
-    <header>
+    <header :class="{ 'hidden': isHeaderHidden, 'reduced': isHeaderReduced }">
         <div class="content">
             <router-link to="/" class="logo">
                 <img src="../assets/icons/logo.svg" alt="logo">
@@ -80,6 +80,9 @@ export default defineComponent({
         const { closeLogin } = inject('login');
 
         const isMobileMenuOpen = ref(false);
+        const isHeaderHidden = ref(false);
+        const isHeaderReduced = ref(false);
+        let lastScrollPosition = 0;
 
         function toggleMobileMenu() {
             if (!closeLogin.value) {
@@ -115,6 +118,17 @@ export default defineComponent({
             closeMobileMenu();
         }
 
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > lastScrollPosition && currentScroll > 100) {
+                isHeaderHidden.value = true;
+            } else {
+                isHeaderHidden.value = false;
+                isHeaderReduced.value = currentScroll > 0;
+            }
+            lastScrollPosition = currentScroll;
+        });
+
         return {
             cart,
             user,
@@ -125,7 +139,9 @@ export default defineComponent({
             toggleMobileMenu,
             closeMobileMenu,
             goToCart,
-            goToAccount
+            goToAccount,
+            isHeaderHidden,
+            isHeaderReduced
         };
     }
 });
@@ -137,12 +153,29 @@ header {
     padding: 0px 32px 0px 32px;
     height: 90px;
     background: #fff;
-
     display: flex;
     align-items: center;
+    transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+    z-index: 50;
+
+    position: fixed;
+    width: 1138px;
+    left: calc(50% - 592px);
+    top: 0;
+
+    &.hidden {
+        transform: translateY(-100%);
+    }
+
+    &.reduced {
+        height: 65px;
+    }
 
     @include respond-to('md') {
         padding: 0px 16px 0px 16px;
+        width: calc(100vw - 32px);
+        left: 0;
+
     }
 
     .content {
