@@ -505,9 +505,26 @@ switch ($action) {
                     }
                 }
             } else {
+                // Helper function to safely handle numeric values
+                function prepareIntValue($value)
+                {
+                    return is_numeric($value) ? $value : 'NULL';
+                }
+
                 // If the size is new, add it
                 $sql = "INSERT INTO sizes (product_id, name, price, height_min, height_max, shoulder_width_min, shoulder_width_max, waist_size_min, waist_size_max, stock)
-                            VALUES ('$productId', '" . $conn->real_escape_string($updatedSize['name']) . "', '" . $conn->real_escape_string($updatedSize['price']) . "', '" . $conn->real_escape_string($updatedSize['height_min']) . "', '" . $conn->real_escape_string($updatedSize['height_max']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_min']) . "', '" . $conn->real_escape_string($updatedSize['shoulder_width_max']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_min']) . "', '" . $conn->real_escape_string($updatedSize['waist_size_max']) . "', '" . $conn->real_escape_string($updatedSize['stock']) . "')";
+        VALUES (
+            '$productId', 
+            '" . $conn->real_escape_string($updatedSize['name']) . "', 
+            '" . $conn->real_escape_string($updatedSize['price']) . "', 
+            " . prepareIntValue($updatedSize['height_min']) . ", 
+            " . prepareIntValue($updatedSize['height_max']) . ", 
+            " . prepareIntValue($updatedSize['shoulder_width_min']) . ", 
+            " . prepareIntValue($updatedSize['shoulder_width_max']) . ", 
+            " . prepareIntValue($updatedSize['waist_size_min']) . ", 
+            " . prepareIntValue($updatedSize['waist_size_max']) . ", 
+            " . prepareIntValue($updatedSize['stock']) . "
+        )";
                 if ($conn->query($sql) === FALSE) {
                     echo json_encode(['status' => 'error', 'message' => 'Error adding new size: ' . $conn->error]);
                     exit;
