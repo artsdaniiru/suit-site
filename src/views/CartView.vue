@@ -1,13 +1,16 @@
 <template>
-  <div class="empty-cart" v-if="computedCart.length == 0">
-    <h1>カートには何もございません</h1>
-    <img src="@/assets/images/sorry.png" alt="">
-    <span>商品はカートに追加してください</span>
-    <router-link to="/catalog"><button class="button">カタログへ</button></router-link>
-  </div>
 
-  <template v-else>
-    <div class="cart-page">
+
+
+  <div :class="{ 'cart-page': computedCart.length != 0, 'empty-cart': computedCart.length == 0 }">
+
+    <template v-if="computedCart.length == 0">
+      <h1>カートには何もございません</h1>
+      <img src="@/assets/images/sorry.png" alt="">
+      <span>商品はカートに追加してください</span>
+      <router-link to="/catalog"><button class="button">カタログへ</button></router-link>
+    </template>
+    <template v-else>
       <h2 style="text-align: left">カート</h2>
 
 
@@ -91,8 +94,9 @@
           </div>
         </div>
       </div>
-    </div>
-  </template>
+    </template>
+  </div>
+
 </template>
 
 <script>
@@ -257,7 +261,7 @@ export default defineComponent({
 .empty-cart {
   display: flex;
   flex-direction: column;
-  margin: 20px;
+  margin-bottom: 20px;
   text-align: center;
 
   h1 {

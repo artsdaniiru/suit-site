@@ -26,7 +26,9 @@ export default defineComponent({
 
     display: flex;
     flex-direction: column;
-    margin: auto 20px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
     text-align: center;
 
     h1 {
