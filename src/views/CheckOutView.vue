@@ -148,7 +148,7 @@ export default defineComponent({
     }
 
     const selectedAddress = ref(user.value.addresses[0]?.id != undefined ? user.value.addresses[0].id : null); // Индекс выбранного адреса
-    const selectedPayment = ref(user.value.payment_methods[0]?.id != undefined ? user.value.payment_methods[0].id : null); // Выбранный метод оплаты
+    const selectedPayment = ref(user.value.payment_methods[0]?.id != undefined ? user.value.payment_methods[0].id : 'CASH'); // Выбранный метод оплаты
 
 
 
@@ -306,6 +306,7 @@ export default defineComponent({
             ...currentPaymentMethod.value,
             id: response.data.id,
           });
+          selectedPayment.value = response.data.id;
         }
       } catch (error) {
         console.error("Ошибка при сохранении метода оплаты:", error);
@@ -322,6 +323,8 @@ export default defineComponent({
           { withCredentials: true }
         );
         user.value.payment_methods = user.value.payment_methods.filter((method) => method.id !== id);
+
+        selectedPayment.value = user.value.payment_methods[0]?.id != undefined ? user.value.payment_methods[0].id : 'CASH';
       } catch (error) {
         console.error("Ошибка при удалении метода оплаты:", error);
       }
