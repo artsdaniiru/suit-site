@@ -626,6 +626,10 @@ h2 {
     width: -webkit-fill-available;
     height: min-content;
 
+    @include respond-to('md') {
+      border: none;
+      padding: 0px;
+    }
 
     .main,
     .sizes {
@@ -673,6 +677,11 @@ h2 {
     height: min-content;
     margin-top: 20px;
 
+    @include respond-to('md') {
+      border: none;
+      padding: 0px;
+    }
+
   }
 
   .payment-methods {
@@ -680,6 +689,11 @@ h2 {
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     padding: 24px;
+
+    @include respond-to('md') {
+      border: none;
+      padding: 0px;
+    }
 
     .radio-btn {
       width: 16px;
@@ -743,6 +757,11 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    @include respond-to('md') {
+      border: none;
+      padding: 0px;
+    }
 
     .address-card {
       border: 1px solid #d9d9d9;
@@ -839,6 +858,10 @@ h2 {
   padding: 24px;
   width: -webkit-fill-available;
 
+  @include respond-to('md') {
+    padding: 0px;
+  }
+
   .order-list {
     display: flex;
     flex-direction: column;
@@ -851,14 +874,27 @@ h2 {
       gap: 24px;
       padding: 24px;
 
+      @include respond-to('md') {
+        padding: 12px;
+      }
+
       h3 {
         margin-top: 0px;
+
+        @include respond-to('md') {
+          font-size: 18px;
+        }
       }
 
       img {
         width: 100px;
         height: 100px;
         object-fit: cover;
+
+        @include respond-to('md') {
+          width: 70px;
+          height: 70px;
+        }
       }
 
       .order-info {

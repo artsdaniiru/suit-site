@@ -296,6 +296,10 @@ header {
                 font-size: 16px;
                 line-height: 100%;
                 color: #000;
+                max-width: 100px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             img {

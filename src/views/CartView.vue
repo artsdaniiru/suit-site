@@ -70,8 +70,8 @@
               </div>
             </div>
             <div class="product-final-price">
-              <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">Delete</span></div>
-              <div class="change-box" @click="goToProductPage(item.id)"><span class="product-change">Order Change</span></div>
+              <div class="delete-box" @click="deleteFromCartLocal(item.id)"><span class="product-delete">削除</span></div>
+              <div class="change-box" @click="goToProductPage(item.id)"><span class="product-change">変更</span></div>
               <div class="final-price">
                 <span>金額</span>
                 <span>{{ formattedPrice(item.totalPrice) }}</span>
@@ -309,6 +309,15 @@ h3 {
   cursor: pointer;
 }
 
+h2 {
+  @include respond-to('md') {
+    font-size: 24px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+  }
+
+}
+
 .product-title {
   margin: 0;
 }
@@ -319,6 +328,11 @@ h3 {
   display: flex;
   justify-content: space-between;
   margin: 24px 0;
+
+  @include respond-to('md') {
+    flex-direction: column;
+    position: relative;
+  }
 
   .product-info {
     display: flex;
@@ -344,6 +358,12 @@ h3 {
 
     }
 
+    .product-title {
+      @include respond-to('md') {
+        font-size: 18px;
+      }
+    }
+
 
     .price-title {
       margin-bottom: 16px;
@@ -356,7 +376,7 @@ h3 {
 
       @include respond-to('md') {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
       }
 
       .size-price {
@@ -388,47 +408,71 @@ h3 {
         font-weight: 600;
         font-size: 18px;
       }
+
+      @include respond-to('md') {
+        margin-left: auto;
+        margin-right: 10px;
+      }
     }
 
     .delete-box {
       text-align: right;
       margin: 24px 24px 0 24px;
+      margin-left: auto;
       cursor: pointer;
 
       .product-delete {
         width: min-content;
         font-weight: 400;
-        position: relative;
+
         color: #ec221f;
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        width: -webkit-fill-available;
 
         &::before {
           content: url(../assets/icons/delete.svg);
-          display: block;
-          position: absolute;
-          right: 50px;
+          height: 16px;
         }
+      }
+
+      @include respond-to('md') {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        margin: unset;
       }
     }
 
     .change-box {
       text-align: right;
       margin: -80px 24px 0 24px;
+      margin-left: auto;
       cursor: pointer;
 
 
       .product-change {
         width: min-content;
         font-weight: 400;
-        position: relative;
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        width: -webkit-fill-available;
 
         &::before {
           content: url(../assets/icons/refresh.svg);
-          display: block;
-          position: absolute;
-          right: 110px;
+          height: 16px;
           width: 20px;
 
         }
+      }
+
+      @include respond-to('md') {
+        position: absolute;
+        right: 10px;
+        top: 30px;
+        margin: unset;
       }
     }
   }

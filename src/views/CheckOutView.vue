@@ -417,6 +417,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.checkout-view {
+  @include respond-to('md') {
+    padding: 24px;
+  }
+}
+
 h2 {
   font-weight: 600;
   font-size: 24px;
@@ -427,13 +433,23 @@ h2 {
   border: 1px solid #d9d9d9;
   border-radius: 8px;
   padding: 24px;
+
+  @include respond-to('md') {
+    border: none;
+    padding: 0px;
+  }
 }
 
 
 .address-wrap {
   display: grid;
   grid-template-columns: 1fr 1fr;
+
   gap: 20px;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr;
+  }
 
 
   .address-card {
