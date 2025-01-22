@@ -219,6 +219,7 @@ export default defineComponent({
 
     });
 
+
     function showImageNext() {
       if ((show_image_id.value + 1) != data.value.product_images.length) {
         show_image_id.value = show_image_id.value + 1;
@@ -255,6 +256,11 @@ export default defineComponent({
           data.value = response.data.data;
           if (data.value.product.type == 'suit') {
             fetchAllOptions()
+          } else {
+            setTimeout(() => {
+              setSizeNotSuit();
+            }, 10);
+
           }
 
           if (data.value.product.active == 0 || data.value.product.active == '0') {
@@ -377,13 +383,20 @@ export default defineComponent({
 
     function addToCartLocal() {
 
-      toast.success('商品はカートに追加しました', {
-        position: 'bottom-right', // Можно изменить на 'bottom-left', 'bottom-right', 'top-center', и т.д.
-        duration: 2000, // Время отображения уведомления в миллисекундах
-      });
+
+      if (data.value.product.type == 'suit' && (body_sizes.value.height == 0 || body_sizes.value.shoulder_width == 0 || body_sizes.value.waist_size == 0)) {
+        toast.error('ボディ寸法が入力されていません');
+      } else {
+        toast.success('商品はカートに追加しました', {
+          position: 'bottom-right', // Можно изменить на 'bottom-left', 'bottom-right', 'top-center', и т.д.
+          duration: 2000, // Время отображения уведомления в миллисекундах
+        });
 
 
-      addToCart(createCartItem());
+        addToCart(createCartItem());
+      }
+
+
 
     }
     function updateCartLocal() {
@@ -427,6 +440,14 @@ export default defineComponent({
     })
     const selectedSizeId = ref(null);
 
+
+    function setSizeNotSuit() {
+      let cart_item = cart.value.find(item => item.id == uid);
+
+      if (cart_item?.size != undefined) {
+        selectedSizeId.value = cart_item.size;
+      }
+    }
 
     function setBodySize(index) {
       if (user.value[index] != undefined) {
@@ -573,6 +594,8 @@ export default defineComponent({
 
 
       ADD_PRODUCTS
+
+      , setSizeNotSuit
     };
   },
 });
