@@ -45,12 +45,12 @@
         </div>
         <div class="card-wrap">
           <p>その他</p>
-          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'cash' }" @click="selectPayment('cash')">
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'CASH' }" @click="selectPayment('CASH')">
             <div class="radio-btn"></div>
             <label>現金</label>
           </div>
 
-          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'convenience' }" @click="selectPayment('convenience')">
+          <div class="pay-choice-wrap" :class="{ selected: selectedPayment === 'KONBINI' }" @click="selectPayment('KONBINI')">
             <div class="radio-btn"></div>
             <label>コンビニ払い</label>
           </div>
@@ -65,55 +65,56 @@
       </button>
 
     </div>
-  </div>
-
-  <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
-    <div class="modal-content">
-      <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
-      <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
-      <CustomInput v-model="currentAddress.phone" labelText="電話番号" placeholderText="電話番号入力" />
-    </div>
-    <div class="modal-actions">
-      <button class="button button-plain" @click="closeModal">戻る</button>
-      <button class="button" @click="saveAddress">保存</button>
-    </div>
-  </CustomModal>
-
-  <!-- Payment Modal -->
-  <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'">
-    <div class="modal-content">
-      <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="1234 5678 9012 3456" type="credit-card" />
-
-      <div class="double">
-        <CustomInput labelText="Exp date(2024年01月⇒2401)" placeholderText="2401" type="number" />
-        <CustomInput labelText="CVV" placeholderText="023" type="number" />
+    <CustomModal v-model="showAddressModal" :title="isEditing ? '配達変更' : '配達追加'">
+      <div class="modal-content">
+        <CustomInput v-model="currentAddress.name" labelText="名前" placeholderText="名前入力" />
+        <CustomInput v-model="currentAddress.address" labelText="住所" placeholderText="住所入力" />
+        <CustomInput v-model="currentAddress.phone" labelText="電話番号" placeholderText="電話番号入力" />
       </div>
+      <div class="modal-actions">
+        <button class="button button-plain" @click="closeModal">戻る</button>
+        <button class="button" @click="saveAddress">保存</button>
+      </div>
+    </CustomModal>
 
-    </div>
-    <div class="modal-actions">
-      <button class="button button-plain" @click="closePaymentModal">戻る</button>
-      <button class="button" @click="savePaymentMethod">保存</button>
-    </div>
-  </CustomModal>
+    <!-- Payment Modal -->
+    <CustomModal v-model="showPaymentModal" :title="isEditingPayment ? '支払い方法の編集' : '支払い方法の追加'">
+      <div class="modal-content">
+        <CustomInput v-model="currentPaymentMethod.card_number" labelText="カード番号" placeholderText="1234 5678 9012 3456" type="credit-card" />
 
-  <CustomModal class="delete" v-model="deleteModalFlag" :title="deleteType == 'address' ? '配達削除' : '支払い方法削除'">
-    <div class="delete-container">
-      <button class="button danger" @click="deleteAction">削除</button>
-      <button class="button" @click="deleteModalFlag = false;">戻る</button>
-    </div>
-  </CustomModal>
+        <div class="double">
+          <CustomInput labelText="Exp date(2024年01月⇒2401)" placeholderText="2401" type="number" />
+          <CustomInput labelText="CVV" placeholderText="023" type="number" />
+        </div>
+
+      </div>
+      <div class="modal-actions">
+        <button class="button button-plain" @click="closePaymentModal">戻る</button>
+        <button class="button" @click="savePaymentMethod">保存</button>
+      </div>
+    </CustomModal>
+
+    <CustomModal class="delete" v-model="deleteModalFlag" :title="deleteType == 'address' ? '配達削除' : '支払い方法削除'">
+      <div class="delete-container">
+        <button class="button danger" @click="deleteAction">削除</button>
+        <button class="button" @click="deleteModalFlag = false;">戻る</button>
+      </div>
+    </CustomModal>
+  </div>
 </template>
 <!-- eslint-disable -->
 <script>
 import { defineComponent, inject, onBeforeMount, ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from 'vue-router'
-// import { useToast } from 'vue-toast-notification';
+import { useToast } from 'vue-toast-notification';
 
 
 export default defineComponent({
   name: "CheckOutViewView",
   setup() {
+
+    const toast = useToast();
 
     const { user } = inject("auth");
     const { cart } = inject("cart");
@@ -146,8 +147,8 @@ export default defineComponent({
       deleteModalFlag.value = true;
     }
 
-    const selectedAddress = ref(user.value.addresses[0].id); // Индекс выбранного адреса
-    const selectedPayment = ref(user.value.payment_methods[0].id); // Выбранный метод оплаты
+    const selectedAddress = ref(user.value.addresses[0]?.id != undefined ? user.value.addresses[0].id : null); // Индекс выбранного адреса
+    const selectedPayment = ref(user.value.payment_methods[0]?.id != undefined ? user.value.payment_methods[0].id : null); // Выбранный метод оплаты
 
 
 
@@ -199,7 +200,7 @@ export default defineComponent({
     // Сохранение адреса
     const saveAddress = async () => {
       if (!currentAddress.value.name.trim() || !currentAddress.value.address.trim() || !currentAddress.value.phone.trim()) {
-        alert("すべてのフィールドを正しく入力してください"); // "Пожалуйста, заполните все поля."
+        toast.error("すべてのフィールドを正しく入力してください"); // "Пожалуйста, заполните все поля."
         return;
       }
       try {
@@ -270,7 +271,7 @@ export default defineComponent({
     const savePaymentMethod = async () => {
 
       if (!currentPaymentMethod.value.card_number.trim()) {
-        alert("カード番号を正しく入力してください"); // "Пожалуйста, введите корректный номер карты."
+        toast.error("カード番号を正しく入力してください"); // "Пожалуйста, введите корректный номер карты."
         return;
       }
       try {
@@ -341,33 +342,38 @@ export default defineComponent({
 
     const saveAction = async () => {
       let order_id = null;
-      try {
-        if (lock_send_order.value) return;
-        lock_send_order.value = true;
+      if (selectedAddress.value == null || selectedPayment.value == null) {
+        toast.error("支払い方法または住所がありません");
+      } else {
 
-        const response = await axios.post(
-          process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
-          {
-            cart: cart.value,
-            address_id: selectedAddress.value,
-            payment_method_id: selectedPayment.value,
-          },
-          { withCredentials: true }
-        );
+        try {
+          if (lock_send_order.value) return;
+          lock_send_order.value = true;
 
-        if (response.data.status !== "success") {
-          console.error("Ошибка при сохранении заказа2:", response.data.message);
-          return;
-        } else {
-          console.log(response.data);
-          cart.value = [];
-          order_id = response.data.order_id;
+          const response = await axios.post(
+            process.env.VUE_APP_BACKEND_URL + '/backend/orders.php?action=create_order',
+            {
+              cart: cart.value,
+              address_id: selectedAddress.value,
+              payment_method_id: selectedPayment.value,
+            },
+            { withCredentials: true }
+          );
+
+          if (response.data.status !== "success") {
+            console.error("Ошибка при сохранении заказа2:", response.data.message);
+            return;
+          } else {
+            console.log(response.data);
+            cart.value = [];
+            order_id = response.data.order_id;
+          }
+        } catch (error) {
+          console.error("Ошибка при сохранении заказа1:", error);
+        } finally {
+          lock_send_order.value = false;
+          router.push('/accepted/' + order_id);
         }
-      } catch (error) {
-        console.error("Ошибка при сохранении заказа1:", error);
-      } finally {
-        lock_send_order.value = false;
-        router.push('/accepted/' + order_id);
       }
     };
 

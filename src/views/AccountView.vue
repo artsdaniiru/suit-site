@@ -339,7 +339,7 @@ export default defineComponent({
     // Сохранение адреса
     const saveAddress = async () => {
       if (!currentAddress.value.name.trim() || !currentAddress.value.address.trim() || !currentAddress.value.phone.trim()) {
-        alert("すべてのフィールドを正しく入力してください"); // "Пожалуйста, заполните все поля."
+        toast.error("すべてのフィールドを正しく入力してください"); // "Пожалуйста, заполните все поля."
         return;
       }
       try {
@@ -411,7 +411,7 @@ export default defineComponent({
     const savePaymentMethod = async () => {
 
       if (!currentPaymentMethod.value.card_number.trim()) {
-        alert("カード番号を正しく入力してください"); // "Пожалуйста, введите корректный номер карты."
+        toast.error("カード番号を正しく入力してください"); // "Пожалуйста, введите корректный номер карты."
         return;
       }
       try {

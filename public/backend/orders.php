@@ -41,7 +41,40 @@ switch ($action) {
         }
 
         $address_id = intval($request['address_id']);
-        $payment_method_id = intval($request['payment_method_id']);
+        $payment_method_id = $request['payment_method_id'];
+
+        // Разрешённые методы оплаты
+        if ($payment_method_id == "CASH" || $payment_method_id == "KONBINI") {
+
+            // Проверяем, существует ли метод оплаты для данного клиента и получаем его ID
+            $sql_check = "SELECT id 
+                          FROM client_payment_methods 
+                          WHERE client_id = ? AND card_number = ? 
+                          LIMIT 1";
+
+            // Используем подготовленный запрос для безопасности
+            $stmt = $conn->prepare($sql_check);
+            $stmt->bind_param("is", $client_id, $payment_method_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                // Метод оплаты уже существует, получаем его ID
+                $payment_method_id = intval($row['id']);
+            } else {
+                // Если метода нет, добавляем его
+                $sql_insert = "INSERT INTO client_payment_methods (client_id, card_number) 
+                               VALUES (?, ?)";
+
+                $stmt_insert = $conn->prepare($sql_insert);
+                $stmt_insert->bind_param("is", $client_id, $payment_method_id);
+
+                if ($stmt_insert->execute()) {
+                    $payment_method_id = intval($stmt_insert->insert_id);
+                }
+            }
+        }
+
 
         // Create order in client_orders
         $sql = "INSERT INTO client_orders (client_id, address_id, payment_method_id, status) 

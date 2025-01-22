@@ -128,7 +128,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $user['addresses'] = $user_addresses;
 
         // Get user payment methods
-        $sql_payment_methods = "SELECT * FROM client_payment_methods WHERE client_id = " . $user['id'] . " AND active = 1";
+        $sql_payment_methods = "SELECT * FROM client_payment_methods WHERE client_id = " . $user['id'] . " AND active = 1 AND card_number != 'CASH' AND card_number !='KONBINI'";
         $result_payment_methods = $conn->query($sql_payment_methods);
         $user_payment_methods = [];
 
