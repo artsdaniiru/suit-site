@@ -36,6 +36,10 @@ export default defineComponent({
         font-size: 72px;
         line-height: 120%;
         letter-spacing: -0.03em;
+
+        @include is-mobile() {
+            font-size: 50px;
+        }
     }
 
     h2 {
@@ -45,12 +49,20 @@ export default defineComponent({
         letter-spacing: -0.03em;
         margin-top: 0;
 
+        @include is-mobile() {
+            font-size: 32px;
+        }
+
     }
 
     span {
         font-size: 32px;
         color: #757575;
         margin-bottom: 20px;
+
+        @include is-mobile() {
+            font-size: 24px;
+        }
     }
 
     img {
