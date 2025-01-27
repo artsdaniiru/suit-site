@@ -86,6 +86,8 @@ switch ($action) {
             exit;
         }
 
+        $order_cart_products = "";
+
         // Process each product from $cart
         foreach ($cart as $item) {
             $product_id = intval($item['id']);
@@ -118,6 +120,14 @@ switch ($action) {
             $final_price = $base_price + $total_option_price;
             $options_json = json_encode($options);
 
+            $product_data_sql = "SELECT * FROM products WHERE id = $product_id";
+            $product_result = $conn->query($product_data_sql);
+
+            if ($product_result->num_rows > 0) {
+                $product_data = $product_result->fetch_assoc();
+                $order_cart_products .= $product_data['name'] . "    ¥" . number_format($final_price, 0, '', ' ') . "\r\n";
+            }
+
             // Add record to client_order_indexes
             $sql = "INSERT INTO client_order_indexes (client_order_id, product_id, price, size_id, options) 
                     VALUES ($order_id, $product_id, $final_price, $size_id, '$options_json')";
@@ -131,11 +141,24 @@ switch ($action) {
         echo json_encode(["status" => "success", "order_id" => $order_id]);
 
         if ($_SERVER['HTTP_HOST'] == "arts-suit.com") {
+            $adress_name = "";
+            $address_data_sql = "SELECT * FROM client_addresses WHERE id = $address_id";
+            $address_result = $conn->query($address_data_sql);
+
+            if ($address_result->num_rows > 0) {
+                $address_data = $address_result->fetch_assoc();
+                $adress_name =  $address_data['address'] . " " . $address_data['phone'];
+            }
+
             // Sending order complition email to user
             $to = $client_email;
             $order_id_formatted = str_pad($order_id, 5, '0', STR_PAD_LEFT);
-            $subject = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!";
-            $message = "注文番号： ＃" . $order_id_formatted . "ご注文ありがとうございました!"; //TODO: добавить адрес и состав заказа
+            $subject = "注文番号： ＃" . $order_id_formatted . " ご注文ありがとうございました!";
+            $message = "注文番号： ＃" . $order_id_formatted . " ご注文ありがとうございました!\r\n\r\n 注文内容：\r\n"; //TODO: добавить адрес и состав заказа
+            $message .= "\r\n" . $order_cart_products;
+            $message .= "\r\n" . $adress_name;
+            $message .= "\r\n" . 'ご注文の詳細情報は、ウェブサイトの「マイページ」でご確認いただけます。';
+
 
             $headers = "From: mailer@arts-suit.com\r\n";
             $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
