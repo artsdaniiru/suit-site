@@ -16,7 +16,7 @@
                     <span><strong>ウェストサイズ：</strong>{{ data.order.waist_size }}cm</span>
                     <div class="payment-method">
                         <img class="card" src="@/assets/icons/card.svg" alt="card">
-                        <span class="number">{{ String(data.order.card_number).replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim() }}</span>
+                        <span class="number">{{ cardFormatter(data.order.card_number) }}</span>
                     </div>
                 </div>
             </div>
@@ -297,6 +297,27 @@ export default defineComponent({
             delivered: '配達済(delivered)'
         });
 
+
+        function cardFormatter(card_number) {
+
+            var formatted = card_number;
+
+            switch (card_number) {
+                case 'CASH':
+                    formatted = '現金'
+                    break;
+                case 'KONBINI':
+                    formatted = 'コンビニ払い'
+                    break;
+
+                default:
+                    formatted = String(card_number).replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim()
+                    break;
+            }
+
+            return formatted;
+        }
+
         return {
             data,
             client_headers,
@@ -319,7 +340,8 @@ export default defineComponent({
 
             priceFormatter,
             options_types,
-            status_field_names
+            status_field_names,
+            cardFormatter
         };
 
     }

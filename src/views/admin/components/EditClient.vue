@@ -30,7 +30,7 @@
                     <span class="label">お支払方法</span>
                     <div class="payment-method" v-for="(item, index) in data.client_payment_methods" :key="item">
                         <img class="card" src="@/assets/icons/card.svg" alt="card">
-                        <span class="number">{{ item.card_number }}</span>
+                        <span class="number">{{ cardFormatter(item.card_number) }}</span>
                         <img class="delete" src="@/assets/icons/delete-admin.svg" alt="delete" @click="deletePaymentMethod(index)">
                     </div>
                 </div>
@@ -233,7 +233,25 @@ export default defineComponent({
         onMounted(() => {
             fetchAction();
         });
+        function cardFormatter(card_number) {
 
+            var formatted = card_number;
+
+            switch (card_number) {
+                case 'CASH':
+                    formatted = '現金'
+                    break;
+                case 'KONBINI':
+                    formatted = 'コンビニ払い'
+                    break;
+
+                default:
+                    formatted = String(card_number).replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim()
+                    break;
+            }
+
+            return formatted;
+        }
         return {
             data,
             client_headers,
@@ -251,7 +269,8 @@ export default defineComponent({
             openAddAddressModal,
             saveAddress,
             deleteAddress,
-            deletePaymentMethod
+            deletePaymentMethod,
+            cardFormatter
         };
     }
 });
