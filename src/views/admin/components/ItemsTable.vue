@@ -127,6 +127,7 @@ export default defineComponent({
         color: #1e1e1e;
         padding-left: 10px;
         padding-right: 10px;
+        gap: 10px;
     }
 
     .header {
@@ -167,6 +168,13 @@ export default defineComponent({
 
             &.not-active {
                 opacity: 0.7;
+            }
+
+            span {
+                max-width: 150px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
 

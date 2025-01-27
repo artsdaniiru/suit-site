@@ -8,17 +8,16 @@
                     <div class="product-main-head">
                         <div class="type">
                             <label>タイプ：</label>
-                            <span>{{ data.product.type == 'suit' ? 'スーツ' : '他の' }}</span>
+                            <span>{{ data.product.type == 'suit' ? 'スーツ' : '他' }}</span>
                         </div>
                         <CustomSwitch v-model="data.product.active" :labelText="'表示'" labelPosition="side" />
                     </div>
 
                     <template v-for="(item, key) in product_headers" :key="item">
-                        <CustomSelect v-if="key == 'type'" :values="{ suit: 'スーツ', not_suit: '他の' }" v-model="data.product[key]" :labelText="item" :notSelect="false" />
+                        <CustomSelect v-if="key == 'type'" :values="{ suit: 'スーツ', not_suit: '他' }" v-model="data.product[key]" :labelText="item" :notSelect="false" />
                         <CustomSwitch v-else-if="key == 'popular'" v-model="data.product[key]" :labelText="item" />
                         <div class="description" v-else-if="key == 'description'">
                             <label>{{ item }}</label>
-                            <!-- <textarea :value="data.product[key]" /> -->
                             <QuillEditor theme="snow" v-model:content="data.product[key]" contentType="html" />
                         </div>
                         <CustomInput v-else v-model="data.product[key]" :labelText="item" :placeholderText="item" />

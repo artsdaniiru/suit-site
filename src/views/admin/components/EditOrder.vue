@@ -33,7 +33,7 @@
         </div>
         <div class="order">
             <span class="label">注文内容</span>
-            <div class="order-item" v-for="(item, key) in data.products" :key="item">
+            <div class="order-item" v-for="item in data.products" :key="item">
                 <img class="image" :src="item.product.image_path" alt="product">
                 <div class="info">
                     <span class="name">{{ item.product.name }}</span>
@@ -48,9 +48,6 @@
                     <span class="price">{{ priceFormatter(item.product.price) }}¥</span>
                 </div>
 
-                <!-- Edit and Delete icons -->
-                <img class="edit" src="@/assets/icons/pencil.svg" alt="edit" @click="editProduct(key)">
-                <img class="delete" src="@/assets/icons/delete-admin.svg" alt="delete" @click="deleteProduct(key)">
             </div>
         </div>
         <!-- Total Price -->
@@ -60,10 +57,6 @@
 
         <div class="actions">
             <div class="dates">
-                <!-- <div class="date">
-                    <span>登録日：</span>
-                    <span>{{ data.client.date_of_registration }}</span>
-                </div> -->
 
             </div>
             <div class="buttons">
@@ -74,38 +67,6 @@
         </div>
     </div>
 
-    <CustomModal class="delete" v-model="deleteModalFlag" :title="'商品削除'" :in_modal="true">
-        <div class="delete-container">
-            <button class="button danger" @click="deleteAction">削除</button>
-            <button class="button" @click="deleteModalFlag = false;">戻る</button>
-        </div>
-    </CustomModal>
-    <CustomModal class="edit-product" v-model="editProductModalFlag" :title="'商品編集'" :in_modal="true">
-        <div class="edit-product-modal">
-            <div class="form">
-                <!-- Product Image -->
-                <div class="product-image">
-                    <img src="/Image.png" alt="product">
-                </div>
-
-                <!-- Product Details Form -->
-                <div class="product-details">
-                    <CustomInput v-model="productEditData.size" labelText="サイズ" placeholderText="Enter size" />
-                    <CustomSelect :values="{ S: 'Small', M: 'Medium', L: 'Large' }" v-model="productEditData.size" :labelText="'サイズ選択'" />
-                    <CustomSelect :values="{ wool: 'Wool', cotton: 'Cotton', silk: 'Silk' }" v-model="productEditData.material" :labelText="'生地の種類'" />
-                    <CustomSelect :values="{ red: 'Red', blue: 'Blue', black: 'Black' }" v-model="productEditData.color" :labelText="'色選択'" />
-                    <CustomSelect :values="{ round: 'Round', square: 'Square', diamond: 'Diamond' }" v-model="productEditData.buttonType" :labelText="'ボタンの種類'" />
-                </div>
-            </div>
-
-
-            <!-- Actions -->
-            <div class="modal-actions">
-                <button class="button" @click="saveProductEdit">保存</button>
-                <button class="button button-plain" @click="editProductModalFlag = false">キャンセル</button>
-            </div>
-        </div>
-    </CustomModal>
     <CustomModal v-model="editAddressModalFlag" :title="'住所編集'" :in_modal="true">
         <div class="edit-address-modal">
             <CustomInput v-model="addressEditData.name" labelText="名前" placeholderText="Enter name" />
@@ -624,6 +585,12 @@ export default defineComponent({
         justify-content: flex-end;
         gap: 12px;
     }
+}
+
+.edit-address-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 

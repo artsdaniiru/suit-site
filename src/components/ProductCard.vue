@@ -69,6 +69,10 @@ export default defineComponent({
     text-align: start;
     height: 450px;
 
+    @include respond-to('md') {
+        height: unset;
+    }
+
     .product-image {
         width: 100%;
         border-radius: 8px;
@@ -82,6 +86,7 @@ export default defineComponent({
         flex-direction: column;
         gap: 8px;
         line-height: 140%;
+        max-width: 250px;
 
         .name {
             font-weight: 400;
@@ -96,6 +101,10 @@ export default defineComponent({
         .english-name {
             font-weight: 400;
             font-size: 14px;
+            max-height: 24px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
             color: #757575;
         }

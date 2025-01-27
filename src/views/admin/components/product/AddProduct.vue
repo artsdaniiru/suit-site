@@ -6,7 +6,7 @@
             <div class="side">
                 <div class="product-main">
                     <template v-for="(item, key) in product_headers" :key="item">
-                        <CustomSelect v-if="key == 'type'" :values="{ suit: 'スーツ', not_suit: '他の' }" v-model="data.product[key]" :labelText="item" :notSelect="false" />
+                        <CustomSelect v-if="key == 'type'" :values="{ suit: 'スーツ', not_suit: '他' }" v-model="data.product[key]" :labelText="item" :notSelect="false" />
                         <CustomSwitch v-else-if="key == 'popular'" v-model="data.product[key]" :labelText="item" />
                         <div class="description" v-else-if="key == 'description'">
                             <label>{{ item }}</label>
