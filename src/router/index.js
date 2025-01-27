@@ -28,7 +28,7 @@ const routes = [
     component: () => import('../views/UsersView.vue')
   },
   {
-    path: '/catalog',
+    path: '/catalog/:page(\\d+)?',
     name: 'catalog',
     component: () => import('../views/CatalogView.vue')
   },

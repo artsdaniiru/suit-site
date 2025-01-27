@@ -35,6 +35,7 @@ import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ProductCard from "../components/ProductCard.vue";
 import CustomSelect from "../components/CustomSelect.vue";
+import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
   name: "HomeView",
@@ -43,48 +44,40 @@ export default defineComponent({
     CustomSelect,
   },
   setup() {
+    const route = useRoute();
+    const router = useRouter();
 
     const is_loading = ref(true);
-
     const items = ref([]); // Хранение товаров
-    const searchQuery = ref("");
-
-    const itemsPerPage = ref(8);
+    const searchQuery = ref(route.query.query || "");
+    const itemsPerPage = ref(Number(route.query.itemsPerPage) || 8);
     const totalPages = ref(0);
-    const filter = ref('');
-    const currentPage = ref(1);
-
-    const sortBy = ref("recommended");
-
-
+    const filter = ref(route.query.filter || "");
+    const currentPage = ref(Number(route.params.page) || 1);
+    const sortBy = ref(route.query.sort || "recommended");
 
     // Метод для получения товаров с сервера
     const fetchProducts = async () => {
       is_loading.value = true;
       try {
-        // console.log(sortOrder.value);
-
         let sort = '';
-
 
         switch (sortBy.value) {
           case 'new':
             sort = '&sort=newest';
             break;
           case 'lowToHigh':
-            sort = '&sort=lowest_price'
+            sort = '&sort=lowest_price';
             break;
           case 'highToLow':
-            sort = '&sort=highest_price'
+            sort = '&sort=highest_price';
             break;
           case 'recommended':
             sort = '&sort=recommended';
             break;
-
           default:
             break;
         }
-
 
         let q_filter = '';
         switch (filter.value) {
@@ -100,34 +93,27 @@ export default defineComponent({
           case 'not_suit':
             q_filter = '&productType=not_suit';
             break;
-
           default:
             break;
         }
 
         let query = '';
-
-        if (searchQuery.value != '') {
+        if (searchQuery.value !== '') {
           query = '&query=' + searchQuery.value;
         }
 
         let url = process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=' + itemsPerPage.value + '&page=' + currentPage.value + sort + q_filter + query;
 
-
         const response = await axios.get(url, {
           withCredentials: true
         });
 
-        // console.log(response);
-
-        // Убедимся, что товары приходят в поле `products`
         if (Array.isArray(response.data.products)) {
-          // Преобразуем данные (например, конвертируем цену в число)
           items.value = response.data.products.map(product => ({
             ...product,
-            min_price: Number(product.min_price), // Преобразуем строку в число
+            min_price: Number(product.min_price),
           }));
-          totalPages.value = response.data.pagination.totalPages
+          totalPages.value = response.data.pagination.totalPages;
           is_loading.value = false;
         } else {
           console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
@@ -137,8 +123,18 @@ export default defineComponent({
       }
     };
 
-
-
+    const updateURL = () => {
+      const queryParams = {
+        filter: filter.value || undefined,
+        itemsPerPage: itemsPerPage.value !== 8 ? itemsPerPage.value : undefined,
+        query: searchQuery.value || undefined,
+        sort: sortBy.value !== 'recommended' ? sortBy.value : undefined
+      };
+      router.push({
+        path: `/catalog/${currentPage.value}`,
+        query: queryParams
+      });
+    };
 
     function sortItems(type) {
       sortBy.value = type;
@@ -146,19 +142,19 @@ export default defineComponent({
     }
 
     watch([itemsPerPage, filter, searchQuery, sortBy], () => {
-      fetchProducts()
+      fetchProducts();
       currentPage.value = 1;
-    });
-    watch(currentPage, () => {
-      fetchProducts()
+      updateURL();
     });
 
-    // Загружаем товары при монтировании компонента
+    watch(currentPage, () => {
+      fetchProducts();
+      updateURL();
+    });
+
     onMounted(() => {
       fetchProducts();
     });
-
-
 
     return {
       searchQuery,
