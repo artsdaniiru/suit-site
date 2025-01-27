@@ -328,7 +328,7 @@ switch ($action) {
 
             // SQL query (to client_payment_methods)
             $sql = "SELECT * FROM client_payment_methods
-                    WHERE client_id=$client_id";
+                    WHERE client_id=$client_id AND active=1";
             $result = $conn->query($sql);
 
             $client_payment_methods = [];
