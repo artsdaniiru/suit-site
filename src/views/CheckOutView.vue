@@ -418,7 +418,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .checkout-view {
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 24px;
   }
 }
@@ -434,7 +434,7 @@ h2 {
   border-radius: 8px;
   padding: 24px;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     border: none;
     padding: 0px;
   }
@@ -447,7 +447,7 @@ h2 {
 
   gap: 20px;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     grid-template-columns: 1fr;
   }
 

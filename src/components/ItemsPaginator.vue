@@ -115,7 +115,7 @@ export default defineComponent({
     margin-top: auto;
     gap: 8px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
         margin-bottom: 20px;
     }
 

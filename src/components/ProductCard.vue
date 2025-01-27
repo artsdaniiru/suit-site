@@ -69,7 +69,7 @@ export default defineComponent({
     text-align: start;
     height: 450px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
         height: unset;
     }
 

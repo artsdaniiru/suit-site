@@ -1,27 +1,6 @@
-$breakpoints: ('xs': 0,
-  'sm': 480px,
-  'md': 768px,
-  'lg': 1024px,
-  'xl': 1200px,
-  'xxl': 1400px);
-
-@mixin respond-to($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    $value: map-get($breakpoints, $breakpoint);
-
-    @if $value !=0 {
-      @media (max-width: $value) {
-        @content;
-      }
-    }
-
-    @else {
-      @content;
-    }
-  }
-
-  @else {
-    @warn "No value found for breakpoint: #{$breakpoint}";
+@mixin is-mobile() {
+  @media screen and (max-width: 768px) {
+    @content;
   }
 }
 
@@ -58,7 +37,7 @@ main {
   flex-direction: column;
   min-height: 100vh;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     min-width: 0px;
     width: 100vw;
     overflow-x: hidden;

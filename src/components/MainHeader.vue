@@ -171,7 +171,7 @@ header {
         height: 65px;
     }
 
-    @include respond-to('md') {
+    @include is-mobile() {
         padding: 0px 16px 0px 16px;
         width: calc(100vw - 32px);
         left: 0;
@@ -202,7 +202,7 @@ header {
             display: none;
             user-select: none;
 
-            @include respond-to('md') {
+            @include is-mobile() {
                 display: flex;
                 align-items: center;
                 gap: 16px;
@@ -221,12 +221,12 @@ header {
             align-items: center;
 
             &.desktop {
-                @include respond-to('md') {
+                @include is-mobile() {
                     display: none;
                 }
             }
 
-            @include respond-to('md') {
+            @include is-mobile() {
                 flex-direction: column;
                 justify-content: unset;
             }

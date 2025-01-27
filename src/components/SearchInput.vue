@@ -42,7 +42,7 @@ export default defineComponent({
     input {
         border-radius: 20px;
 
-        @include respond-to('md') {
+        @include is-mobile() {
             width: -webkit-fill-available;
 
         }
@@ -60,7 +60,7 @@ export default defineComponent({
         height: 16px;
     }
 
-    @include respond-to('md') {
+    @include is-mobile() {
         width: -webkit-fill-available;
 
     }

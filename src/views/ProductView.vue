@@ -70,68 +70,6 @@
 
     </div>
 
-
-    <div class="add-product" v-if="data.product.type == 'suit' && ADD_PRODUCTS">
-      <h2>追加の商品</h2>
-
-      <form class="add-content">
-
-        <div class="add-card">
-          <div class="card-box">
-            <div class="img-box">
-              <img src="/Image.png" alt="シャツ">
-            </div>
-
-            <p>シャツ</p>
-            <p>¥5000</p>
-          </div>
-
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
-          </div>
-        </div>
-
-        <div class="add-card">
-          <div class="card-box">
-            <div class="img-box">
-              <img src="/Image.png" alt="シャツ">
-            </div>
-            <p>靴下</p>
-            <p>¥1000</p>
-          </div>
-
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
-          </div>
-          <span class="card-icq"></span>
-        </div>
-
-        <div class="add-card">
-          <div class="card-box opacity">
-            <div class="img-box">
-              <img src="/Image.png" alt="シャツ">
-            </div>
-            <p>シューズ</p>
-            <p>¥7000</p>
-          </div>
-
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="customCheck" v-model="isChecked" />
-          </div>
-          <span class="card-icq"></span>
-        </div>
-
-        <div class="add-card buy">
-          <span class="price">{{ formattedPrice }}</span>
-          <button class="button">カートに追加</button>
-
-        </div>
-
-      </form>
-
-
-
-    </div>
     <div class="description" v-if="data.product.description != ''">
       <h2>商品説明</h2>
       <div v-html="data.product.description"></div>
@@ -150,8 +88,6 @@ import { useToast } from 'vue-toast-notification';
 export default defineComponent({
   name: "ProductCard",
   setup() {
-
-    const ADD_PRODUCTS = ref(false);
 
     const toast = useToast();
     //users thing
@@ -590,12 +526,7 @@ export default defineComponent({
       deleteFromCartLocal,
       updateCartLocal,
       showNotIf,
-
-
-
-      ADD_PRODUCTS
-
-      , setSizeNotSuit
+      setSizeNotSuit
     };
   },
 });
@@ -606,7 +537,7 @@ export default defineComponent({
   padding: 64px;
   gap: 64px;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 24px;
     gap: 24px;
   }
@@ -618,7 +549,7 @@ export default defineComponent({
 
     flex-direction: unset;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       flex-direction: column;
       justify-content: unset;
       gap: 24px;
@@ -631,7 +562,7 @@ export default defineComponent({
       flex-direction: column;
       gap: 12px;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         width: -webkit-fill-available;
       }
 
@@ -671,7 +602,7 @@ export default defineComponent({
       flex-direction: column;
       gap: 24px;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         width: -webkit-fill-available;
       }
 
@@ -716,7 +647,7 @@ export default defineComponent({
           display: flex;
           gap: 24px;
 
-          @include respond-to('md') {
+          @include is-mobile() {
             flex-direction: column;
           }
 
@@ -814,7 +745,7 @@ export default defineComponent({
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
 

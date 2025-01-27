@@ -99,7 +99,7 @@ export default defineComponent({
     flex-direction: column;
     gap: 8px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
         min-width: unset;
         max-width: unset;
         width: -webkit-fill-available;

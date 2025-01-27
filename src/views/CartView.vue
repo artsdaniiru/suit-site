@@ -291,7 +291,7 @@ export default defineComponent({
     margin-bottom: 0px;
   }
 
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 24px;
   }
 }
@@ -310,7 +310,7 @@ h3 {
 }
 
 h2 {
-  @include respond-to('md') {
+  @include is-mobile() {
     font-size: 24px;
     margin-top: 0px;
     margin-bottom: 0px;
@@ -329,7 +329,7 @@ h2 {
   justify-content: space-between;
   margin: 24px 0;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     flex-direction: column;
     position: relative;
   }
@@ -339,7 +339,7 @@ h2 {
     gap: 24px;
     padding: 24px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       padding: 12px;
     }
 
@@ -351,7 +351,7 @@ h2 {
       border-radius: 5px;
       cursor: pointer;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         width: 80px;
         height: 80px;
       }
@@ -359,7 +359,7 @@ h2 {
     }
 
     .product-title {
-      @include respond-to('md') {
+      @include is-mobile() {
         font-size: 18px;
       }
     }
@@ -374,7 +374,7 @@ h2 {
       gap: 12px;
       align-items: baseline;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         display: grid;
         grid-template-columns: 1fr;
       }
@@ -409,7 +409,7 @@ h2 {
         font-size: 18px;
       }
 
-      @include respond-to('md') {
+      @include is-mobile() {
         margin-left: auto;
         margin-right: 10px;
       }
@@ -437,7 +437,7 @@ h2 {
         }
       }
 
-      @include respond-to('md') {
+      @include is-mobile() {
         position: absolute;
         right: 10px;
         top: 10px;
@@ -468,7 +468,7 @@ h2 {
         }
       }
 
-      @include respond-to('md') {
+      @include is-mobile() {
         position: absolute;
         right: 10px;
         top: 30px;

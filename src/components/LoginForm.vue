@@ -212,7 +212,7 @@ export default defineComponent({
             gap: 8px;
             min-width: 400px;
 
-            @include respond-to('md') {
+            @include is-mobile() {
                 min-width: unset;
             }
         }

@@ -176,7 +176,7 @@ export default defineComponent({
   align-items: baseline;
   margin: 20px 0;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 0px 24px;
     flex-direction: column;
     justify-content: unset;
@@ -189,7 +189,7 @@ export default defineComponent({
     gap: 20px;
     align-items: center;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       width: 100%;
       flex-direction: column-reverse;
 
@@ -199,7 +199,7 @@ export default defineComponent({
       display: flex;
       gap: 10px;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         width: 100%;
         flex-wrap: wrap;
 
@@ -219,7 +219,7 @@ export default defineComponent({
 
         outline: unset;
 
-        @include respond-to('md') {
+        @include is-mobile() {
           font-size: 12px;
 
         }
@@ -243,7 +243,7 @@ export default defineComponent({
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 20px;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     grid-template-columns: 1fr;
   }
 

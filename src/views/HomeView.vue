@@ -211,7 +211,7 @@ export default defineComponent({
 .section-box {
     padding: 10px 64px 10px 64px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
         padding: 10px 24px 10px 24px;
     }
 }
@@ -225,7 +225,7 @@ export default defineComponent({
     height: 495px;
     position: relative;
 
-    @include respond-to('md') {
+    @include is-mobile() {
         height: 350px;
     }
 
@@ -246,11 +246,11 @@ export default defineComponent({
             text-align: center;
             color: #fff;
 
-            @include respond-to('md') {
+            @include is-mobile() {
                 padding: 0px 24px;
             }
 
-            @include respond-to('md') {
+            @include is-mobile() {
                 font-size: 24px;
             }
         }
@@ -280,7 +280,7 @@ export default defineComponent({
         margin-top: 20px;
         gap: 64px;
 
-        @include respond-to('md') {
+        @include is-mobile() {
             flex-direction: column;
             justify-content: unset;
             gap: 20px;

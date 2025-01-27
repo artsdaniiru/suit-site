@@ -570,7 +570,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .account {
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 24px;
   }
 }
@@ -610,7 +610,7 @@ h2 {
   gap: 20px;
   margin-bottom: 64px;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     grid-template-columns: 1fr;
   }
 
@@ -626,7 +626,7 @@ h2 {
     width: -webkit-fill-available;
     height: min-content;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       border: none;
       padding: 0px;
     }
@@ -640,7 +640,7 @@ h2 {
     }
 
     .sizes {
-      @include respond-to('md') {
+      @include is-mobile() {
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-rows: auto auto;
@@ -677,7 +677,7 @@ h2 {
     height: min-content;
     margin-top: 20px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       border: none;
       padding: 0px;
     }
@@ -690,7 +690,7 @@ h2 {
     border-radius: 8px;
     padding: 24px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       border: none;
       padding: 0px;
     }
@@ -758,7 +758,7 @@ h2 {
     flex-direction: column;
     gap: 20px;
 
-    @include respond-to('md') {
+    @include is-mobile() {
       border: none;
       padding: 0px;
     }
@@ -771,7 +771,7 @@ h2 {
       width: -webkit-fill-available;
       padding: 32px;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         padding: 24px;
 
         p {
@@ -858,7 +858,7 @@ h2 {
   padding: 24px;
   width: -webkit-fill-available;
 
-  @include respond-to('md') {
+  @include is-mobile() {
     padding: 0px;
   }
 
@@ -874,14 +874,14 @@ h2 {
       gap: 24px;
       padding: 24px;
 
-      @include respond-to('md') {
+      @include is-mobile() {
         padding: 12px;
       }
 
       h3 {
         margin-top: 0px;
 
-        @include respond-to('md') {
+        @include is-mobile() {
           font-size: 18px;
         }
       }
@@ -891,7 +891,7 @@ h2 {
         height: 100px;
         object-fit: cover;
 
-        @include respond-to('md') {
+        @include is-mobile() {
           width: 70px;
           height: 70px;
         }
