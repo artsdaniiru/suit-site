@@ -448,7 +448,8 @@ h2 {
   gap: 20px;
 
   @include is-mobile() {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
   }
 
 
@@ -464,6 +465,10 @@ h2 {
 
     &.selected {
       border: 1px solid #1e1e1e;
+    }
+
+    p {
+      word-wrap: break-word;
     }
 
     .icon-selected {
