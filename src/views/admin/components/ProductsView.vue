@@ -30,6 +30,9 @@ import ItemsTable from './ItemsTable.vue';
 import EditProduct from './product/EditProduct.vue';
 import AddProduct from './product/AddProduct.vue';
 
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
+
 export default defineComponent({
     name: "CatalogView", components: {
         ItemsTable,
@@ -161,9 +164,11 @@ export default defineComponent({
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                    toast.error("エラー:" + response.data);
                 }
             } catch (error) {
                 console.error("Ошибка при получении товаров:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -187,9 +192,11 @@ export default defineComponent({
                     options.value = response.data.options;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                    toast.error("エラー:" + response.data);
                 }
             } catch (error) {
                 console.error("Ошибка при получении товаров:", error);
+                toast.error("エラー:" + error);
             }
         };
 

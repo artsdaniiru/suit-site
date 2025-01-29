@@ -23,6 +23,10 @@ import { defineComponent, ref, inject, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios';
 
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
+
+
 export default defineComponent({
     name: 'LoginView',
     setup() {
@@ -70,6 +74,7 @@ export default defineComponent({
                 }
             } catch (error) {
                 console.error('Error during login:', error);
+                toast.error("Error during login:" + error);
             }
         };
 

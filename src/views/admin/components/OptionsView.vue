@@ -16,10 +16,10 @@
     <ItemsPaginator :totalPages="totalPages" v-model="currentPage" />
 
     <CustomModal v-model="closeFlag" :title="'追加オプション変更'">
-        <EditOption :option_id="option_id" :types="options_types" @optionUpdate="fetchProducts" />
+        <EditOption :option_id="option_id" :types="options_types" @optionUpdate="fetchProducts(); closeFlag = false" />
     </CustomModal>
     <CustomModal v-model="closeFlagAdd" :title="'新追加オプション作成'">
-        <AddOption :types="options_types" @optionAdd="fetchProducts" />
+        <AddOption :types="options_types" @optionAdd="fetchProducts(); closeFlag = false" />
     </CustomModal>
 
 </template>
@@ -29,6 +29,8 @@ import axios from "axios";
 import ItemsTable from './ItemsTable.vue';
 import AddOption from './options/AddOption.vue';
 import EditOption from './options/EditOption.vue';
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "CatalogView", components: {
@@ -141,9 +143,11 @@ export default defineComponent({
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                    toast.error("エラー:" + response.data);
                 }
             } catch (error) {
                 console.error("Ошибка при получении товаров:", error);
+                toast.error("エラー:" + error);
             }
         };
 

@@ -87,6 +87,8 @@
 import CustomModal from "@/components/CustomModal.vue";
 import axios from "axios";
 import { defineComponent, ref, onMounted, watch, computed } from "vue";
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "EditOrder",
@@ -184,10 +186,12 @@ export default defineComponent({
                     emit("orderDelete");
                 } else {
                     console.error("Ошибка при удалении заказа:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
 
             } catch (error) {
                 console.error("Ошибка при удалении заказа:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -208,10 +212,12 @@ export default defineComponent({
 
                 } else {
                     console.error("Ошибка при получении заказа:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
 
             } catch (error) {
                 console.error("Ошибка при получении заказа:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -231,6 +237,7 @@ export default defineComponent({
 
                 if (response.data.status !== "success") {
                     console.error("Ошибка при сохранении заказа:", response.data.message);
+                    toast.error("エラー:" + response.data.message);
                     return;
                 } else {
                     setTimeout(() => {
@@ -241,6 +248,7 @@ export default defineComponent({
                 }
             } catch (error) {
                 console.error("Ошибка при сохранении заказа:", error);
+                toast.error("エラー:" + error);
             }
         };
 

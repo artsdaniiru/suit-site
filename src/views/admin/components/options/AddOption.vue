@@ -16,7 +16,7 @@
 
             </div>
             <div class="buttons">
-                <button class="button" @click="saveProduct">新商品作成</button>
+                <button class="button" @click="saveOption">新商品作成</button>
             </div>
 
         </div>
@@ -24,8 +24,10 @@
 
 </template>
 <script>
-// import axios from "axios";
+import axios from "axios";
 import { defineComponent, ref } from "vue";
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "AddOption",
@@ -58,62 +60,36 @@ export default defineComponent({
 
 
 
-        const saveProduct = async () => {
+        const saveOption = async () => {
             try {
 
 
                 console.log(data.value);
 
 
-                // const productResponse = await axios.post(
-                //     process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=add_product',
-                //     {
-                //         data: data.value,
-                //     },
-                //     { withCredentials: true }
-                // );
+                const optionResponse = await axios.post(
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=add_options',
+                    data.value,
+                    { withCredentials: true }
+                );
 
 
-                // if (productResponse.data.status !== "success") {
-                //     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
-                //     return;
-                // } else {
+                if (optionResponse.data.status !== "success") {
+                    console.error("Ошибка при сохранении продукта:", optionResponse.data.message);
+                    toast.error("エラー:" + optionResponse.data.message);
+                    return;
+                } else {
 
-                //     // Затем загружаем изображения
-                //     for (const img of tempImages.value) {
-                //         const formData = new FormData();
-                //         formData.append("image", img.file);
-                //         formData.append("option_id", data.value.product.id);
 
-                //         const imageResponse = await axios.post(
-                //             process.env.VUE_APP_BACKEND_URL + '/backend/admin/upload_image.php?option_id=' + data.value.product.id,
-                //             formData,
-                //             {
-                //                 headers: { "Content-Type": "multipart/form-data" },
-                //                 withCredentials: true,
-                //             }
-                //         );
+                    setTimeout(() => {
+                        emit("optionAdd");
 
-                //         if (imageResponse.data.status === "success") {
-                //             data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
-                //         } else {
-                //             console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
-                //         }
-                //     }
+                    }, 200);
 
-                //     // Очищаем временные изображения после успешного сохранения
-                //     tempImages.value = [];
-
-                //     setTimeout(() => {
-                //         emit("productAdd");
-
-                //     }, 200);
-
-                // }
-
-                emit("productAdd");
+                }
             } catch (error) {
                 console.error("Ошибка при сохранении продукта:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -123,7 +99,7 @@ export default defineComponent({
         return {
             data,
             product_headers,
-            saveProduct,
+            saveOption,
         };
     }
 });

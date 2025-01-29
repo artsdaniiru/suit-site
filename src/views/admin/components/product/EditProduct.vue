@@ -117,6 +117,9 @@ import CustomSwitch from '../CustomSwitch.vue';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
+
 export default defineComponent({
     name: "EditProduct",
     components: {
@@ -410,10 +413,12 @@ export default defineComponent({
                     emit("productDelete");
                 } else {
                     console.error("Ошибка при удалении товара:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
 
             } catch (error) {
                 console.error("Ошибка при удалении товара:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -432,10 +437,12 @@ export default defineComponent({
                     selected_options.value = getSelectedOptions();
                 } else {
                     console.error("Ошибка при получении товара:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
 
             } catch (error) {
                 console.error("Ошибка при получении товара:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -461,6 +468,7 @@ export default defineComponent({
                         data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
                     } else {
                         console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
+                        toast.error("エラー:" + imageResponse.data.message);
                     }
                 }
 
@@ -479,6 +487,7 @@ export default defineComponent({
 
                 if (productResponse.data.status !== "success") {
                     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                    toast.error("エラー:" + productResponse.data.message);
                     return;
                 } else {
                     setTimeout(() => {
@@ -489,6 +498,7 @@ export default defineComponent({
                 }
             } catch (error) {
                 console.error("Ошибка при сохранении продукта:", error);
+                toast.error("エラー:" + error);
             }
         };
 

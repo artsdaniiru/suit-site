@@ -85,6 +85,8 @@
 import axios from "axios";
 import { defineComponent, ref, onMounted, watch } from "vue";
 import EditOrder from "./EditOrder.vue";
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "EditClient",
@@ -180,9 +182,11 @@ export default defineComponent({
                     emit("clientDelete");
                 } else {
                     console.error("Ошибка при удалении клиента:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
             } catch (error) {
                 console.error("Ошибка при удалении клиента:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -199,9 +203,11 @@ export default defineComponent({
                     data_original.value = JSON.parse(JSON.stringify(raw_data));
                 } else {
                     console.error("Ошибка при получении клиента:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
             } catch (error) {
                 console.error("Ошибка при получении клиента:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -227,6 +233,7 @@ export default defineComponent({
                 }
             } catch (error) {
                 console.error("Ошибка при сохранении клиента:", error);
+                toast.error("エラー:" + error);
             }
         };
 

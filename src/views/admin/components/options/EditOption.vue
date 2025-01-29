@@ -27,15 +27,25 @@
 
             </div>
             <div class="buttons">
-                <button class="button danger">削除</button>
+                <button class="button danger" @click="deleteModalFlag = true">削除</button>
                 <button class="button" :disabled="areDataEqual" @click="saveProduct">保存</button>
             </div>
         </div>
+
+        <CustomModal class="delete" v-model="deleteModalFlag" :title="'追加オプション削除'" :in_modal="true">
+            <div class="delete-container">
+                <button class="button danger" @click="deleteProduct">削除</button>
+                <button class="button" @click="deleteModalFlag = false;">戻る</button>
+            </div>
+        </CustomModal>
     </div>
 </template>
 <script>
 import axios from "axios";
 import { defineComponent, ref, onMounted, watch } from "vue";
+
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "EditOption",
@@ -91,10 +101,12 @@ export default defineComponent({
                     data_original.value = JSON.parse(JSON.stringify(raw_data));
                 } else {
                     console.error("Ошибка при получении товара:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
                 }
 
             } catch (error) {
                 console.error("Ошибка при получении товара:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -103,7 +115,7 @@ export default defineComponent({
 
 
                 const productResponse = await axios.post(
-                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_product&product_id=' + data.value.product.id,
+                    process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=edit_option&option_id=' + props.option_id,
                     {
                         data: data.value,
                         data_original: data_original.value
@@ -114,16 +126,18 @@ export default defineComponent({
 
                 if (productResponse.data.status !== "success") {
                     console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                    toast.error("エラー:" + productResponse.data.message);
                     return;
                 } else {
                     setTimeout(() => {
-                        emit("productUpdate");
+                        emit("optionUpdate");
                         fetchProduct();
                     }, 200);
 
                 }
             } catch (error) {
                 console.error("Ошибка при сохранении продукта:", error);
+                toast.error("エラー:" + error);
             }
         };
 
@@ -133,11 +147,41 @@ export default defineComponent({
             fetchProduct();
         });
 
+
+        const deleteModalFlag = ref(false);
+
+        // Следим за изменениями modelValue
+        watch(() => deleteModalFlag.value, () => {
+            document.body.classList.add('no-scroll');
+        });
+
+        // Метод для удаления товара
+        const deleteProduct = async () => {
+            try {
+                const response = await axios.get(process.env.VUE_APP_BACKEND_URL + '/backend/admin/products.php?action=delete_options&option_id=' + props.option_id, {
+                    withCredentials: true
+                });
+
+                if (response.data.status == "success") {
+                    emit("optionUpdate");
+                } else {
+                    console.error("Ошибка при удалении товара:", response.data.status);
+                    toast.error("エラー:" + response.data.status);
+                }
+
+            } catch (error) {
+                console.error("Ошибка при удалении товара:", error);
+                toast.error("エラー:" + error);
+            }
+        };
+
         return {
             data,
             product_headers,
             areDataEqual,
             saveProduct,
+            deleteModalFlag,
+            deleteProduct
         };
     }
 });
@@ -238,6 +282,17 @@ export default defineComponent({
         margin: auto;
         max-height: 80%;
         max-width: 80%;
+    }
+}
+
+.modal.delete {
+    z-index: 110;
+
+    .delete-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 12px;
     }
 }
 </style>

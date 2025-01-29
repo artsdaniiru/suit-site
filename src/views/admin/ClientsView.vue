@@ -24,6 +24,9 @@ import ItemsTable from './components/ItemsTable.vue';
 
 import EditClient from './components/EditClient.vue';
 
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
+
 export default defineComponent({
     name: "ClientsView", components: {
         ItemsTable,
@@ -125,9 +128,12 @@ export default defineComponent({
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                    toast.error("エラー:" + response.data);
+
                 }
             } catch (error) {
                 console.error("Ошибка при получении товаров:", error);
+                toast.error("エラー:" + error);
             }
         };
 

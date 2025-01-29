@@ -94,6 +94,9 @@ import CustomSwitch from '../CustomSwitch.vue';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
+
 export default defineComponent({
     name: "AddProduct",
     components: {
@@ -371,6 +374,7 @@ export default defineComponent({
 
                     if (productResponse.data.status !== "success") {
                         console.error("Ошибка при сохранении продукта:", productResponse.data.message);
+                        toast.error("エラー:" + productResponse.data.message);
                         return;
                     } else {
 
@@ -393,6 +397,7 @@ export default defineComponent({
                                 data.value.product_images = data.value.product_images.concat(imageResponse.data.uploadedImages);
                             } else {
                                 console.error("Ошибка при загрузке изображения:", imageResponse.data.message);
+                                toast.error("エラー:" + imageResponse.data.message);
                             }
                         }
 
@@ -422,7 +427,10 @@ export default defineComponent({
                     emit("productAdd");
                 } catch (error) {
                     console.error("Ошибка при сохранении продукта:", error);
+                    toast.error("エラー:" + error);
                 }
+            } else {
+                toast.warning("商品名がない");
             }
         };
 

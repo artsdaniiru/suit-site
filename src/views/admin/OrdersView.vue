@@ -23,6 +23,8 @@ import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import ItemsTable from './components/ItemsTable.vue';
 import EditOrder from "./components/EditOrder.vue";
+import { useToast } from "vue-toast-notification";
+const toast = useToast();
 
 export default defineComponent({
     name: "OrdersView", components: {
@@ -133,9 +135,11 @@ export default defineComponent({
                     is_loading.value = false;
                 } else {
                     console.error("Ожидался массив товаров, но получено что-то другое:", response.data);
+                    toast.error("エラー。");
                 }
             } catch (error) {
                 console.error("Ошибка при получении товаров:", error);
+                toast.error("エラー。");
             }
         };
 
