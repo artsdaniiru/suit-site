@@ -615,6 +615,12 @@ h2 {
       position: absolute;
       transform: scale(0.5);
       bottom: -10px;
+
+      @include is-mobile() {
+        top: -7px;
+        left: -6px;
+        bottom: unset;
+      }
     }
 
   }

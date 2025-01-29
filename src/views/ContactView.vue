@@ -35,5 +35,13 @@ export default defineComponent({
 
     width: 80%;
 
+    @include is-mobile() {
+        margin-left: unset;
+        margin-right: unset;
+        padding-left: 24px;
+        padding-right: 24px;
+        width: -webkit-fill-available;
+    }
+
 }
 </style>

@@ -32,11 +32,11 @@ const routes = [
     name: 'catalog',
     component: () => import('../views/CatalogView.vue')
   },
-  {
-    path: '/test-api',
-    name: 'Test API',
-    component: () => import('../views/TestApiView.vue')
-  },
+  // {
+  //   path: '/test-api',
+  //   name: 'Test API',
+  //   component: () => import('../views/TestApiView.vue')
+  // },
   {
     path: '/product/:uid',
     name: 'product',

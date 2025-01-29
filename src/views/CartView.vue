@@ -25,7 +25,7 @@
               <div class="price-info">
                 <div class="price-title">
                   <h3 class="product-title" @click="goToProductPage(item.id)">{{ items[item.id].name }}</h3>
-                  <p class="product-title">{{ englishName }}</p>
+                  <p class="product-title">{{ items[item.id].name_name }}</p>
                   <div class="price-size">
                     <template v-if="items[item.id].type == 'suit'">
                       <div class="size-price">
@@ -471,7 +471,7 @@ h2 {
       @include is-mobile() {
         position: absolute;
         right: 10px;
-        top: 30px;
+        top: 35px;
         margin: unset;
       }
     }
