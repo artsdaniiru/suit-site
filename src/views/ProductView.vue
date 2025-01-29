@@ -33,37 +33,38 @@
         <div class="size-form" v-if="data.product.type == 'suit'">
           <div class="size-cont grid">
 
-            <CustomInput v-model="body_sizes.height" :labelText="'身長'" placeholderText="175cm" type="number" />
-            <CustomInput v-model="body_sizes.shoulder_width" :labelText="'肩幅'" placeholderText="40cm" type="number" />
-            <CustomInput v-model="body_sizes.waist_size" :labelText="'ウェストサイズ'" placeholderText="70cm" type="number" />
+            <CustomInput v-model="body_sizes.height" @update:modelValue="is_edited = true" :labelText="'身長'" placeholderText="175cm" type="number" />
+            <CustomInput v-model="body_sizes.shoulder_width" @update:modelValue="is_edited = true" :labelText="'肩幅'" placeholderText="40cm" type="number" />
+            <CustomInput v-model="body_sizes.waist_size" @update:modelValue="is_edited = true" :labelText="'ウェストサイズ'" placeholderText="70cm" type="number" />
           </div>
 
           <div class="size-cont">
             <div class="size-box">
-              <CustomSelect :values="options.cloth" v-model="selectedOptions.cloth" :labelText="'生地の種類'" />
+              <CustomSelect :values="options.cloth" v-model="selectedOptions.cloth" @update:modelValue="is_edited = true" :labelText="'生地の種類'" />
             </div>
             <div class="size-box">
-              <CustomSelect :values="options.color" v-model="selectedOptions.color" :labelText="'生地の色'" />
+              <CustomSelect :values="options.color" v-model="selectedOptions.color" @update:modelValue="is_edited = true" :labelText="'生地の色'" />
             </div>
           </div>
           <div class="size-cont">
             <div class="size-box">
 
-              <CustomSelect :values="options.lining" v-model="selectedOptions.lining" :labelText="'裏地の種類'" />
+              <CustomSelect :values="options.lining" v-model="selectedOptions.lining" @update:modelValue="is_edited = true" :labelText="'裏地の種類'" />
             </div>
             <div class="size-box">
-              <CustomSelect :values="options.button" v-model="selectedOptions.button" :labelText="'ボタンの種類'" />
+              <CustomSelect :values="options.button" v-model="selectedOptions.button" @update:modelValue="is_edited = true" :labelText="'ボタンの種類'" />
             </div>
           </div>
         </div>
         <div class="size-form" v-else>
-          <CustomSelect :values="sizes_o" v-model="selectedSizeId" :labelText="'サイズ'" :notSelect="true" />
+          <CustomSelect :values="sizes_o" v-model="selectedSizeId" @update:modelValue="is_edited = true" :labelText="'サイズ'" :notSelect="true" />
         </div>
 
         <button v-if="!in_cart" class="button" @click="addToCartLocal">カートに追加</button>
         <div class="edit-btn" v-else>
-          <button class="button edit" @click="updateCartLocal">編集</button>
+          <button class="button edit" @click="updateCartLocal" :disabled="!is_edited">変更</button>
           <button class="button danger" @click="deleteFromCartLocal">削除</button>
+          <button class="button edit" @click="goTo('/cart')">カートへ</button>
         </div>
 
       </div>
@@ -130,6 +131,8 @@ export default defineComponent({
       product_images: [],
 
     });
+
+    const is_edited = ref(false);
 
 
 
@@ -505,6 +508,9 @@ export default defineComponent({
       fetchProduct();
     });
 
+    function goTo(url) {
+      router.push(url);
+    }
 
     return {
       formattedPrice,
@@ -526,7 +532,9 @@ export default defineComponent({
       deleteFromCartLocal,
       updateCartLocal,
       showNotIf,
-      setSizeNotSuit
+      setSizeNotSuit,
+      goTo,
+      is_edited
     };
   },
 });
@@ -666,13 +674,23 @@ export default defineComponent({
       }
 
       .edit-btn {
-        display: flex;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
         width: -webkit-fill-available;
 
         .button {
           width: -webkit-fill-available;
+
+          &:last-of-type {
+            grid-column: span 2;
+
+          }
         }
+
+
+
+
       }
     }
 
