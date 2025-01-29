@@ -341,6 +341,7 @@ h2 {
 
     @include is-mobile() {
       padding: 12px;
+      flex-direction: column;
     }
 
 
@@ -361,6 +362,12 @@ h2 {
     .product-title {
       @include is-mobile() {
         font-size: 18px;
+        position: absolute;
+        top: 12px;
+        left: 100px;
+        max-width: 200px;
+        word-wrap: break-word;
+
       }
     }
 
@@ -377,6 +384,7 @@ h2 {
       @include is-mobile() {
         display: grid;
         grid-template-columns: 1fr;
+        gap: 0px;
       }
 
       .size-price {

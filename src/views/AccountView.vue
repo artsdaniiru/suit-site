@@ -142,7 +142,7 @@
         <div class="order-item" v-for="item in currentOrder.cart" :key="item">
           <img class="image" :src="item.image_path" alt="product">
           <div class="info">
-            <span class="name">{{ item.product_name }}</span>
+            <span class="name full">{{ item.product_name }}</span>
             <div class="elem">
               <span class="name">サイズ</span>
               <span class="value">{{ item.size_name }} <strong v-if="item.type == 'suit'">{{ priceFormatter(item.price) }}</strong></span>
@@ -908,6 +908,7 @@ h2 {
         flex-direction: column;
         justify-content: space-between;
 
+
       }
 
       .order-status {
@@ -980,6 +981,11 @@ h2 {
       font-size: 12px;
       line-height: 140%;
 
+      @include is-mobile() {
+        flex-direction: column;
+        position: relative;
+      }
+
       .image {
         width: 70px;
         height: 70px;
@@ -997,6 +1003,17 @@ h2 {
           font-weight: 600;
           font-size: 16px;
           line-height: 120%;
+
+          &.full {
+            @include is-mobile() {
+              font-size: 14px;
+              position: absolute;
+              top: 12px;
+              left: 100px;
+              max-width: 190px;
+              word-wrap: break-word;
+            }
+          }
         }
 
         .elem {
