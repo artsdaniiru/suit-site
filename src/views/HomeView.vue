@@ -118,7 +118,7 @@ export default defineComponent({
 
         const fetchProducts = async (type) => {
 
-            let filter = type == 'popular' ? '&is_popular=1' : '&is_new=1';
+            let filter = type == 'popular' ? '&popular=1' : '&newest=1';
 
             let url = process.env.VUE_APP_BACKEND_URL + '/backend/products.php?itemsPerPage=10' + filter;
 
